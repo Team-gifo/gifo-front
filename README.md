@@ -1,2 +1,3 @@
-# gifo-front
-front-end 작업 공간
+# gifo
+
+작업 개시 : 2025년 02월 11일 수요일
