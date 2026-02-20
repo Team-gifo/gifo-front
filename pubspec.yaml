@@ -32,11 +32,23 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # assets:
-  #   - assets/images/
-  #   - assets/lottie/
+  assets:
+    - assets/images/
+    - assets/lottie/
 
-  # fonts:
-  #   - family: Pretentard
-  #     fonts:
-  #       - asset: assets/fonts/Pretendard-Regular.otf
+  fonts:
+    - family: PFStardust
+      fonts:
+        - asset: assets/fonts/PF스타더스트 3.0.ttf
+        - asset: assets/fonts/PF스타더스트 3.0 Bold.ttf
+          weight: 700
+        - asset: assets/fonts/PF스타더스트 3.0 ExtraBold.ttf
+          weight: 800
+    - family: PFStardustS
+      fonts:
+        - asset: assets/fonts/PF스타더스트 3.0 S.ttf
+        - asset: assets/fonts/PF스타더스트 3.0 S Bold.ttf
+          weight: 700
+        - asset: assets/fonts/PF스타더스트 3.0 S ExtraBold.ttf
+          weight: 800
+
