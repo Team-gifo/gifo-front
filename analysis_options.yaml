@@ -1,0 +1,39 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"         # 코드 제너레이터가 생성한 파일 제외
+    - "**/*.freezed.dart"   # Freezed가 생성한 파일 제외
+  errors:
+    missing_return: error
+    todo: warning
+
+linter:
+  rules:
+    always_specify_types: true # 명시적 타입 지정
+    avoid_classes_with_only_static_members: true # 유틸 함수 전역으로 설정
+    avoid_escaping_inner_quotes: true # String 타입에서는 "" 사용
+    avoid_multiple_declarations_per_line: true # 한 줄에 한 개의 변수만 선언
+    avoid_unnecessary_containers: true # 불필요한 컨테이너 사용 방지
+    avoid_unused_constructor_parameters: true # 생성자 파라미터 체크
+    camel_case_types: true # UpperCamelCase
+    constant_identifier_names: true # LowerCamelCase (상수)
+    curly_braces_in_flow_control_structures: true # 한 줄 이하인 if문 중괄호 생략 방지
+    non_constant_identifier_names: true # LowerCamelCase (식별자)
+    unnecessary_async: true # 불필요한 비동기 방지
+    unnecessary_const: true # 불필요한 const 방지
+    unnecessary_parenthesis: true # 불필요한 괄호 방지
+    use_named_constants: true # 미리 정의된 상수값 사용
+    valid_regexps: true # 유효한 정규식 체크
+    prefer_const_constructors: true # 클래스의 생성자에서 const 사용 체크
+    prefer_const_constructors_in_immutables: true # @immutable 클래스의 생성자에서 const 사용 체크를 위함
+    prefer_const_literals_to_create_immutables: true # @immutable 클래스의 생성자의 리터럴 파라미터에서 const 사용 체크를 위함
+    prefer_single_quotes: true # 문자열을 선언할 때 "" 대신 '' 사용 강제
+    require_trailing_commas: true # 파라미터나 리스트 등에서 마지막 콤마 강제 (Git diff 파악 용이 및 자동 포맷팅 기준)
+    sort_child_properties_last: true # 위젯 속성 중 child, children 속성을 가독성을 위해 맨 마지막에 배치
+    always_declare_return_types: true # 함수의 반환 타입 명시 강제 (추론에 의지하지 않아 가독성 상승)
+    avoid_print: true # 프로덕션 배포 시 콘솔에 불필요한 로그 노출 방지를 위해 print 함수 사용 경고 (대신 debugPrint 또는 log 사용 권장)
+    prefer_is_empty: true # .length == 0 대신 .isEmpty 사용 권장
+    prefer_is_not_empty: true # .length != 0 대신 .isNotEmpty 사용 권장
+    unawaited_futures: true # Future 작업의 비동기를 안 기다릴 경우, 실수 방지를 위해 명시적 unawaited 래핑 강조
+    directives_ordering: true # 상단 import 순서를 일관되게 정렬 (dart -> package -> project 내 상대경로)
