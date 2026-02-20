@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -98,7 +99,11 @@ class HomeView extends StatelessWidget {
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        context.push(
+                          '/addgift/receiver-name',
+                        ); // 선물 포장 - 받는 분 성함 입력 화면으로 이동
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
                         foregroundColor: Colors.white,
