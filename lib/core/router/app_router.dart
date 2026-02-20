@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/addgift/presentation/views/gift_delivery_method_view.dart';
 import '../../features/addgift/presentation/views/memory_decision_view.dart';
 import '../../features/addgift/presentation/views/receiver_name_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
@@ -24,6 +25,12 @@ final GoRouter appRouter = GoRouter(
       path: '/addgift/memory-decision',
       builder: (BuildContext context, GoRouterState state) =>
           const MemoryDecisionView(),
+    ),
+    // 선물 포장 - 선물 전달 방식(오픈 콘텐츠) 선택 화면
+    GoRoute(
+      path: '/addgift/delivery-method',
+      builder: (BuildContext context, GoRouterState state) =>
+          const GiftDeliveryMethodView(),
     ),
   ],
 );

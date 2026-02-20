@@ -45,7 +45,7 @@ class MemoryDecisionView extends StatelessWidget {
                       Expanded(flex: 1, child: _buildMainText(TextAlign.left)),
                       const SizedBox(width: 80),
                       // 우측 버튼 목록
-                      Expanded(flex: 1, child: _buildButtonsColumn()),
+                      Expanded(flex: 1, child: _buildButtonsColumn(context)),
                     ],
                   ),
                 ),
@@ -62,7 +62,7 @@ class MemoryDecisionView extends StatelessWidget {
                       const SizedBox(height: 40),
                       _buildMainText(TextAlign.center),
                       const SizedBox(height: 60),
-                      _buildButtonsColumn(),
+                      _buildButtonsColumn(context),
                       const SizedBox(height: 40),
                     ],
                   ),
@@ -90,7 +90,7 @@ class MemoryDecisionView extends StatelessWidget {
   }
 
   // 선택 버튼 목록을 담은 Column
-  Widget _buildButtonsColumn() {
+  Widget _buildButtonsColumn(BuildContext context) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -107,7 +107,8 @@ class MemoryDecisionView extends StatelessWidget {
         _buildSelectionButton(
           text: '아니요,\n저는 바로 선물을 공개할거에요.',
           onPressed: () {
-            // TODO: 추억 공유 없이 3단계로 이동
+            // 추억 공유 없이 3단계로 이동 -> 배송 방식 선택으로 라우팅 완료
+            context.push('/addgift/delivery-method');
           },
           isOutlined: true,
         ),
