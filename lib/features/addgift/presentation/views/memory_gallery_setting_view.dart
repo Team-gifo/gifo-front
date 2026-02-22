@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -22,36 +25,334 @@ class MemoryGallerySettingView extends StatefulWidget {
 }
 
 class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
-  // 상태 관리를 위해 단순 id 리스트 대신 데이터 객체 리스트 사용
   final List<MemoryItemData> _items = <MemoryItemData>[MemoryItemData(id: 1)];
   int _nextId = 2; // 다음 객체에 부여할 고유 식별자
 
+  final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
 
-  Future<void> _pickImage(int index) async {
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickImage(
+    MemoryItemData itemData,
+    VoidCallback updateModal,
+  ) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
-        // 웹 최적화를 위한 부가 크기 제한 등 설정 가능
       );
       if (pickedFile != null) {
         setState(() {
-          _items[index].imageFile = pickedFile;
+          itemData.imageFile = pickedFile;
         });
+        updateModal(); // 모달 내부 상태 갱신
       }
     } catch (e) {
       debugPrint('이미지 선택 오류: $e');
     }
   }
 
-  void _removeImage(int index) {
+  void _removeImage(MemoryItemData itemData, VoidCallback updateModal) {
     setState(() {
-      _items[index].imageFile = null;
+      itemData.imageFile = null;
     });
+    updateModal();
+  }
+
+  // 모달을 통한 데이터 편집
+  void _showEditModal(BuildContext context, MemoryItemData itemData) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // 내용이 많을 수 있으므로 스크롤 허용
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
+      ),
+      builder: (BuildContext modalContext) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            void updateModal() {
+              setModalState(() {});
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                // 키보드가 올라올 때 대비하여 하단 여백 추가
+                bottom: MediaQuery.viewInsetsOf(context).bottom,
+              ),
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          const Text(
+                            '추억 정보 수정',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(modalContext).pop(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 이미지 추가 영역
+                      AspectRatio(
+                        aspectRatio: 1,
+                        child: Container(
+                          clipBehavior: Clip.antiAlias,
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12.0),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: itemData.imageFile == null
+                              ? InkWell(
+                                  onTap: () =>
+                                      _pickImage(itemData, updateModal),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: <Widget>[
+                                      Icon(
+                                        Icons.add_photo_alternate_outlined,
+                                        size: 48,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        '이미지 추가',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : Stack(
+                                  fit: StackFit.expand,
+                                  children: <Widget>[
+                                    Image.network(
+                                      itemData.imageFile!.path,
+                                      fit: BoxFit.cover,
+                                    ),
+                                    Positioned(
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      height: 60,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: <Color>[
+                                              Colors.black.withValues(
+                                                alpha: 0.5,
+                                              ),
+                                              Colors.transparent,
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Positioned(
+                                      top: 8,
+                                      right: 8,
+                                      child: Row(
+                                        children: <Widget>[
+                                          Material(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.6,
+                                            ),
+                                            shape: const CircleBorder(),
+                                            child: IconButton(
+                                              icon: const Icon(
+                                                Icons.edit,
+                                                color: Colors.white,
+                                                size: 20,
+                                              ),
+                                              onPressed: () => _pickImage(
+                                                itemData,
+                                                updateModal,
+                                              ),
+                                              constraints:
+                                                  const BoxConstraints.tightFor(
+                                                    width: 36,
+                                                    height: 36,
+                                                  ),
+                                              padding: EdgeInsets.zero,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Material(
+                                            color: Colors.black.withValues(
+                                              alpha: 0.6,
+                                            ),
+                                            shape: const CircleBorder(),
+                                            child: IconButton(
+                                              icon: const Icon(
+                                                Icons.delete,
+                                                color: Colors.white,
+                                                size: 20,
+                                              ),
+                                              onPressed: () => _removeImage(
+                                                itemData,
+                                                updateModal,
+                                              ),
+                                              constraints:
+                                                  const BoxConstraints.tightFor(
+                                                    width: 36,
+                                                    height: 36,
+                                                  ),
+                                              padding: EdgeInsets.zero,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // 제목 영역
+                      const Text(
+                        '제목',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        initialValue: itemData.title,
+                        onChanged: (String val) {
+                          setState(() {
+                            itemData.title = val;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: '제목을 입력해주세요',
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.grey.shade200),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.grey.shade200),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: const BorderSide(
+                              color: Colors.black,
+                              width: 1.5,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // 설명 영역
+                      const Text(
+                        '설명',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        initialValue: itemData.description,
+                        maxLines: 4,
+                        onChanged: (String val) {
+                          setState(() {
+                            itemData.description = val;
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: '설명을 입력해주세요',
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          filled: true,
+                          fillColor: Colors.grey.shade50,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.grey.shade200),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide(color: Colors.grey.shade200),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: const BorderSide(
+                              color: Colors.black,
+                              width: 1.5,
+                            ),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 14,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: () => Navigator.of(modalContext).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.0),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          '완료',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    // 600 기준으로 모바일 환경인지 판단 (세로 모드로 전환)
+    final bool isMobile = MediaQuery.sizeOf(context).width < 600;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -90,311 +391,343 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
             Expanded(
               child: Theme(
                 data: ThemeData(
-                  // 드래그 시 렌더링을 위해 기본 캔버스 투명하게 처리 (외곽 둥근 모서리 보존)
+                  // 드래그 렌더링을 위해 기본 캔버스 투명하게 처리
                   canvasColor: Colors.transparent,
                 ),
-                child: ReorderableListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24.0,
-                    vertical: 16.0,
+                child: ScrollConfiguration(
+                  behavior: ScrollConfiguration.of(context).copyWith(
+                    dragDevices: <PointerDeviceKind>{
+                      PointerDeviceKind.touch,
+                      PointerDeviceKind.mouse,
+                      PointerDeviceKind.trackpad,
+                    },
                   ),
-                  itemCount: _items.length,
-                  // 하단 우측 햄버거 아이콘 비활성화
-                  buildDefaultDragHandles: false,
-                  // 드래그 시 시각적 표시 (그림자 제거, 외곽선 추가)
-                  proxyDecorator:
-                      (Widget child, int index, Animation<double> animation) {
-                        return Material(
-                          type: MaterialType.transparency,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16.0),
-                              border: Border.all(
-                                color: Colors.black, // 드래그 중임을 나타내는 뚜렷한 외곽선
-                                width: 3.0,
+                  child: Scrollbar(
+                    controller: _scrollController,
+                    thumbVisibility: true,
+                    child: Listener(
+                      onPointerSignal: (PointerSignalEvent event) {
+                        if (event is PointerScrollEvent && !isMobile) {
+                          // 데스크톱(가로스크롤) 환경에서 수직 휠 이벤트를 수평 스크롤로 변환
+                          if (_scrollController.hasClients) {
+                            final double newOffset =
+                                _scrollController.offset + event.scrollDelta.dy;
+                            _scrollController.jumpTo(
+                              newOffset.clamp(
+                                _scrollController.position.minScrollExtent,
+                                _scrollController.position.maxScrollExtent,
                               ),
-                              // 그림자 제거
-                              boxShadow: const <BoxShadow>[],
-                            ),
-                            // 원래 위젯의 내부 여백/스타일을 유지하도록 child의 속성 일부를 강제할 수 없으므로,
-                            // child 자체는 그대로 보여줍니다.
-                            child: child,
-                          ),
-                        );
+                            );
+                          }
+                        }
                       },
-                  onReorder: (int oldIndex, int newIndex) {
-                    setState(() {
-                      if (oldIndex < newIndex) {
-                        newIndex -= 1;
-                      }
-                      final MemoryItemData item = _items.removeAt(oldIndex);
-                      _items.insert(newIndex, item);
-                    });
-                  },
-                  // ReorderableListView의 footer 속성을 이용하여 정렬 영향 받지 않는 추가 위젯 배치
-                  footer: _buildAddButton(),
-                  itemBuilder: (BuildContext context, int index) {
-                    final MemoryItemData item = _items[index];
-                    return _buildGalleryItem(
-                      key: ValueKey<int>(item.id),
-                      index: index,
-                      itemData: item,
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+                      child: ReorderableListView.builder(
+                        scrollController: _scrollController,
+                        scrollDirection: isMobile
+                            ? Axis.vertical
+                            : Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24.0,
+                          vertical: 16.0,
+                        ),
+                        itemCount: _items.length,
+                        buildDefaultDragHandles: false,
+                        proxyDecorator:
+                            (
+                              Widget child,
+                              int index,
+                              Animation<double> animation,
+                            ) {
+                              return Material(
+                                type: MaterialType.transparency,
+                                child: Stack(
+                                  children: <Widget>[
+                                    child,
+                                    Positioned(
+                                      top: 0,
+                                      left: 0,
+                                      right: isMobile ? 0.0 : 20.0,
+                                      bottom: isMobile ? 16.0 : 0.0,
+                                      child: IgnorePointer(
+                                        child: Container(
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(
+                                              16.0,
+                                            ),
+                                            border: Border.all(
+                                              color: Colors.black,
+                                              width: 3.0,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                        onReorder: (int oldIndex, int newIndex) {
+                          setState(() {
+                            if (oldIndex < newIndex) {
+                              newIndex -= 1;
+                            }
+                            final MemoryItemData item = _items.removeAt(
+                              oldIndex,
+                            );
+                            _items.insert(newIndex, item);
+                          });
+                        },
+                        footer: _buildAddButton(isMobile),
+                        itemBuilder: (BuildContext context, int index) {
+                          final MemoryItemData item = _items[index];
+                          return isMobile
+                              ? _buildSummaryItemMobile(
+                                  key: ValueKey<int>(item.id),
+                                  index: index,
+                                  itemData: item,
+                                )
+                              : _buildSummaryItemDesktop(
+                                  key: ValueKey<int>(item.id),
+                                  index: index,
+                                  itemData: item,
+                                );
+                        },
+                      ), // ReorderableListView.builder
+                    ), // Listener
+                  ), // Scrollbar
+                ), // ScrollConfiguration
+              ), // Theme
+            ), // Expanded
+          ], // children <Widget>[
+        ), // Column
+      ), // SafeArea
       bottomNavigationBar: _buildBottomBar(context),
-    );
+    ); // Scaffold
   }
 
-  // 각 객체(이미지, 제목, 설명이 포함된 카드) 위젯
-  Widget _buildGalleryItem({
+  // 데스크톱: 리스트가 가로로 진행되므로 카드는 Column 형태
+  Widget _buildSummaryItemDesktop({
     required Key key,
     required int index,
     required MemoryItemData itemData,
   }) {
     return Container(
       key: key,
-      width: 320, // 가로 너비 고정하여 슬라이드 형태 체감
+      width: 240, // 썸네일형 세로 카드
       margin: const EdgeInsets.only(right: 20.0),
-      // 드래그 중이 아닐 때의 기본 디자인
-      decoration: BoxDecoration(
+      // 배경색과 테두리 터치 시 시각적 효과 부여를 위해 Material 활용
+      child: Material(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: Colors.grey.shade200),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _showEditModal(context, itemData),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    ReorderableDragStartListener(
+                      index: index,
+                      child: const Padding(
+                        padding: EdgeInsets.all(4.0),
+                        child: Icon(Icons.drag_indicator, color: Colors.grey),
+                      ),
+                    ),
+                    if (_items.length > 1)
+                      IconButton(
+                        icon: const Icon(
+                          Icons.close,
+                          color: Colors.grey,
+                          size: 20,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _items.removeAt(index);
+                          });
+                        },
+                        constraints: const BoxConstraints(),
+                        padding: EdgeInsets.zero,
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                AspectRatio(
+                  aspectRatio: 1,
+                  child: Container(
+                    clipBehavior: Clip.antiAlias,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: itemData.imageFile != null
+                        ? Image.network(
+                            itemData.imageFile!.path,
+                            fit: BoxFit.cover,
+                          )
+                        : Icon(
+                            Icons.photo,
+                            size: 40,
+                            color: Colors.grey.shade300,
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  itemData.title.isEmpty ? '제목 없음' : itemData.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: itemData.title.isEmpty ? Colors.grey : Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: Text(
+                    itemData.description.isEmpty
+                        ? '설명 없음'
+                        : itemData.description,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: itemData.description.isEmpty
+                          ? Colors.grey
+                          : Colors.black87,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
-      // 컨테이너 내부를 벗어나지 않도록 클리핑하여 둥근 모서리 유지
-      clipBehavior: Clip.antiAlias,
-      padding: const EdgeInsets.all(20.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: <Widget>[
-            // 상단 액션 바: 드래그용 햄버거 아이콘과 삭제 버튼
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    );
+  }
+
+  // 모바일: 리스트가 세로로 진행되므로 카드는 Row 형태
+  Widget _buildSummaryItemMobile({
+    required Key key,
+    required int index,
+    required MemoryItemData itemData,
+  }) {
+    return Container(
+      key: key,
+      margin: const EdgeInsets.only(bottom: 16.0),
+      child: Material(
+        color: Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _showEditModal(context, itemData),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 16.0,
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 ReorderableDragStartListener(
                   index: index,
                   child: const Padding(
-                    padding: EdgeInsets.all(4.0),
-                    child: Icon(Icons.menu, color: Colors.grey),
+                    padding: EdgeInsets.fromLTRB(0, 8, 12, 8),
+                    child: Icon(Icons.drag_handle, color: Colors.grey),
                   ),
                 ),
-                if (_items.length > 1) // 아이템이 최소 1개는 유지되도록 처리
+                Container(
+                  width: 80,
+                  height: 80,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12.0),
+                  ),
+                  child: itemData.imageFile != null
+                      ? Image.network(
+                          itemData.imageFile!.path,
+                          fit: BoxFit.cover,
+                        )
+                      : Icon(
+                          Icons.photo,
+                          size: 30,
+                          color: Colors.grey.shade300,
+                        ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        itemData.title.isEmpty ? '제목 없음' : itemData.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: itemData.title.isEmpty
+                              ? Colors.grey
+                              : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        itemData.description.isEmpty
+                            ? '설명 없음'
+                            : itemData.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: itemData.description.isEmpty
+                              ? Colors.grey
+                              : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (_items.length > 1)
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.grey),
+                    icon: const Icon(Icons.close, color: Colors.grey, size: 20),
                     onPressed: () {
                       setState(() {
                         _items.removeAt(index);
                       });
                     },
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                   ),
               ],
             ),
-            const SizedBox(height: 8),
-
-            // 1. 이미지 / 동영상 추가 안내 위젯 구역 또는 미리보기
-            AspectRatio(
-              aspectRatio: 1,
-              child: Container(
-                clipBehavior: Clip.antiAlias,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(12.0),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: itemData.imageFile == null
-                    ? _buildImagePlaceholder(index)
-                    : _buildImagePreview(index, itemData.imageFile!),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // 2. 제목 입력 영역
-            const Text(
-              '제목',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              onChanged: (String val) => itemData.title = val,
-              controller: TextEditingController(text: itemData.title),
-              decoration: InputDecoration(
-                hintText: '제목을 입력해주세요',
-                hintStyle: const TextStyle(color: Colors.grey),
-                filled: true,
-                fillColor: Colors.grey.shade50,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // 3. 설명 입력 영역
-            const Text(
-              '설명',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              maxLines: 4,
-              onChanged: (String val) => itemData.description = val,
-              controller: TextEditingController(text: itemData.description),
-              decoration: InputDecoration(
-                hintText: '설명을 입력해주세요',
-                hintStyle: const TextStyle(color: Colors.grey),
-                filled: true,
-                fillColor: Colors.grey.shade50,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: BorderSide(color: Colors.grey.shade200),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
-                  borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 14,
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  // 이미지 비어있을 때 표시할 Placeholder 위젯
-  Widget _buildImagePlaceholder(int index) {
-    return InkWell(
-      onTap: () => _pickImage(index),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Icon(
-            Icons.add_photo_alternate_outlined,
-            size: 48,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '이미지 추가',
-            style: TextStyle(
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 이미지 선택되었을 때 미리보기 및 수정/삭제 버튼 표시
-  Widget _buildImagePreview(int index, XFile imageFile) {
-    return Stack(
-      fit: StackFit.expand,
-      children: <Widget>[
-        // 웹 및 그 외 환경 지원을 위해 network 사용 (XFile path가 웹에서는 blob url)
-        kIsWeb
-            ? Image.network(imageFile.path, fit: BoxFit.cover)
-            : Image.network(
-                imageFile.path,
-                fit: BoxFit.cover,
-              ), // 앱 환경에서는 dart:io File 사용이 정석이나 예제 단순화
-        // 이미지 그라데이션 오버레이 (버튼 시인성 확보)
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 60,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: <Color>[
-                  Colors.black.withValues(alpha: 0.5),
-                  Colors.transparent,
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        // 상단 우측 수정/삭제 버튼
-        Positioned(
-          top: 8,
-          right: 8,
-          child: Row(
-            children: <Widget>[
-              // 수정 버튼 (이미지 다시 고르기)
-              Material(
-                color: Colors.black.withValues(alpha: 0.6),
-                shape: const CircleBorder(),
-                child: IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.white, size: 20),
-                  onPressed: () => _pickImage(index),
-                  constraints: const BoxConstraints.tightFor(
-                    width: 36,
-                    height: 36,
-                  ),
-                  padding: EdgeInsets.zero,
-                ),
-              ),
-              const SizedBox(width: 8),
-              // 삭제 버튼
-              Material(
-                color: Colors.black.withValues(alpha: 0.6),
-                shape: const CircleBorder(),
-                child: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.white, size: 20),
-                  onPressed: () => _removeImage(index),
-                  constraints: const BoxConstraints.tightFor(
-                    width: 36,
-                    height: 36,
-                  ),
-                  padding: EdgeInsets.zero,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // 우측 끝에 배치될 아이템 추가 위젯 빌더 (ReorderableListView의 footer 용)
-  Widget _buildAddButton() {
+  // 우측 끝 혹은 하단에 배치될 아이템 추가 위젯 빌더
+  Widget _buildAddButton(bool isMobile) {
     return Container(
-      width: 120, // 일반 카드보다는 작은 크기 유지
-      // margin을 통해 기존 아이템들과 간격 균형 맞춤
-      margin: const EdgeInsets.only(right: 24.0, bottom: 8.0, top: 8.0),
+      // 모바일일 때는 카드와 동일하게 전체 폭 사용, 높이는 명시
+      width: isMobile ? double.infinity : 120,
+      height: isMobile ? 80 : null,
+      margin: isMobile
+          ? const EdgeInsets.only(bottom: 16.0, top: 8.0)
+          : const EdgeInsets.only(right: 24.0, bottom: 8.0, top: 8.0),
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.grey.shade50,
@@ -402,31 +735,62 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.0),
           ),
-          padding: EdgeInsets.zero, // 기본 패딩 없애기
+          padding: EdgeInsets.zero,
         ),
         onPressed: () {
           setState(() {
             _items.add(MemoryItemData(id: _nextId++));
           });
+
+          // 항목 추가 후 렌더링이 완료되면 최신 아이템(오른쪽 또는 아래쪽 끝)으로 스크롤 이동
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_scrollController.hasClients) {
+              _scrollController.animateTo(
+                _scrollController.position.maxScrollExtent,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            }
+          });
         },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Icon(
-              Icons.add_circle_outline,
-              size: 40,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              '추가하기',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.bold,
+        child: isMobile
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Icon(
+                    Icons.add_circle_outline,
+                    size: 28,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '추억 추가하기',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Icon(
+                    Icons.add_circle_outline,
+                    size: 40,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    '추가하기',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -454,7 +818,7 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
               child: Text(
                 '추억 갤러리는 사진 혹은 동영상을 필수적으로 넣어야하며, 텍스트는 추가 사항입니다.',
                 style: TextStyle(
-                  // 모바일(600 미만)일 때는 13, 데스크톱/태블릿 환경에서는 16으로 표시
+                  // 모바일(600 미만)일 때는 14, 데스크톱/태블릿 환경에서는 20으로 표시
                   fontSize: MediaQuery.sizeOf(context).width < 600 ? 14 : 20,
                   color: Colors.black87,
                   height: 1.4,
@@ -462,7 +826,6 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
               ),
             ),
             const SizedBox(width: 24),
-            // 우측 완료 버튼 (클릭 시 3단계인 선물 전달 방식 화면으로 라우팅)
             ElevatedButton(
               onPressed: () {
                 context.push('/addgift/delivery-method');
@@ -490,7 +853,6 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
     );
   }
 
-  // 상단 진행 단계 인디케이터 위젯 (현재 2단계)
   Widget _buildStepIndicator() {
     return Padding(
       padding: const EdgeInsets.only(right: 20.0),
@@ -507,7 +869,6 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
     );
   }
 
-  // 인디케이터 원형 위젯 구현
   Widget _buildCircle({required bool isActive, required String number}) {
     return Container(
       width: 28,
@@ -529,7 +890,6 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
     );
   }
 
-  // 인디케이터 연결 선 위젯 구현
   Widget _buildLine({required bool isActive}) {
     return Container(
       width: 16,
