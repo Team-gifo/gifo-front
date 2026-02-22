@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/addgift/presentation/views/gacha_setting_view.dart';
 import '../../features/addgift/presentation/views/gift_delivery_method_view.dart';
 import '../../features/addgift/presentation/views/memory_decision_view.dart';
 import '../../features/addgift/presentation/views/memory_gallery_setting_view.dart';
@@ -38,6 +39,12 @@ final GoRouter appRouter = GoRouter(
       path: '/addgift/delivery-method',
       builder: (BuildContext context, GoRouterState state) =>
           const GiftDeliveryMethodView(),
+    ),
+    // 선물 포장 - 가차(캡슐 뽑기) 세팅 화면
+    GoRoute(
+      path: '/addgift/gacha-setting',
+      builder: (BuildContext context, GoRouterState state) =>
+          const GachaSettingView(),
     ),
   ],
 );
