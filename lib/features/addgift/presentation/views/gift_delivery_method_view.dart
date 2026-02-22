@@ -132,7 +132,11 @@ class GiftDeliveryMethodView extends StatelessWidget {
           iconData: options[index]['icon']!,
           type: options[index]['type']!,
           onTap: () {
-            // TODO: 해당 방식으로 선택된 후 다음 단계 처리
+            if (options[index]['title'] == '캡슐 뽑기') {
+              context.push('/addgift/gacha-setting');
+            } else {
+              // TODO: 다른 두 가지(문제 맞추기, 바로 오픈)에 대한 처리
+            }
           },
         );
       },
