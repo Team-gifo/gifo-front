@@ -1,0 +1,23 @@
+name: Trigger Deploy
+
+# 이 레포(gifo-back 또는 gifo-front)의 main 브랜치에 push되면 실행
+on:
+  push:
+    branches: [main]
+
+# 실행할 작업
+jobs:
+  trigger:
+    # GitHub에서 제공하는 Ubuntu 서버에서 실행
+    runs-on: ubuntu-latest
+    steps:
+      # gifo-deploy 레포에 배포 이벤트를 보냄
+      - name: Trigger deploy
+        run: |
+          # GitHub API를 호출하여 gifo-deploy 레포의 repository_dispatch 이벤트 발생
+          # 이 이벤트를 받으면 gifo-deploy의 deploy.yml이 실행됨
+          curl -X POST \
+            -H "Authorization: token ${{ secrets.ACCESS_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            https://api.github.com/repos/Team-gifo/gifo-deploy/dispatches \
+            -d '{"event_type":"deploy"}'
