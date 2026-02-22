@@ -40,16 +40,16 @@ flutter:
   fonts:
     - family: PFStardust
       fonts:
-        - asset: assets/fonts/PF스타더스트 3.0.ttf
-        - asset: assets/fonts/PF스타더스트 3.0 Bold.ttf
+        - asset: assets/fonts/pf_stardust_3_0.ttf
+        - asset: assets/fonts/pf_stardust_3_0_bold.ttf
           weight: 700
-        - asset: assets/fonts/PF스타더스트 3.0 ExtraBold.ttf
+        - asset: assets/fonts/pf_stardust_3_0_extrabold.ttf
           weight: 800
     - family: PFStardustS
       fonts:
-        - asset: assets/fonts/PF스타더스트 3.0 S.ttf
-        - asset: assets/fonts/PF스타더스트 3.0 S Bold.ttf
+        - asset: assets/fonts/pf_stardust_3_0_s.ttf
+        - asset: assets/fonts/pf_stardust_3_0_s_bold.ttf
           weight: 700
-        - asset: assets/fonts/PF스타더스트 3.0 S ExtraBold.ttf
+        - asset: assets/fonts/pf_stardust_3_0_s_extrabold.ttf
           weight: 800
 
