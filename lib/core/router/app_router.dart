@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/addgift/presentation/views/gift_delivery_method_view.dart';
 import '../../features/addgift/presentation/views/memory_decision_view.dart';
+import '../../features/addgift/presentation/views/memory_gallery_setting_view.dart';
 import '../../features/addgift/presentation/views/receiver_name_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
 
@@ -25,6 +26,12 @@ final GoRouter appRouter = GoRouter(
       path: '/addgift/memory-decision',
       builder: (BuildContext context, GoRouterState state) =>
           const MemoryDecisionView(),
+    ),
+    // 선물 포장 - 추억 갤러리 셋팅 화면 (추억 저장하는 공간)
+    GoRoute(
+      path: '/addgift/memory-gallery',
+      builder: (BuildContext context, GoRouterState state) =>
+          const MemoryGallerySettingView(),
     ),
     // 선물 포장 - 선물 전달 방식(오픈 콘텐츠) 선택 화면
     GoRoute(

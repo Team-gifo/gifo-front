@@ -99,7 +99,8 @@ class MemoryDecisionView extends StatelessWidget {
         _buildSelectionButton(
           text: '네,\n저는 친구와 함께 추억을 공유하고 싶어요!',
           onPressed: () {
-            // TODO: 추억 공유 기능을 거쳐가는 3단계로 이동
+            // 추억 공유 기능을 거쳐가는 2단계(갤러리 셋팅)로 이동
+            context.push('/addgift/memory-gallery');
           },
         ),
         const SizedBox(height: 16),
