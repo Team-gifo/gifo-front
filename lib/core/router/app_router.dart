@@ -5,6 +5,7 @@ import '../../features/addgift/presentation/views/gacha_setting_view.dart';
 import '../../features/addgift/presentation/views/gift_delivery_method_view.dart';
 import '../../features/addgift/presentation/views/memory_decision_view.dart';
 import '../../features/addgift/presentation/views/memory_gallery_setting_view.dart';
+import '../../features/addgift/presentation/views/quiz_setting_view.dart';
 import '../../features/addgift/presentation/views/receiver_name_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
 
@@ -45,6 +46,12 @@ final GoRouter appRouter = GoRouter(
       path: '/addgift/gacha-setting',
       builder: (BuildContext context, GoRouterState state) =>
           const GachaSettingView(),
+    ),
+    // 선물 포장 - 퀴즈 세팅 화면
+    GoRoute(
+      path: '/addgift/quiz-setting',
+      builder: (BuildContext context, GoRouterState state) =>
+          const QuizSettingView(),
     ),
   ],
 );
