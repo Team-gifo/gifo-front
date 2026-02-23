@@ -21,6 +21,8 @@ dependencies:
   logger: ^2.6.2
   dio: ^5.9.1
   image_picker: ^1.2.1
+  confetti: ^0.8.0
+  flutter_svg: ^2.2.3
 
 dev_dependencies:
   flutter_test:
