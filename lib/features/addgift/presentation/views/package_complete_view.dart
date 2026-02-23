@@ -109,31 +109,61 @@ class _PackageCompleteViewState extends State<PackageCompleteView> {
         bottomNavigationBar: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
-            child: SizedBox(
-              width: double.infinity,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: () {
-                  // TODO: 스토어로 돌아가거나 등 다른 라우팅 추가 예정
-                  isPackageComplete = false;
-                  context.go('/');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF6DE1F1), // 하늘색 톤
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // TODO: 카카오톡 공유 등 구현
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black, // 부드러운 검정 혹은 강조색
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      '친구에게 공유하기',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
-                  elevation: 0,
                 ),
-                child: const Text(
-                  '홈으로 돌아가기',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // TODO: 스토어로 돌아가거나 등 다른 라우팅 추가 예정
+                      isPackageComplete = false;
+                      context.go('/');
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF6DE1F1), // 하늘색 톤
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      '홈으로 돌아가기',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         ),
