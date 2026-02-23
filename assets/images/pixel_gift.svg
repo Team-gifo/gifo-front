@@ -1,0 +1,45 @@
+<svg viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+  <!-- Ribbon Top Left -->
+  <rect x="40" y="20" width="20" height="10" fill="#2D2D2D"/>
+  <rect x="30" y="30" width="10" height="20" fill="#2D2D2D"/>
+  <rect x="40" y="30" width="20" height="20" fill="#FFFFFF"/>
+  <rect x="50" y="20" width="10" height="10" fill="#2D2D2D"/>
+  
+  <!-- Ribbon Top Right -->
+  <rect x="100" y="20" width="20" height="10" fill="#2D2D2D"/>
+  <rect x="120" y="30" width="10" height="20" fill="#2D2D2D"/>
+  <rect x="100" y="30" width="20" height="20" fill="#FFFFFF"/>
+  <rect x="100" y="20" width="10" height="10" fill="#2D2D2D"/>
+  
+  <!-- Ribbon Center Knot Outline -->
+  <rect x="70" y="30" width="20" height="10" fill="#2D2D2D"/>
+  <rect x="70" y="40" width="20" height="10" fill="#FFFFFF"/>
+
+  <!-- Box Bottom Outline -->
+  <rect x="20" y="50" width="120" height="10" fill="#2D2D2D"/>
+  <rect x="10" y="60" width="10" height="80" fill="#2D2D2D"/>
+  <rect x="140" y="60" width="10" height="80" fill="#2D2D2D"/>
+  <rect x="20" y="140" width="120" height="10" fill="#2D2D2D"/>
+
+  <!-- Box Body -->
+  <rect x="20" y="60" width="120" height="80" fill="#FFC1CC"/>
+  
+  <!-- Horizontal Ribbon -->
+  <rect x="20" y="80" width="120" height="20" fill="#FFFFFF"/>
+  
+  <!-- Vertical Ribbon -->
+  <rect x="70" y="60" width="20" height="80" fill="#FFFFFF"/>
+  
+  <!-- Ribbon Center Crossing -->
+  <rect x="70" y="80" width="20" height="20" fill="#EEEEEE"/>
+
+  <!-- Box Shadow -->
+  <rect x="20" y="120" width="50" height="20" fill="#FFB6C1"/>
+  <rect x="90" y="120" width="50" height="20" fill="#FFB6C1"/>
+
+  <!-- Inner Lines Output (to separate ribbon from body) -->
+  <rect x="70" y="60" width="2" height="80" fill="#EEEEEE"/>
+  <rect x="88" y="60" width="2" height="80" fill="#EEEEEE"/>
+  <rect x="20" y="80" width="120" height="2" fill="#EEEEEE"/>
+  <rect x="20" y="98" width="120" height="2" fill="#EEEEEE"/>
+</svg>
