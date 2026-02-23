@@ -136,8 +136,8 @@ class GiftDeliveryMethodView extends StatelessWidget {
               context.push('/addgift/gacha-setting');
             } else if (options[index]['title'] == '문제 맞추기') {
               context.push('/addgift/quiz-setting');
-            } else {
-              // TODO: 바로 오픈에 대한 처리
+            } else if (options[index]['title'] == '바로 오픈') {
+              context.push('/addgift/direct-open-setting');
             }
           },
         );
