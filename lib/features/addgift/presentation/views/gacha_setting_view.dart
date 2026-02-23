@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/router/app_router.dart';
+
 // 캡슐 아이템 데이터를 담는 클래스
 class GachaItemData {
   GachaItemData({required this.id, required this.color})
@@ -767,8 +769,9 @@ class _GachaSettingViewState extends State<GachaSettingView> {
             height: 60,
             child: ElevatedButton(
               onPressed: () {
-                // TODO: 데이터 직렬화 및 서버 전송 혹은 완료 처리 로직
-                context.go('/'); // 임시로 홈으로 이동
+                // TODO: 데이터 직렬화 및 서버 전송 로직
+                isPackageComplete = true;
+                context.replace('/addgift/package-complete');
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6DE1F1), // 하늘색 톤
@@ -825,8 +828,9 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    // TODO: 데이터 직렬화 및 서버 전송 혹은 완료 처리 로직
-                    context.go('/'); // 임시로 홈으로 이동
+                    // TODO: 데이터 직렬화 및 서버 전송 로직
+                    isPackageComplete = true;
+                    context.replace('/addgift/package-complete');
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6DE1F1),

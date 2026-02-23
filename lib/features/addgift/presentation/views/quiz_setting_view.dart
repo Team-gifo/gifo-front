@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/router/app_router.dart';
 import '../models/quiz_setting_models.dart';
 
 class QuizSettingView extends StatefulWidget {
@@ -376,7 +377,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
           child: TextFormField(
             controller: _subTitleController,
             decoration: InputDecoration(
-              hintText: '긴장되는',
+              hintText: '서브 타이틀',
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,
@@ -914,7 +915,8 @@ class _QuizSettingViewState extends State<QuizSettingView> {
 
   void _completePackage() {
     // TODO: 데이터 직렬화 및 서버 전송 로직
-    context.go('/');
+    isPackageComplete = true;
+    context.replace('/addgift/package-complete');
   }
 }
 

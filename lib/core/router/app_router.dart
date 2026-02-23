@@ -4,14 +4,26 @@ import 'package:go_router/go_router.dart';
 import '../../features/addgift/presentation/views/gacha_setting_view.dart';
 import '../../features/addgift/presentation/views/gift_delivery_method_view.dart';
 import '../../features/addgift/presentation/views/direct_open_setting_view.dart';
+import '../../features/addgift/presentation/views/package_complete_view.dart';
 import '../../features/addgift/presentation/views/memory_decision_view.dart';
 import '../../features/addgift/presentation/views/memory_gallery_setting_view.dart';
 import '../../features/addgift/presentation/views/quiz_setting_view.dart';
 import '../../features/addgift/presentation/views/receiver_name_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
 
+bool isPackageComplete = false;
+
 final GoRouter appRouter = GoRouter(
   initialLocation: '/',
+  redirect: (BuildContext context, GoRouterState state) {
+    if (isPackageComplete) {
+      if (state.matchedLocation.startsWith('/addgift') &&
+          state.matchedLocation != '/addgift/package-complete') {
+        return '/';
+      }
+    }
+    return null;
+  },
   routes: <RouteBase>[
     // 메인화면
     GoRoute(
@@ -59,6 +71,12 @@ final GoRouter appRouter = GoRouter(
       path: '/addgift/direct-open-setting',
       builder: (BuildContext context, GoRouterState state) =>
           const DirectOpenSettingView(),
+    ),
+    // 선물 포장 - 등록 완료 화면
+    GoRoute(
+      path: '/addgift/package-complete',
+      builder: (BuildContext context, GoRouterState state) =>
+          const PackageCompleteView(),
     ),
   ],
 );

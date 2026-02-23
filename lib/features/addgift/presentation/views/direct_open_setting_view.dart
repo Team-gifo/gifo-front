@@ -12,9 +12,7 @@ class DirectOpenSettingView extends StatefulWidget {
 }
 
 class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
-  final TextEditingController _userNameController = TextEditingController(
-    text: '홍길동',
-  );
+  final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _subTitleController = TextEditingController();
 
   final DirectOpenBeforeData _beforeData = DirectOpenBeforeData();
@@ -68,7 +66,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
 
   void _completePackage() {
     // TODO: 데이터 직렬화 및 서버 전송 로직
-    context.go('/');
+    context.replace('/addgift/package-complete');
   }
 
   @override
@@ -220,7 +218,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
           child: TextFormField(
             controller: _subTitleController,
             decoration: InputDecoration(
-              hintText: '긴장되는',
+              hintText: '서브 타이틀',
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,
