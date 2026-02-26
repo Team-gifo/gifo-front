@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/addgift/presentation/views/direct_open_setting_view.dart';
 import '../../features/addgift/presentation/views/gacha_setting_view.dart';
 import '../../features/addgift/presentation/views/gift_delivery_method_view.dart';
-import '../../features/addgift/presentation/views/direct_open_setting_view.dart';
-import '../../features/addgift/presentation/views/package_complete_view.dart';
 import '../../features/addgift/presentation/views/memory_decision_view.dart';
 import '../../features/addgift/presentation/views/memory_gallery_setting_view.dart';
+import '../../features/addgift/presentation/views/package_complete_view.dart';
 import '../../features/addgift/presentation/views/quiz_setting_view.dart';
 import '../../features/addgift/presentation/views/receiver_name_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
+import '../../features/lobby/data/models/lobby_data.dart';
+import '../../features/lobby/presentation/views/lobby_view.dart';
+import '../../features/lobby/presentation/views/memory_gallery_view.dart';
 
 bool isPackageComplete = false;
 
@@ -29,6 +32,20 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/',
       builder: (BuildContext context, GoRouterState state) => const HomeView(),
+    ),
+    // 콘텐츠 이용 전 로비 화면
+    GoRoute(
+      path: '/lobby',
+      builder: (BuildContext context, GoRouterState state) {
+        // 임시 더미 데이터를 생성하여 전달
+        return LobbyView(data: LobbyData.dummy());
+      },
+    ),
+    // 수신자용 추억 갤러리 화면 (입장 후 화면)
+    GoRoute(
+      path: '/memory-gallery',
+      builder: (BuildContext context, GoRouterState state) =>
+          const MemoryGalleryView(),
     ),
     // 선물 포장 - 받는 분 성함 입력 화면
     GoRoute(
