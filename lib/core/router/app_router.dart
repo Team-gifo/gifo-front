@@ -12,6 +12,7 @@ import '../../features/addgift/presentation/views/receiver_name_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
 import '../../features/lobby/data/models/lobby_data.dart';
 import '../../features/lobby/presentation/views/lobby_view.dart';
+import '../../features/lobby/presentation/views/memory_gallery_view.dart';
 
 bool isPackageComplete = false;
 
@@ -39,6 +40,12 @@ final GoRouter appRouter = GoRouter(
         // 임시 더미 데이터를 생성하여 전달
         return LobbyView(data: LobbyData.dummy());
       },
+    ),
+    // 수신자용 추억 갤러리 화면 (입장 후 화면)
+    GoRoute(
+      path: '/memory-gallery',
+      builder: (BuildContext context, GoRouterState state) =>
+          const MemoryGalleryView(),
     ),
     // 선물 포장 - 받는 분 성함 입력 화면
     GoRoute(

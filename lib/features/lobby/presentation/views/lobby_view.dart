@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/widgets/shared_confetti_widget.dart';
 import '../../data/models/lobby_data.dart';
@@ -103,7 +104,7 @@ class _LobbyViewState extends State<LobbyView> {
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
                       onPressed: () {
-                        // 추후 콘텐츠 이용 화면으로 이동하는 로직이 추가될 예정
+                        context.push('/memory-gallery');
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
