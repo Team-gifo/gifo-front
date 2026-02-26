@@ -51,7 +51,11 @@ class HomeView extends StatelessWidget {
                 const SizedBox(width: 8.0),
                 // 입장하기 버튼
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // 입력된 초대 코드의 유효성 검사 모방:
+                    // 현재는 어떤 값을 넣든, 혹은 비어있든 바로 로비 화면으로 이동합니다.
+                    context.push('/lobby');
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,

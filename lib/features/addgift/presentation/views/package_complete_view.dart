@@ -1,9 +1,9 @@
-import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/app_router.dart';
+import '../../../../core/widgets/shared_confetti_widget.dart';
 
 class PackageCompleteView extends StatefulWidget {
   const PackageCompleteView({super.key});
@@ -13,27 +13,6 @@ class PackageCompleteView extends StatefulWidget {
 }
 
 class _PackageCompleteViewState extends State<PackageCompleteView> {
-  late ConfettiController _confettiController;
-
-  @override
-  void initState() {
-    super.initState();
-    _confettiController = ConfettiController(
-      duration: const Duration(seconds: 3),
-    );
-
-    // 뷰가 그려진 직후 색종이 애니메이션 실행
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _confettiController.play();
-    });
-  }
-
-  @override
-  void dispose() {
-    _confettiController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -58,24 +37,7 @@ class _PackageCompleteViewState extends State<PackageCompleteView> {
               // 상단 중앙에서 하단으로 내리는 컨페티 애니메이션
               Align(
                 alignment: Alignment.topCenter,
-                child: ConfettiWidget(
-                  confettiController: _confettiController,
-                  blastDirectionality:
-                      BlastDirectionality.explosive, // 부채꼴/사방으로 흩뿌림
-                  emissionFrequency: 0.02, // 빈도
-                  numberOfParticles: 8, // 개수
-                  maxBlastForce: 50, // 더 세게 흩뿌림
-                  minBlastForce: 20,
-                  gravity: 1.0, // 더 빠르게 떨어지게 함
-                  colors: const <Color>[
-                    Colors.redAccent,
-                    Colors.blueAccent,
-                    Colors.yellowAccent,
-                    Colors.greenAccent,
-                    Colors.purpleAccent,
-                    Colors.orangeAccent,
-                  ],
-                ),
+                child: const SharedConfettiWidget(autoPlay: true),
               ),
               Center(
                 child: Column(
