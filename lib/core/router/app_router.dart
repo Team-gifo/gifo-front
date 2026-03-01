@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/addgift/presentation/views/direct_open_setting_view.dart';
 import '../../features/addgift/presentation/views/gacha_setting_view.dart';
 import '../../features/addgift/presentation/views/gift_delivery_method_view.dart';
-import '../../features/addgift/presentation/views/direct_open_setting_view.dart';
-import '../../features/addgift/presentation/views/package_complete_view.dart';
 import '../../features/addgift/presentation/views/memory_decision_view.dart';
 import '../../features/addgift/presentation/views/memory_gallery_setting_view.dart';
+import '../../features/addgift/presentation/views/package_complete_view.dart';
 import '../../features/addgift/presentation/views/quiz_setting_view.dart';
 import '../../features/addgift/presentation/views/receiver_name_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
+import '../../features/lobby/data/models/lobby_data.dart';
+import '../../features/lobby/presentation/views/lobby_view.dart';
+import '../../features/lobby/presentation/views/memory_gallery_view.dart';
+import '../../features/content/presentation/views/gacha_view.dart';
+import '../../features/content/presentation/views/quiz_view.dart';
+import '../../features/content/presentation/views/result_view.dart';
+import '../../features/content/presentation/views/unboxing_view.dart';
 
 bool isPackageComplete = false;
 
@@ -29,6 +36,62 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/',
       builder: (BuildContext context, GoRouterState state) => const HomeView(),
+    ),
+    // 콘텐츠 이용 전 로비 화면
+    GoRoute(
+      path: '/lobby',
+      builder: (BuildContext context, GoRouterState state) {
+        // 전달된 초대코드를 사용하여 데이터를 생성 (기본값: helloworld)
+        final String code = state.extra as String? ?? 'helloworld';
+        final lobbyData =
+            LobbyData.getDummyByCode(code) ??
+            LobbyData.getDummyByCode('helloworld')!;
+        return LobbyView(data: lobbyData, code: code);
+      },
+    ),
+    // 수신자용 추억 갤러리 화면 (입장 후 화면)
+    GoRoute(
+      path: '/memory-gallery',
+      builder: (BuildContext context, GoRouterState state) {
+        final String code = state.extra as String? ?? 'helloworld';
+        return MemoryGalleryView(code: code);
+      },
+    ),
+    // 콘텐츠 진행 - 캡슐 뽑기 화면
+    GoRoute(
+      path: '/content/gacha',
+      builder: (BuildContext context, GoRouterState state) {
+        final code = state.extra as String? ?? 'helloworld';
+        return GachaView(code: code);
+      },
+    ),
+    // 콘텐츠 진행 - 퀴즈 맞추기 화면
+    GoRoute(
+      path: '/content/quiz',
+      builder: (BuildContext context, GoRouterState state) {
+        final code = state.extra as String? ?? 'quiz123';
+        return QuizView(code: code);
+      },
+    ),
+    // 콘텐츠 진행 - 바로 오픈 화면
+    GoRoute(
+      path: '/content/unboxing',
+      builder: (BuildContext context, GoRouterState state) {
+        final String code = state.extra as String? ?? 'open123';
+        return UnboxingView(code: code);
+      },
+    ),
+    // 콘텐츠 진행 - 공용 결과창 화면
+    GoRoute(
+      path: '/content/result',
+      builder: (BuildContext context, GoRouterState state) {
+        final Map<String, dynamic>? extra =
+            state.extra as Map<String, dynamic>?;
+        final String itemName = extra?['itemName'] as String? ?? '결과 없음';
+        final String imageUrl =
+            extra?['imageUrl'] as String? ?? 'assets/images/title_logo.png';
+        return ResultView(itemName: itemName, imageUrl: imageUrl);
+      },
     ),
     // 선물 포장 - 받는 분 성함 입력 화면
     GoRoute(

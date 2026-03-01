@@ -1,8 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-class HomeView extends StatelessWidget {
+import '../../../lobby/data/models/lobby_data.dart';
+
+class HomeView extends StatefulWidget {
   const HomeView({super.key});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  final TextEditingController _codeController = TextEditingController();
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +44,10 @@ class HomeView extends StatelessWidget {
                 SizedBox(
                   width: 250,
                   child: TextField(
+                    controller: _codeController,
+                    onChanged: (text) {
+                      setState(() {});
+                    },
                     decoration: InputDecoration(
                       hintText: '친구에게 받은 초대코드 (혹은 주소)',
                       hintStyle: const TextStyle(
@@ -51,10 +70,36 @@ class HomeView extends StatelessWidget {
                 const SizedBox(width: 8.0),
                 // 입장하기 버튼
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: _codeController.text.isEmpty
+                      ? null
+                      : () {
+                          // 입력된 초대 코드의 유효성 검사를 모델을 통해 수행
+                          final code = _codeController.text;
+                          if (LobbyData.getDummyByCode(code) != null) {
+                            // 코드가 유효하면 로비 화면으로 이동하면서 코드 값을 넘김
+                            context.push('/lobby', extra: code);
+                          } else {
+                            // 잘못된 코드 알림 표시
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('알림'),
+                                content: const Text('잘못된 코드입니다'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => context.pop(),
+                                    child: const Text('확인'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,
                     foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.grey.shade300,
+                    disabledForegroundColor: Colors.grey.shade600,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12.0),
                     ),
