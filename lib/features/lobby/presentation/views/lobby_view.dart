@@ -6,8 +6,9 @@ import '../../data/models/lobby_data.dart';
 
 class LobbyView extends StatefulWidget {
   final LobbyData data;
+  final String code;
 
-  const LobbyView({super.key, required this.data});
+  const LobbyView({super.key, required this.data, required this.code});
 
   @override
   State<LobbyView> createState() => _LobbyViewState();
@@ -104,7 +105,22 @@ class _LobbyViewState extends State<LobbyView> {
                     alignment: Alignment.centerRight,
                     child: ElevatedButton(
                       onPressed: () {
-                        context.push('/memory-gallery');
+                        // 갤러리 데이터 존재 여부 판단
+                        if (widget.data.gallery.isNotEmpty) {
+                          context.push('/memory-gallery', extra: widget.code);
+                        } else if (widget.data.content != null) {
+                          // 추억 갤러리 스킵 후 바로 콘텐츠로 이동
+                          if (widget.data.content!.gacha != null) {
+                            context.push('/content/gacha', extra: widget.code);
+                          } else if (widget.data.content!.quiz != null) {
+                            context.push('/content/quiz', extra: widget.code);
+                          } else if (widget.data.content!.unboxing != null) {
+                            context.push(
+                              '/content/unboxing',
+                              extra: widget.code,
+                            ); // 차후 생성될 뷰 가정
+                          }
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,
