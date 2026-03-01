@@ -79,7 +79,7 @@ class _UnboxingViewState extends State<UnboxingView> {
               else
                 Expanded(
                   child: Text(
-                    '${lobbyData.user}님의 ${lobbyData.subTitle}',
+                    '${lobbyData.user}님의 ${lobbyData.subTitle} 선물상자',
                     style: const TextStyle(
                       fontSize: 16,
                       color: Colors.black,
