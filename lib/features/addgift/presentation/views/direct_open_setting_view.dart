@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
-import '../models/direct_open_setting_models.dart';
+import '../../model/direct_open_setting_models.dart';
 
 class DirectOpenSettingView extends StatefulWidget {
   const DirectOpenSettingView({super.key});

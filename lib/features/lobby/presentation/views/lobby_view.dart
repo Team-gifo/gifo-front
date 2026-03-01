@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/widgets/shared_confetti_widget.dart';
-import '../../data/models/lobby_data.dart';
+import '../../model/lobby_data.dart';
 
 class LobbyView extends StatefulWidget {
   final LobbyData data;

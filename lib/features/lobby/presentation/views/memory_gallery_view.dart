@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/models/lobby_data.dart';
+import '../../model/lobby_data.dart';
 
 class MemoryGalleryView extends StatefulWidget {
   final String code;

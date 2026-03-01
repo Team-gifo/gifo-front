@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:toastification/toastification.dart';
 
-import '../../../lobby/data/models/lobby_data.dart';
+import '../../../lobby/model/lobby_data.dart';
 
 class QuizView extends StatefulWidget {
   final String code;
