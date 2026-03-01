@@ -45,7 +45,7 @@ class LobbyData {
     } else if (code == 'open123') {
       return LobbyData(
         user: '이영희', // 바로 오픈 테스트 유저
-        subTitle: '너를 위해 준비한 선물이야',
+        subTitle: '두근두근',
         bgm: 'track_sweet_03',
         gallery: <GalleryItem>[],
         content: LobbyContent(unboxing: _getDummyUnboxing()),
@@ -124,11 +124,11 @@ class LobbyData {
     return UnboxingContent(
       beforeOpen: UnboxingBefore(
         imageUrl: 'assets/images/item/open_before.png',
-        description: '상자 안에 무엇이 들어있을까요? 클릭해서 확인해보세요!',
+        description: '네가 제~일 가지고 싶어했던 선물이야!',
       ),
       afterOpen: UnboxingAfter(
         itemName: '아이패드 프로 M4',
-        imageUrl: 'assets/images/item/ipad.avif',
+        imageUrl: 'assets/images/item/ipad.jpeg',
       ),
     );
   }

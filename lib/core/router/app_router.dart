@@ -16,6 +16,7 @@ import '../../features/lobby/presentation/views/memory_gallery_view.dart';
 import '../../features/content/presentation/views/gacha_view.dart';
 import '../../features/content/presentation/views/quiz_view.dart';
 import '../../features/content/presentation/views/result_view.dart';
+import '../../features/content/presentation/views/unboxing_view.dart';
 
 bool isPackageComplete = false;
 
@@ -70,6 +71,14 @@ final GoRouter appRouter = GoRouter(
       builder: (BuildContext context, GoRouterState state) {
         final code = state.extra as String? ?? 'quiz123';
         return QuizView(code: code);
+      },
+    ),
+    // 콘텐츠 진행 - 바로 오픈 화면
+    GoRoute(
+      path: '/content/unboxing',
+      builder: (BuildContext context, GoRouterState state) {
+        final String code = state.extra as String? ?? 'open123';
+        return UnboxingView(code: code);
       },
     ),
     // 콘텐츠 진행 - 공용 결과창 화면
