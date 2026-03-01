@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/router/app_router.dart';
-import '../models/quiz_setting_models.dart';
+import '../../model/quiz_setting_models.dart';
 
 class QuizSettingView extends StatefulWidget {
   const QuizSettingView({super.key});

@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../lobby/data/models/lobby_data.dart';
+import '../../../lobby/model/lobby_data.dart';
 
 class GachaView extends StatefulWidget {
   final String code;

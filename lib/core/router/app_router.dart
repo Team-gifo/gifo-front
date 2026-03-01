@@ -10,7 +10,7 @@ import '../../features/addgift/presentation/views/package_complete_view.dart';
 import '../../features/addgift/presentation/views/quiz_setting_view.dart';
 import '../../features/addgift/presentation/views/receiver_name_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
-import '../../features/lobby/data/models/lobby_data.dart';
+import '../../features/lobby/model/lobby_data.dart';
 import '../../features/lobby/presentation/views/lobby_view.dart';
 import '../../features/lobby/presentation/views/memory_gallery_view.dart';
 import '../../features/content/presentation/views/gacha_view.dart';
