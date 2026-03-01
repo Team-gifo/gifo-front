@@ -76,9 +76,11 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/content/result',
       builder: (BuildContext context, GoRouterState state) {
-        final extra = state.extra as Map<String, String>?;
-        final itemName = extra?['itemName'] ?? '결과 없음';
-        final imageUrl = extra?['imageUrl'] ?? 'assets/images/title_logo.png';
+        final Map<String, dynamic>? extra =
+            state.extra as Map<String, dynamic>?;
+        final String itemName = extra?['itemName'] as String? ?? '결과 없음';
+        final String imageUrl =
+            extra?['imageUrl'] as String? ?? 'assets/images/title_logo.png';
         return ResultView(itemName: itemName, imageUrl: imageUrl);
       },
     ),
