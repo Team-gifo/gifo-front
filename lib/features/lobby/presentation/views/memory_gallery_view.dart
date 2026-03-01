@@ -1,9 +1,14 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../data/models/lobby_data.dart';
 
 class MemoryGalleryView extends StatefulWidget {
-  const MemoryGalleryView({super.key});
+  final String code;
+
+  const MemoryGalleryView({super.key, required this.code});
 
   @override
   State<MemoryGalleryView> createState() => _MemoryGalleryViewState();
@@ -212,7 +217,16 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
               right: 24,
               child: ElevatedButton(
                 onPressed: () {
-                  // 추후 콘텐츠 이용 화면으로 이동할 예정
+                  final lobbyData = LobbyData.getDummyByCode(widget.code);
+                  if (lobbyData != null && lobbyData.content != null) {
+                    if (lobbyData.content!.gacha != null) {
+                      context.push('/content/gacha', extra: widget.code);
+                    } else if (lobbyData.content!.quiz != null) {
+                      // context.push('/content/quiz', extra: widget.code);
+                    } else if (lobbyData.content!.unboxing != null) {
+                      // context.push('/content/unboxing', extra: widget.code);
+                    }
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF6ED4FF), // 예시 이미지와 유사한 하늘색

@@ -13,6 +13,8 @@ import '../../features/home/presentation/views/home_view.dart';
 import '../../features/lobby/data/models/lobby_data.dart';
 import '../../features/lobby/presentation/views/lobby_view.dart';
 import '../../features/lobby/presentation/views/memory_gallery_view.dart';
+import '../../features/content/presentation/views/gacha_view.dart';
+import '../../features/content/presentation/views/result_view.dart';
 
 bool isPackageComplete = false;
 
@@ -37,15 +39,39 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/lobby',
       builder: (BuildContext context, GoRouterState state) {
-        // 임시 더미 데이터를 생성하여 전달
-        return LobbyView(data: LobbyData.dummy());
+        // 전달된 초대코드를 사용하여 데이터를 생성 (기본값: helloworld)
+        final String code = state.extra as String? ?? 'helloworld';
+        final lobbyData =
+            LobbyData.getDummyByCode(code) ??
+            LobbyData.getDummyByCode('helloworld')!;
+        return LobbyView(data: lobbyData);
       },
     ),
     // 수신자용 추억 갤러리 화면 (입장 후 화면)
     GoRoute(
       path: '/memory-gallery',
-      builder: (BuildContext context, GoRouterState state) =>
-          const MemoryGalleryView(),
+      builder: (BuildContext context, GoRouterState state) {
+        final String code = state.extra as String? ?? 'helloworld';
+        return MemoryGalleryView(code: code);
+      },
+    ),
+    // 콘텐츠 진행 - 캡슐 뽑기 화면
+    GoRoute(
+      path: '/content/gacha',
+      builder: (BuildContext context, GoRouterState state) {
+        final code = state.extra as String? ?? 'helloworld';
+        return GachaView(code: code);
+      },
+    ),
+    // 콘텐츠 진행 - 공용 결과창 화면
+    GoRoute(
+      path: '/content/result',
+      builder: (BuildContext context, GoRouterState state) {
+        final extra = state.extra as Map<String, String>?;
+        final itemName = extra?['itemName'] ?? '결과 없음';
+        final imageUrl = extra?['imageUrl'] ?? 'assets/images/title_logo.png';
+        return ResultView(itemName: itemName, imageUrl: imageUrl);
+      },
     ),
     // 선물 포장 - 받는 분 성함 입력 화면
     GoRoute(

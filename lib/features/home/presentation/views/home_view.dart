@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../lobby/data/models/lobby_data.dart';
+
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -71,9 +73,11 @@ class _HomeViewState extends State<HomeView> {
                   onPressed: _codeController.text.isEmpty
                       ? null
                       : () {
-                          // 입력된 초대 코드의 유효성 검사
-                          if (_codeController.text == 'helloworld') {
-                            context.push('/lobby');
+                          // 입력된 초대 코드의 유효성 검사를 모델을 통해 수행
+                          final code = _codeController.text;
+                          if (LobbyData.getDummyByCode(code) != null) {
+                            // 코드가 유효하면 로비 화면으로 이동하면서 코드 값을 넘김
+                            context.push('/lobby', extra: code);
                           } else {
                             // 잘못된 코드 알림 표시
                             showDialog(
