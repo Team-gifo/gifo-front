@@ -104,17 +104,6 @@ class _UnboxingViewState extends State<UnboxingView> {
 
                   Container(
                     constraints: const BoxConstraints(maxWidth: 700),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
-                      borderRadius: BorderRadius.circular(24.0),
-                      boxShadow: <BoxShadow>[
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
                     padding: const EdgeInsets.all(32.0),
                     child: Column(
                       children: <Widget>[
