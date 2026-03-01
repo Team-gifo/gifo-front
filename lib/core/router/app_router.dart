@@ -14,6 +14,7 @@ import '../../features/lobby/data/models/lobby_data.dart';
 import '../../features/lobby/presentation/views/lobby_view.dart';
 import '../../features/lobby/presentation/views/memory_gallery_view.dart';
 import '../../features/content/presentation/views/gacha_view.dart';
+import '../../features/content/presentation/views/quiz_view.dart';
 import '../../features/content/presentation/views/result_view.dart';
 
 bool isPackageComplete = false;
@@ -44,7 +45,7 @@ final GoRouter appRouter = GoRouter(
         final lobbyData =
             LobbyData.getDummyByCode(code) ??
             LobbyData.getDummyByCode('helloworld')!;
-        return LobbyView(data: lobbyData);
+        return LobbyView(data: lobbyData, code: code);
       },
     ),
     // 수신자용 추억 갤러리 화면 (입장 후 화면)
@@ -61,6 +62,14 @@ final GoRouter appRouter = GoRouter(
       builder: (BuildContext context, GoRouterState state) {
         final code = state.extra as String? ?? 'helloworld';
         return GachaView(code: code);
+      },
+    ),
+    // 콘텐츠 진행 - 퀴즈 맞추기 화면
+    GoRoute(
+      path: '/content/quiz',
+      builder: (BuildContext context, GoRouterState state) {
+        final code = state.extra as String? ?? 'quiz123';
+        return QuizView(code: code);
       },
     ),
     // 콘텐츠 진행 - 공용 결과창 화면

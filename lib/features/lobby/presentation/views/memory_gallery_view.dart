@@ -18,19 +18,16 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  // 추억 갤러리에 사용할 테스트 데이터
-  final List<Map<String, String>> _galleryItems = [
-    {
-      'title': '우리의 첫 만남',
-      'image': 'assets/images/gallery_1.jpeg',
-      'description': '벌써 시간이 이렇게 흘렀네. 함께했던 즐거운 시간들!',
-    },
-    {
-      'title': '잊지 못할 추억',
-      'image': 'assets/images/gallery_2.jpeg',
-      'description': '앞으로도 더 많은 추억을 함께 만들어가자. 항상 고마워.',
-    },
-  ];
+  late LobbyData lobbyData;
+  late List<GalleryItem> _galleryItems;
+
+  @override
+  void initState() {
+    super.initState();
+    // 로비 데이터를 불러와 갤러리 리스트 초기화
+    lobbyData = LobbyData.getDummyByCode(widget.code)!;
+    _galleryItems = lobbyData.gallery;
+  }
 
   @override
   void dispose() {
@@ -77,8 +74,8 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                       });
                     },
                     itemCount: _galleryItems.length,
-                    itemBuilder: (context, index) {
-                      final item = _galleryItems[index];
+                    itemBuilder: (BuildContext context, int index) {
+                      final GalleryItem item = _galleryItems[index];
 
                       return Padding(
                         padding: EdgeInsets.symmetric(
@@ -86,10 +83,10 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                         ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
+                          children: <Widget>[
                             // 1. 제목
                             Text(
-                              item['title']!,
+                              item.title,
                               style: TextStyle(
                                 fontSize: isDesktop ? 32 : 24,
                                 fontWeight: FontWeight.bold,
@@ -120,7 +117,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(16.0),
                                 child: Image.asset(
-                                  item['image']!,
+                                  item.imageUrl,
                                   fit: BoxFit.contain, // 비율 유지하여 전체 이미지 표시
                                 ),
                               ),
@@ -128,7 +125,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                             SizedBox(height: isDesktop ? 48 : 32),
                             // 3. 내용 (설명)
                             Text(
-                              item['description']!,
+                              item.description,
                               style: TextStyle(
                                 fontSize: isDesktop ? 20 : 16,
                                 color: Colors.black87,
@@ -217,12 +214,11 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
               right: 24,
               child: ElevatedButton(
                 onPressed: () {
-                  final lobbyData = LobbyData.getDummyByCode(widget.code);
-                  if (lobbyData != null && lobbyData.content != null) {
+                  if (lobbyData.content != null) {
                     if (lobbyData.content!.gacha != null) {
                       context.push('/content/gacha', extra: widget.code);
                     } else if (lobbyData.content!.quiz != null) {
-                      // context.push('/content/quiz', extra: widget.code);
+                      context.push('/content/quiz', extra: widget.code);
                     } else if (lobbyData.content!.unboxing != null) {
                       // context.push('/content/unboxing', extra: widget.code);
                     }

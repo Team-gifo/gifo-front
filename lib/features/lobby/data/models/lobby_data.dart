@@ -20,7 +20,18 @@ class LobbyData {
         user: '박준영', // 캡슐 뽑기 테스트 유저
         subTitle: '우리의 특별한 기록 (캡슐 뽑기)',
         bgm: 'track_sweet_01',
-        gallery: <GalleryItem>[],
+        gallery: <GalleryItem>[
+          GalleryItem(
+            title: '우리의 첫 만남',
+            imageUrl: 'assets/images/gallery_1.jpeg',
+            description: '벌써 시간이 이렇게 흘렀네. 함께했던 즐거운 시간들!',
+          ),
+          GalleryItem(
+            title: '잊지 못할 추억',
+            imageUrl: 'assets/images/gallery_2.jpeg',
+            description: '앞으로도 더 많은 추억을 함께 만들어가자. 항상 고마워.',
+          ),
+        ],
         content: LobbyContent(gacha: _getDummyGacha()),
       );
     } else if (code == 'quiz123') {
