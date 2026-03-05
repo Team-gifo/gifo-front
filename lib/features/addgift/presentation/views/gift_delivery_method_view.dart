@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../application/gift_packaging_bloc.dart';
 
 class GiftDeliveryMethodView extends StatelessWidget {
   const GiftDeliveryMethodView({super.key});
@@ -133,10 +136,19 @@ class GiftDeliveryMethodView extends StatelessWidget {
           type: options[index]['type']!,
           onTap: () {
             if (options[index]['title'] == '캡슐 뽑기') {
+              context.read<GiftPackagingBloc>().add(
+                SetContentType(ContentType.gacha),
+              );
               context.push('/addgift/gacha-setting');
             } else if (options[index]['title'] == '문제 맞추기') {
+              context.read<GiftPackagingBloc>().add(
+                SetContentType(ContentType.quiz),
+              );
               context.push('/addgift/quiz-setting');
             } else if (options[index]['title'] == '바로 오픈') {
+              context.read<GiftPackagingBloc>().add(
+                SetContentType(ContentType.unboxing),
+              );
               context.push('/addgift/direct-open-setting');
             }
           },

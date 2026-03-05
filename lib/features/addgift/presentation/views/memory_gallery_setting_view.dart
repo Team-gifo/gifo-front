@@ -2,8 +2,12 @@ import 'dart:ui';
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../../application/gift_packaging_bloc.dart';
+import '../../model/gallery_item.dart';
 
 // 갤러리 각 객체의 데이터를 담는 클래스
 class MemoryItemData {
@@ -827,6 +831,19 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
             const SizedBox(width: 24),
             ElevatedButton(
               onPressed: () {
+                // 로컬 MemoryItemData를 freezed GalleryItem 모델로 변환하여 BLoC에 저장
+                final List<GalleryItem> galleryItems = _items
+                    .map(
+                      (MemoryItemData item) => GalleryItem(
+                        title: item.title,
+                        imageUrl: item.imageFile?.path ?? '',
+                        description: item.description,
+                      ),
+                    )
+                    .toList();
+                context.read<GiftPackagingBloc>().add(
+                  SetGalleryItems(galleryItems),
+                );
                 context.push('/addgift/delivery-method');
               },
               style: ElevatedButton.styleFrom(

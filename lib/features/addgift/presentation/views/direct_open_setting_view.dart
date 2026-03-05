@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/router/app_router.dart';
+import '../../application/gift_packaging_bloc.dart';
 import '../../model/direct_open_setting_models.dart';
+import '../../model/unboxing_content.dart';
 
 class DirectOpenSettingView extends StatefulWidget {
   const DirectOpenSettingView({super.key});
@@ -65,7 +69,28 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
   }
 
   void _completePackage() {
-    // TODO: 데이터 직렬화 및 서버 전송 로직
+    final bloc = context.read<GiftPackagingBloc>();
+
+    // 서브타이틀, BGM 저장
+    bloc.add(SetSubTitle(_subTitleController.text.trim()));
+    bloc.add(SetBgm(_selectedBgm));
+
+    // 로컬 데이터 -> freezed UnboxingContent 변환
+    final UnboxingContent unboxing = UnboxingContent(
+      beforeOpen: BeforeOpen(
+        imageUrl: _beforeData.imageFile?.path ?? '',
+        description: _beforeData.description,
+      ),
+      afterOpen: AfterOpen(
+        itemName: _afterData.itemName,
+        imageUrl: _afterData.imageFile?.path ?? '',
+      ),
+    );
+
+    bloc.add(SetUnboxingContent(unboxing));
+    bloc.add(SubmitPackage());
+
+    isPackageComplete = true;
     context.replace('/addgift/package-complete');
   }
 

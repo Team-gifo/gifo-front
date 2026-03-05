@@ -1,8 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-class ReceiverNameView extends StatelessWidget {
+import '../../application/gift_packaging_bloc.dart';
+
+class ReceiverNameView extends StatefulWidget {
   const ReceiverNameView({super.key});
+
+  @override
+  State<ReceiverNameView> createState() => _ReceiverNameViewState();
+}
+
+class _ReceiverNameViewState extends State<ReceiverNameView> {
+  final TextEditingController _nameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // BLoC 상태 초기화 (새로운 선물 포장 시작)
+    context.read<GiftPackagingBloc>().add(ResetPackaging());
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,8 +64,8 @@ class ReceiverNameView extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 40),
-              // 이름 입력 텍스트 필드
               TextField(
+                controller: _nameController,
                 decoration: InputDecoration(
                   hintText: '이름 입력',
                   hintStyle: TextStyle(
@@ -73,11 +96,16 @@ class ReceiverNameView extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              // 다음 버튼
               ElevatedButton(
                 onPressed: () {
-                  // TODO: 입력값 검증 후 다음 페이지로 이동
-                  context.push('/addgift/memory-decision');
+                  final String name = _nameController.text.trim();
+                  if (name.isNotEmpty) {
+                    // BLoC에 수신자 이름 저장
+                    context.read<GiftPackagingBloc>().add(
+                      SetReceiverName(name),
+                    );
+                    context.push('/addgift/memory-decision');
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
@@ -101,7 +129,6 @@ class ReceiverNameView extends StatelessWidget {
     );
   }
 
-  // 상단 진행 단계 인디케이터 위젯 (현재 1단계)
   Widget _buildStepIndicator() {
     return Padding(
       padding: const EdgeInsets.only(right: 20.0),
@@ -118,7 +145,6 @@ class ReceiverNameView extends StatelessWidget {
     );
   }
 
-  // 인디케이터 원형 위젯
   Widget _buildCircle({required bool isActive, required String number}) {
     return Container(
       width: 28,
@@ -140,7 +166,6 @@ class ReceiverNameView extends StatelessWidget {
     );
   }
 
-  // 인디케이터 연결 선 위젯
   Widget _buildLine() {
     return Container(width: 16, height: 2, color: Colors.grey.shade200);
   }
