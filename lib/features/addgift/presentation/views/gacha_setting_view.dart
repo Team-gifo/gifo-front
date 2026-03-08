@@ -1,10 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/router/app_router.dart';
+import '../../application/gift_packaging_bloc.dart';
+import '../../model/gacha_content.dart';
 
 // 캡슐 아이템 데이터를 담는 클래스
 class GachaItemData {
@@ -90,6 +93,39 @@ class _GachaSettingViewState extends State<GachaSettingView> {
       total += item.percent;
     }
     return total;
+  }
+
+  // 로컬 UI 데이터를 freezed 모델로 변환 -> BLoC에 저장 -> 로그 출력 -> 완료 화면 이동
+  void _completePackage() {
+    final bloc = context.read<GiftPackagingBloc>();
+
+    // 서브타이틀, BGM 저장
+    bloc.add(SetSubTitle(_subTitleController.text.trim()));
+    bloc.add(SetBgm(_selectedBgm));
+
+    // 로컬 GachaItemData -> freezed GachaItem 변환
+    final List<GachaItem> gachaItems = _items
+        .map(
+          (GachaItemData item) => GachaItem(
+            itemName: item.itemName,
+            imageUrl: item.imageFile?.path ?? '',
+            percent: item.percent,
+            percentOpen: item.percentOpen,
+          ),
+        )
+        .toList();
+
+    final int playCount = int.tryParse(_playCountController.text) ?? 3;
+
+    bloc.add(
+      SetGachaContent(GachaContent(playCount: playCount, list: gachaItems)),
+    );
+
+    // 포장 완료 이벤트 -> JSON 로그 출력
+    bloc.add(SubmitPackage());
+
+    isPackageComplete = true;
+    context.replace('/addgift/package-complete');
   }
 
   Future<void> _pickImage(
@@ -769,9 +805,7 @@ class _GachaSettingViewState extends State<GachaSettingView> {
             height: 60,
             child: ElevatedButton(
               onPressed: () {
-                // TODO: 데이터 직렬화 및 서버 전송 로직
-                isPackageComplete = true;
-                context.replace('/addgift/package-complete');
+                _completePackage();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6DE1F1), // 하늘색 톤
@@ -828,9 +862,7 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                 height: 56,
                 child: ElevatedButton(
                   onPressed: () {
-                    // TODO: 데이터 직렬화 및 서버 전송 로직
-                    isPackageComplete = true;
-                    context.replace('/addgift/package-complete');
+                    _completePackage();
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6DE1F1),

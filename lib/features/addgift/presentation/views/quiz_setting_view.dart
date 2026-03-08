@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/router/app_router.dart';
+import '../../application/gift_packaging_bloc.dart';
+import '../../model/quiz_content.dart';
 import '../../model/quiz_setting_models.dart';
 
 class QuizSettingView extends StatefulWidget {
@@ -914,7 +917,69 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   }
 
   void _completePackage() {
-    // TODO: 데이터 직렬화 및 서버 전송 로직
+    final bloc = context.read<GiftPackagingBloc>();
+
+    // 서브타이틀, BGM 저장
+    bloc.add(SetSubTitle(_subTitleController.text.trim()));
+    bloc.add(SetBgm(_selectedBgm));
+
+    // 로컬 QuizItemData -> freezed QuizItemModel 변환
+    final List<QuizItemModel> quizItems = _items.asMap().entries.map((
+      MapEntry<int, QuizItemData> entry,
+    ) {
+      final QuizItemData item = entry.value;
+      // 퀸즈 타입 문자열 변환
+      String typeStr;
+      switch (item.type) {
+        case QuizType.multipleChoice:
+          typeStr = 'multiple_choice';
+        case QuizType.ox:
+          typeStr = 'ox';
+        case QuizType.subjective:
+          typeStr = 'subjective';
+      }
+
+      // 객관식의 경우 인덱스 기반 answer를 실제 텍스트로 변환
+      List<String> answerTexts = item.answer;
+      if (item.type == QuizType.multipleChoice) {
+        answerTexts = item.answer.map((String idxStr) {
+          final int? idx = int.tryParse(idxStr);
+          if (idx != null && idx < item.options.length) {
+            return item.options[idx];
+          }
+          return idxStr;
+        }).toList();
+      }
+
+      return QuizItemModel(
+        quizId: entry.key + 1,
+        type: typeStr,
+        title: item.title,
+        imageUrl: item.imageFile?.path,
+        description: item.description.isEmpty ? null : item.description,
+        hint: item.hint.isEmpty ? null : item.hint,
+        options: item.options,
+        answer: answerTexts,
+        playLimit: item.playLimit,
+      );
+    }).toList();
+
+    final QuizContent quizContent = QuizContent(
+      successReward: QuizSuccessReward(
+        requiredCount: _successReward.requiredCount ?? 1,
+        itemName: _successReward.itemName,
+        imageUrl: _successReward.imageFile?.path ?? '',
+      ),
+      failReward: QuizFailReward(
+        itemName: _failReward.itemName,
+        imageUrl: _failReward.imageFile?.path ?? '',
+      ),
+      list: quizItems,
+    );
+
+    bloc.add(SetQuizContent(quizContent));
+    bloc.add(SubmitPackage());
+
     isPackageComplete = true;
     context.replace('/addgift/package-complete');
   }
