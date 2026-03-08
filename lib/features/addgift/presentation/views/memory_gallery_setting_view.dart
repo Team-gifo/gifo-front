@@ -35,6 +35,27 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
   final ImagePicker _picker = ImagePicker();
 
   @override
+  void initState() {
+    super.initState();
+    // BLoC에 기존 갤러리 데이터가 있으면 불러오기
+    final blocState = context.read<GiftPackagingBloc>().state;
+    if (blocState.gallery.isNotEmpty) {
+      _items.clear();
+      for (int i = 0; i < blocState.gallery.length; i++) {
+        final galleryItem = blocState.gallery[i];
+        final memoryItem = MemoryItemData(id: i + 1)
+          ..title = galleryItem.title
+          ..description = galleryItem.description;
+        if (galleryItem.imageUrl.isNotEmpty) {
+          memoryItem.imageFile = XFile(galleryItem.imageUrl);
+        }
+        _items.add(memoryItem);
+      }
+      _nextId = blocState.gallery.length + 1;
+    }
+  }
+
+  @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
@@ -365,6 +386,20 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
+            // 현재 입력된 데이터를 Bloc에 저장
+            final List<GalleryItem> galleryItems = _items
+                .map(
+                  (MemoryItemData item) => GalleryItem(
+                    title: item.title,
+                    imageUrl: item.imageFile?.path ?? '',
+                    description: item.description,
+                  ),
+                )
+                .toList();
+            context.read<GiftPackagingBloc>().add(
+              SetGalleryItems(galleryItems),
+            );
+
             if (context.canPop()) {
               context.pop();
             } else {

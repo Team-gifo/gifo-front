@@ -51,22 +51,26 @@ class MemoryDecisionView extends StatelessWidget {
                 ),
               );
             } else {
-              // 모바일 환경
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      const SizedBox(height: 40),
-                      _buildMainText(TextAlign.center),
-                      const SizedBox(height: 60),
-                      _buildButtonsColumn(context),
-                      const SizedBox(height: 40),
-                    ],
+              // 모바일 및 아이패드 환경: 스크롤 가능하되 내용물이 적으면 버튼이 하단에 배치됨
+              return CustomScrollView(
+                slivers: [
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          const SizedBox(height: 48),
+                          _buildMainText(TextAlign.center),
+                          const Spacer(),
+                          const SizedBox(height: 48),
+                          _buildButtonsColumn(context),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               );
             }
           },
@@ -97,7 +101,9 @@ class MemoryDecisionView extends StatelessWidget {
       children: <Widget>[
         // 첫 번째 옵션
         _buildSelectionButton(
-          text: '네,\n저는 친구와 함께 추억을 공유하고 싶어요!',
+          title: '네,',
+          subtitle: '저는 친구와 함께 추억을 공유하고 싶어요!',
+          icon: Icons.photo_library_rounded,
           onPressed: () {
             // 추억 공유 기능을 거쳐가는 2단계(갤러리 셋팅)로 이동
             context.push('/addgift/memory-gallery');
@@ -106,12 +112,13 @@ class MemoryDecisionView extends StatelessWidget {
         const SizedBox(height: 16),
         // 두 번째 옵션
         _buildSelectionButton(
-          text: '아니요,\n저는 바로 선물을 공개할거에요.',
+          title: '아니요,',
+          subtitle: '저는 바로 선물을 공개할거에요.',
+          icon: Icons.card_giftcard_rounded,
           onPressed: () {
             // 추억 공유 없이 3단계로 이동 -> 배송 방식 선택으로 라우팅 완료
             context.push('/addgift/delivery-method');
           },
-          isOutlined: true,
         ),
       ],
     );
@@ -119,53 +126,59 @@ class MemoryDecisionView extends StatelessWidget {
 
   // 개별 선택 버튼 빌더
   Widget _buildSelectionButton({
-    required String text,
+    required String title,
+    required String subtitle,
+    required IconData icon,
     required VoidCallback onPressed,
-    bool isOutlined = false,
   }) {
-    if (isOutlined) {
-      return OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.black,
-          padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
+    final Color contentColor = Colors.black;
+
+    // 버튼 내부에 렌더링될 위젯 구조
+    final Widget buttonContent = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 56, color: contentColor),
+          const SizedBox(height: 24),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 26, // 크기를 좀 더 크게
+              fontWeight: FontWeight.bold,
+              height: 1.3,
+              color: contentColor,
+            ),
           ),
-          side: BorderSide(color: Colors.grey.shade300, width: 2),
-        ),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            height: 1.5,
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              height: 1.5,
+              color: contentColor,
+            ),
           ),
-        ),
-      );
-    }
+        ],
+      ),
+    );
 
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+        backgroundColor: Colors.white,
+        padding: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
+          borderRadius: BorderRadius.circular(20.0),
+          side: BorderSide(color: Colors.grey.shade400, width: 2.0),
         ),
         elevation: 0,
+        shadowColor: Colors.transparent,
       ),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          height: 1.5,
-        ),
-      ),
+      child: buttonContent,
     );
   }
 
