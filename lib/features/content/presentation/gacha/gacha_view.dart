@@ -1,9 +1,8 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../lobby/model/lobby_data.dart';
+import '../../application/gacha/gacha_bloc.dart';
 
 class GachaView extends StatefulWidget {
   final String code;
@@ -15,55 +14,10 @@ class GachaView extends StatefulWidget {
 }
 
 class _GachaViewState extends State<GachaView> {
-  late LobbyData lobbyData;
-  late GachaContent gachaContent;
-  late int remainingCount;
-
-  // 뽑기 히스토리 목록
-  final List<Map<String, String>> history = [];
-
   @override
   void initState() {
     super.initState();
-    // 이전 라우터 로직을 통해 캡슐 데이터가 보장된 상태라고 가정
-    lobbyData = LobbyData.getDummyByCode(widget.code)!;
-    gachaContent = lobbyData.content!.gacha!;
-    remainingCount = gachaContent.playCount;
-  }
-
-  // 간단한 날짜 포맷 함수
-  String _formatTime(DateTime time) {
-    final month = time.month;
-    final day = time.day;
-    final hour = time.hour;
-    final minute = time.minute.toString().padLeft(2, '0');
-    final ampm = hour < 12 ? '오전' : '오후';
-    final hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-    return '$month월 $day일 $ampm $hour12시 $minute분';
-  }
-
-  void _drawGacha() {
-    if (remainingCount <= 0) return;
-
-    setState(() {
-      remainingCount--;
-    });
-
-    // 랜덤 상품 뽑기
-    final randomItem =
-        gachaContent.list[Random().nextInt(gachaContent.list.length)];
-
-    final timeStr = _formatTime(DateTime.now());
-
-    setState(() {
-      history.insert(0, {'time': timeStr, 'item': randomItem.itemName});
-    });
-
-    // 결과창으로 이동 (실제 반환될 결과 데이터 전송)
-    context.push(
-      '/content/result',
-      extra: {'itemName': randomItem.itemName, 'imageUrl': randomItem.imageUrl},
-    );
+    context.read<GachaBloc>().add(InitGacha(widget.code));
   }
 
   @override
@@ -71,94 +25,121 @@ class _GachaViewState extends State<GachaView> {
     final size = MediaQuery.of(context).size;
     final isDesktop = size.width > 900;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Row(
-            children: [
-              Image.asset('assets/images/title_logo.png', height: 50),
-              const SizedBox(width: 16),
-              RichText(
-                text: TextSpan(
-                  style: const TextStyle(
-                    fontSize: 20,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: lobbyData.user,
-                      style: const TextStyle(color: Colors.blue),
-                    ),
-                    const TextSpan(text: '님의 '),
-                    const TextSpan(
-                      text: '신나는 오락',
-                      style: TextStyle(color: Colors.blue),
-                    ),
-                    const TextSpan(text: ' 뽑기'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: isDesktop
-            ? null
-            : [
-                IconButton(
-                  icon: const Icon(Icons.history, color: Colors.black),
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('히스토리'),
-                        content: SizedBox(
-                          width: double.maxFinite,
-                          child: _buildHistoryBoard(),
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => context.pop(),
-                            child: const Text('닫기'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(width: 8.0),
-              ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: isDesktop ? _buildDesktopLayout() : _buildMobileLayout(),
-        ),
-      ),
-      bottomNavigationBar: isDesktop
-          ? null
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24.0,
-                  vertical: 8.0,
-                ),
-                child: _buildDrawButton(isMobile: true),
-              ),
+    return BlocConsumer<GachaBloc, GachaState>(
+      // 뽑기 결과가 나오면 결과 화면으로 이동
+      listener: (context, state) {
+        if (state.lastDrawnItem != null) {
+          context.push(
+            '/content/result',
+            extra: {
+              'itemName': state.lastDrawnItem!.itemName,
+              'imageUrl': state.lastDrawnItem!.imageUrl,
+            },
+          );
+        }
+      },
+      builder: (context, state) {
+        if (state.gachaContent == null) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: _buildAppBar(state, isDesktop),
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: isDesktop
+                  ? _buildDesktopLayout(state)
+                  : _buildMobileLayout(state),
             ),
+          ),
+          bottomNavigationBar: isDesktop
+              ? null
+              : SafeArea(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24.0,
+                      vertical: 8.0,
+                    ),
+                    child: _buildDrawButton(state, isMobile: true),
+                  ),
+                ),
+        );
+      },
     );
   }
 
-  Widget _buildDesktopLayout() {
+  PreferredSizeWidget _buildAppBar(GachaState state, bool isDesktop) {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      title: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Row(
+          children: [
+            Image.asset('assets/images/title_logo.png', height: 50),
+            const SizedBox(width: 16),
+            RichText(
+              text: TextSpan(
+                style: const TextStyle(
+                  fontSize: 20,
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                ),
+                children: [
+                  TextSpan(
+                    text: state.userName,
+                    style: const TextStyle(color: Colors.blue),
+                  ),
+                  const TextSpan(text: '님의 '),
+                  const TextSpan(
+                    text: '신나는 오락',
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                  const TextSpan(text: ' 뽑기'),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: isDesktop
+          ? null
+          : [
+              IconButton(
+                icon: const Icon(Icons.history, color: Colors.black),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('히스토리'),
+                      content: SizedBox(
+                        width: double.maxFinite,
+                        child: _buildHistoryBoard(state),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => context.pop(),
+                          child: const Text('닫기'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 8.0),
+            ],
+    );
+  }
+
+  Widget _buildDesktopLayout(GachaState state) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. 왼쪽 기계 영역
         Expanded(
           flex: 4,
           child: Column(
@@ -166,7 +147,7 @@ class _GachaViewState extends State<GachaView> {
             children: [
               const SizedBox(height: 32),
               Text(
-                '남은 기회 : $remainingCount회',
+                '남은 기회 : ${state.remainingCount}회',
                 style: const TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -182,7 +163,6 @@ class _GachaViewState extends State<GachaView> {
           ),
         ),
         const SizedBox(width: 48),
-        // 2. 오른쪽 목록 및 컨트롤 영역
         Expanded(
           flex: 6,
           child: Column(
@@ -191,14 +171,14 @@ class _GachaViewState extends State<GachaView> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _buildPrizeListBoard()),
+                    Expanded(child: _buildPrizeListBoard(state)),
                     const SizedBox(width: 24),
-                    Expanded(child: _buildHistoryBoard()),
+                    Expanded(child: _buildHistoryBoard(state)),
                   ],
                 ),
               ),
               const SizedBox(height: 32),
-              _buildDrawButton(isMobile: false),
+              _buildDrawButton(state, isMobile: false),
             ],
           ),
         ),
@@ -206,13 +186,13 @@ class _GachaViewState extends State<GachaView> {
     );
   }
 
-  Widget _buildMobileLayout() {
+  Widget _buildMobileLayout(GachaState state) {
     return SingleChildScrollView(
       child: Column(
         children: [
           const SizedBox(height: 16),
           Text(
-            '남은 기회 : $remainingCount회',
+            '남은 기회 : ${state.remainingCount}회',
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
@@ -222,15 +202,14 @@ class _GachaViewState extends State<GachaView> {
             height: 300,
           ),
           const SizedBox(height: 32),
-          _buildPrizeListBoard(),
+          _buildPrizeListBoard(state),
           const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  // 경품 목록 위젯
-  Widget _buildPrizeListBoard() {
+  Widget _buildPrizeListBoard(GachaState state) {
     return Column(
       children: [
         const Text(
@@ -239,17 +218,17 @@ class _GachaViewState extends State<GachaView> {
         ),
         const SizedBox(height: 16),
         Container(
-          height: 400, // 통일된 높이
+          height: 400,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade300),
             borderRadius: BorderRadius.circular(12),
           ),
           child: ListView.separated(
             padding: const EdgeInsets.all(16.0),
-            itemCount: gachaContent.list.length,
+            itemCount: state.gachaContent!.list.length,
             separatorBuilder: (context, index) => const SizedBox(height: 16),
             itemBuilder: (context, index) {
-              final item = gachaContent.list[index];
+              final item = state.gachaContent!.list[index];
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -269,8 +248,7 @@ class _GachaViewState extends State<GachaView> {
     );
   }
 
-  // 히스토리 목록 위젯
-  Widget _buildHistoryBoard() {
+  Widget _buildHistoryBoard(GachaState state) {
     return Column(
       children: [
         const Text(
@@ -279,12 +257,12 @@ class _GachaViewState extends State<GachaView> {
         ),
         const SizedBox(height: 16),
         Container(
-          height: 400, // 통일된 높이
+          height: 400,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey.shade300),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: history.isEmpty
+          child: state.history.isEmpty
               ? const Center(
                   child: Text(
                     '아직 뽑은 기록이 없어요.',
@@ -293,11 +271,11 @@ class _GachaViewState extends State<GachaView> {
                 )
               : ListView.separated(
                   padding: const EdgeInsets.all(16.0),
-                  itemCount: history.length,
+                  itemCount: state.history.length,
                   separatorBuilder: (context, index) =>
                       const SizedBox(height: 16),
                   itemBuilder: (context, index) {
-                    final h = history[index];
+                    final h = state.history[index];
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -319,7 +297,7 @@ class _GachaViewState extends State<GachaView> {
                               TextSpan(
                                 text: '"${h['item']}"',
                                 style: const TextStyle(
-                                  color: Colors.redAccent, // 뽑은 아이템 강조 (이미지 참고)
+                                  color: Colors.redAccent,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -336,15 +314,16 @@ class _GachaViewState extends State<GachaView> {
     );
   }
 
-  // 봅기 버튼
-  Widget _buildDrawButton({required bool isMobile}) {
+  Widget _buildDrawButton(GachaState state, {required bool isMobile}) {
     return SizedBox(
       width: double.infinity,
       height: 60,
       child: ElevatedButton(
-        onPressed: remainingCount > 0 ? _drawGacha : null,
+        onPressed: state.remainingCount > 0
+            ? () => context.read<GachaBloc>().add(const DrawGacha())
+            : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFC7DEFF), // 연한 하늘색 배경
+          backgroundColor: const Color(0xFFC7DEFF),
           foregroundColor: Colors.black,
           disabledBackgroundColor: Colors.grey.shade300,
           disabledForegroundColor: Colors.grey.shade600,
