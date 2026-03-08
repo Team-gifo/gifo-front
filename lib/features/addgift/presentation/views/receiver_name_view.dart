@@ -86,30 +86,42 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
                 ),
               ),
               const Spacer(),
-              ElevatedButton(
-                onPressed: () {
-                  final String name = _nameController.text.trim();
-                  if (name.isNotEmpty) {
-                    // BLoC에 수신자 이름 저장
-                    context.read<GiftPackagingBloc>().add(
-                      SetReceiverName(name),
-                    );
-                    context.push('/addgift/memory-decision');
-                  }
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _nameController,
+                builder: (context, value, child) {
+                  final bool isNameEmpty = value.text.trim().isEmpty;
+
+                  return ElevatedButton(
+                    onPressed: isNameEmpty
+                        ? null
+                        : () {
+                            final String name = value.text.trim();
+                            // BLoC에 수신자 이름 저장
+                            context.read<GiftPackagingBloc>().add(
+                              SetReceiverName(name),
+                            );
+                            context.push('/addgift/memory-decision');
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey.shade300,
+                      disabledForegroundColor: Colors.grey.shade600,
+                      padding: const EdgeInsets.symmetric(vertical: 16.0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      '다음',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  '다음',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                ),
               ),
               const SizedBox(height: 16),
             ],
