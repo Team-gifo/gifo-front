@@ -48,6 +48,28 @@ class _GachaSettingViewState extends State<GachaSettingView> {
   @override
   void initState() {
     super.initState();
+    final blocState = context.read<GiftPackagingBloc>().state;
+    // BLoC에 기존 입력된 받는 분 정보가 있다면 불러오기
+    if (blocState.receiverName.isNotEmpty) {
+      _userNameController.text = blocState.receiverName;
+    }
+    // 초기 생성된 랜덤 타이틀을 서브타이틀 필드에 세팅
+    if (blocState.subTitle.isNotEmpty) {
+      _subTitleController.text = blocState.subTitle;
+    }
+
+    // 이름 입력란이 수정될 때마다 BLoC에도 동기화
+    _userNameController.addListener(() {
+      context.read<GiftPackagingBloc>().add(
+        SetReceiverName(_userNameController.text),
+      );
+    });
+    // 서브타이틀 수정 시에도 BLoC에 동기화
+    _subTitleController.addListener(() {
+      context.read<GiftPackagingBloc>().add(
+        SetSubTitle(_subTitleController.text),
+      );
+    });
   }
 
   @override
@@ -432,7 +454,7 @@ class _GachaSettingViewState extends State<GachaSettingView> {
           child: TextFormField(
             controller: _userNameController,
             decoration: InputDecoration(
-              hintText: '이름/닉네임',
+              hintText: '닉네임',
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,

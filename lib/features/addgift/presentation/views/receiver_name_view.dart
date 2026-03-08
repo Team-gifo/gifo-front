@@ -45,7 +45,7 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
             children: <Widget>[
               const SizedBox(height: 24),
               const Text(
-                '선물 받는 분의\n성함을 알려주세요',
+                '선물 받는 분의\n닉네임을 알려주세요',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -57,7 +57,7 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
               TextField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  hintText: '이름 입력',
+                  hintText: '닉네임 입력',
                   hintStyle: TextStyle(
                     color: Colors.grey.shade400,
                     fontSize: 16,

@@ -28,6 +28,32 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   String _selectedBgm = '신나는 생일';
 
   @override
+  void initState() {
+    super.initState();
+    final blocState = context.read<GiftPackagingBloc>().state;
+    // BLoC에 기존 입력된 받는 분 정보가 있다면 불러오기
+    if (blocState.receiverName.isNotEmpty) {
+      _userNameController.text = blocState.receiverName;
+    }
+    // 초기 생성된 랜덤 타이틀을 서브타이틀 필드에 세팅
+    if (blocState.subTitle.isNotEmpty) {
+      _subTitleController.text = blocState.subTitle;
+    }
+
+    _userNameController.addListener(() {
+      context.read<GiftPackagingBloc>().add(
+        SetReceiverName(_userNameController.text),
+      );
+    });
+    // 서브타이틀 리스너 추가
+    _subTitleController.addListener(() {
+      context.read<GiftPackagingBloc>().add(
+        SetSubTitle(_subTitleController.text),
+      );
+    });
+  }
+
+  @override
   void dispose() {
     _userNameController.dispose();
     _subTitleController.dispose();
@@ -359,7 +385,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
           child: TextFormField(
             controller: _userNameController,
             decoration: InputDecoration(
-              hintText: '이름/닉네임',
+              hintText: '닉네임',
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,

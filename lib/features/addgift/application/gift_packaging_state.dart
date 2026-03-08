@@ -12,6 +12,28 @@ class GiftPackagingState {
   final QuizContent? quizContent;
   final UnboxingContent? unboxingContent;
 
+  // 랜덤한 서브타이틀 명칭 생성 헬퍼
+  static String generateRandomSubTitle() {
+    final List<String> randomTitles = [
+      '두근두근',
+      '설레는',
+      '호기심 가득',
+      '신나는',
+      '떨리는',
+      '화끈한',
+      '행복한',
+      '기대되는',
+      '깜짝',
+      '환상적인',
+    ];
+    final random = Random();
+    return randomTitles[random.nextInt(randomTitles.length)];
+  }
+
+  factory GiftPackagingState.initial() {
+    return GiftPackagingState(subTitle: generateRandomSubTitle());
+  }
+
   const GiftPackagingState({
     this.receiverName = '',
     this.subTitle = '',

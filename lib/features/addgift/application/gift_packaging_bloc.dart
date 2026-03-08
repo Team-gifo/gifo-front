@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,7 +17,7 @@ part 'gift_packaging_event.dart';
 part 'gift_packaging_state.dart';
 
 class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
-  GiftPackagingBloc() : super(const GiftPackagingState()) {
+  GiftPackagingBloc() : super(GiftPackagingState.initial()) {
     on<SetReceiverName>(_onSetReceiverName);
     on<SetGalleryItems>(_onSetGalleryItems);
     on<SetSubTitle>(_onSetSubTitle);
@@ -145,6 +146,6 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
     ResetPackaging event,
     Emitter<GiftPackagingState> emit,
   ) {
-    emit(const GiftPackagingState());
+    emit(GiftPackagingState.initial());
   }
 }

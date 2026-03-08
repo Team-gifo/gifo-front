@@ -30,6 +30,26 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
   @override
   void initState() {
     super.initState();
+    final blocState = context.read<GiftPackagingBloc>().state;
+    if (blocState.receiverName.isNotEmpty) {
+      _userNameController.text = blocState.receiverName;
+    }
+    // 초기 생성된 랜덤 타이틀을 서브타이틀 필드에 세팅
+    if (blocState.subTitle.isNotEmpty) {
+      _subTitleController.text = blocState.subTitle;
+    }
+
+    _userNameController.addListener(() {
+      context.read<GiftPackagingBloc>().add(
+        SetReceiverName(_userNameController.text),
+      );
+    });
+    _subTitleController.addListener(() {
+      context.read<GiftPackagingBloc>().add(
+        SetSubTitle(_subTitleController.text),
+      );
+    });
+
     _beforeDescController.text = _beforeData.description;
     _afterNameController.text = _afterData.itemName;
 
@@ -222,7 +242,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
           child: TextFormField(
             controller: _userNameController,
             decoration: InputDecoration(
-              hintText: '이름/닉네임',
+              hintText: '닉네임',
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,
