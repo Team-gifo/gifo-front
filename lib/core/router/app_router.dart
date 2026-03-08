@@ -118,7 +118,7 @@ final GoRouter appRouter = GoRouter(
       routes: [
         // 선물 포장 - 받는 분 성함 입력 화면
         GoRoute(
-          path: '/addgift/receiver-name',
+          path: '/addgift',
           builder: (BuildContext context, GoRouterState state) =>
               const ReceiverNameView(),
         ),

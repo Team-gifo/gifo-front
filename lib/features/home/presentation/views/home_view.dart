@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../lobby/model/lobby_data.dart';
 
@@ -144,10 +145,19 @@ class _HomeViewState extends State<HomeView> {
                     ),
                     const SizedBox(height: 32),
                     ElevatedButton(
-                      onPressed: () {
-                        context.push(
-                          '/addgift/receiver-name',
-                        ); // 선물 포장 - 받는 분 성함 입력 화면으로 이동
+                      onPressed: () async {
+                        // 현재 앱의 기본 도메인 주소(Base URL)에 라우팅 경로를 결합하여 절대 경로 생성
+                        final Uri url = Uri.base.resolve('/addgift');
+
+                        // 브라우저 환경 등에서 url_launcher를 통해 새 탭(_blank) 열기 지원 여부 체크
+                        if (await canLaunchUrl(url)) {
+                          await launchUrl(url, webOnlyWindowName: '_blank');
+                        } else {
+                          // 실행할 수 없는 환경(데스크탑 앱 등 특정 상황)에서는 기존 라우터를 통한 전환으로 fallback
+                          if (context.mounted) {
+                            context.push('/');
+                          }
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.black,

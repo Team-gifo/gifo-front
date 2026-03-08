@@ -35,16 +35,6 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/');
-            }
-          },
-        ),
         actions: <Widget>[_buildStepIndicator()],
       ),
       body: SafeArea(
