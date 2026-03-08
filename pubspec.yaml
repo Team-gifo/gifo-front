@@ -41,6 +41,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - .env
     - assets/images/
     - assets/images/item/
     - assets/lottie/
