@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.deepPurple,
-          surface: Colors.white,
+          surface: const Color.fromARGB(255, 105, 105, 105),
         ),
       ),
       routerConfig: appRouter,

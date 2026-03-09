@@ -20,7 +20,7 @@ class GachaItemData {
   XFile? imageFile;
   String itemName;
   String percentStr;
-  bool percentOpen = false;
+  bool percentOpen = true;
 
   double get percent => double.tryParse(percentStr) ?? 0.0;
 }
@@ -689,22 +689,25 @@ class _GachaSettingViewState extends State<GachaSettingView> {
         if (isMobile) ...<Widget>[
           RichText(
             text: TextSpan(
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                fontFamily: DefaultTextStyle.of(context).style.fontFamily,
+                fontFamily: 'PFStardust',
                 color: Colors.black,
               ),
               children: <TextSpan>[
                 const TextSpan(text: '전체 확률 : '),
                 TextSpan(
-                  text:
-                      '${totalPercent.toStringAsFixed(2)}% ( - ${remainPercent.toStringAsFixed(2)}%)',
+                  text: '${totalPercent.toStringAsFixed(2)}%',
                   style: TextStyle(
                     color: (totalPercent >= 0.01 && totalPercent <= 100.0)
                         ? Colors.green
                         : Colors.red,
                   ),
+                ),
+                TextSpan(
+                  text: ' [ 🎁 : ${_items.length}개 ]',
+                  style: const TextStyle(color: Colors.black),
                 ),
               ],
             ),
@@ -713,24 +716,26 @@ class _GachaSettingViewState extends State<GachaSettingView> {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
-              ElevatedButton(
+              ElevatedButton.icon(
                 onPressed: _addItem,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
+                  backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                   elevation: 0,
                 ),
-                child: const Text('추가'),
+                icon: const Icon(Icons.add, size: 18),
+                label: const Text('추가'),
               ),
               const SizedBox(width: 8),
-              ElevatedButton(
+              ElevatedButton.icon(
                 onPressed: _removeAllItems,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.red.shade400,
                   foregroundColor: Colors.white,
                   elevation: 0,
                 ),
-                child: const Text('모두 제거'),
+                icon: const Icon(Icons.delete_outline, size: 18),
+                label: const Text('모두 제거'),
               ),
             ],
           ),
@@ -742,22 +747,25 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                 child: RichText(
                   overflow: TextOverflow.ellipsis,
                   text: TextSpan(
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      fontFamily: DefaultTextStyle.of(context).style.fontFamily,
+                      fontFamily: 'PFStardust',
                       color: Colors.black,
                     ),
                     children: <TextSpan>[
                       const TextSpan(text: '전체 확률 : '),
                       TextSpan(
-                        text:
-                            '${totalPercent.toStringAsFixed(2)}% ( - ${remainPercent.toStringAsFixed(2)}%)',
+                        text: '${totalPercent.toStringAsFixed(2)}%',
                         style: TextStyle(
                           color: (totalPercent >= 0.01 && totalPercent <= 100.0)
                               ? Colors.green
                               : Colors.red,
                         ),
+                      ),
+                      TextSpan(
+                        text: ' [ 🎁 : ${_items.length}개 ]',
+                        style: const TextStyle(color: Colors.black),
                       ),
                     ],
                   ),
@@ -766,24 +774,26 @@ class _GachaSettingViewState extends State<GachaSettingView> {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  ElevatedButton(
+                  ElevatedButton.icon(
                     onPressed: _addItem,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
+                      backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                       elevation: 0,
                     ),
-                    child: const Text('추가'),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('추가'),
                   ),
                   const SizedBox(width: 8),
-                  ElevatedButton(
+                  ElevatedButton.icon(
                     onPressed: _removeAllItems,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade400,
                       foregroundColor: Colors.white,
                       elevation: 0,
                     ),
-                    child: const Text('모두 제거'),
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: const Text('모두 제거'),
                   ),
                 ],
               ),
@@ -792,28 +802,31 @@ class _GachaSettingViewState extends State<GachaSettingView> {
         ],
         const SizedBox(height: 24),
         if (isMobile)
-          _buildCapsuleListContainer()
+          _buildCapsuleListContainer(isMobile: true)
         else
           Expanded(
-            child: SingleChildScrollView(child: _buildCapsuleListContainer()),
+            child: SingleChildScrollView(
+              child: _buildCapsuleListContainer(isMobile: false),
+            ),
           ),
       ],
     );
   }
 
-  Widget _buildCapsuleListContainer() {
+  Widget _buildCapsuleListContainer({required bool isMobile}) {
     return Container(
       width: double.infinity, // 부모 너비 가득
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade400, width: 1),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Wrap(
-        spacing: 24,
-        runSpacing: 24,
+        spacing: 32,
+        runSpacing: 32,
         children: <Widget>[
-          for (int i = 0; i < _items.length; i++) _buildCapsuleItem(_items[i]),
+          for (int i = 0; i < _items.length; i++)
+            _buildCapsuleItem(_items[i], isMobile),
           // 추가하기 점선 원
           InkWell(
             onTap: _addItem,
@@ -822,8 +835,8 @@ class _GachaSettingViewState extends State<GachaSettingView> {
             hoverColor: Colors.transparent,
             borderRadius: BorderRadius.circular(50),
             child: Container(
-              width: 80,
-              height: 80,
+              width: isMobile ? 80 : 96,
+              height: isMobile ? 80 : 96,
               decoration: const BoxDecoration(shape: BoxShape.circle),
               child: Stack(
                 children: <Widget>[
@@ -851,13 +864,19 @@ class _GachaSettingViewState extends State<GachaSettingView> {
     );
   }
 
-  Widget _buildCapsuleItem(GachaItemData item) {
+  Widget _buildCapsuleItem(GachaItemData item, bool isMobile) {
     final double? percentValue = double.tryParse(item.percentStr);
     final bool needsEdit =
         item.itemName.trim().isEmpty ||
         percentValue == null ||
         percentValue < 0.01 ||
         percentValue > 100.0;
+
+    final double size = isMobile ? 80.0 : 96.0;
+    final double halfSize = size / 2;
+    final double iconSize = isMobile ? 35.0 : 42.0;
+    final double titleFontSize = isMobile ? 14.0 : 16.0;
+    final double percentFontSize = isMobile ? 12.0 : 14.0;
 
     return MouseRegion(
       onEnter: (_) {
@@ -880,13 +899,13 @@ class _GachaSettingViewState extends State<GachaSettingView> {
             hoverColor: Colors.transparent,
             customBorder: const CircleBorder(),
             child: SizedBox(
-              width: 80, // 아이템 영역 고정 (오버플로우 방지)
+              width: size, // 아이템 영역 고정 (오버플로우 방지)
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Container(
-                    width: 80,
-                    height: 80,
+                    width: size,
+                    height: size,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
@@ -905,14 +924,14 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                           child: item.imageFile != null
                               ? Image.network(
                                   item.imageFile!.path,
-                                  width: 80,
-                                  height: 80,
+                                  width: size,
+                                  height: size,
                                   fit: BoxFit.cover,
                                 )
-                              : const Icon(
+                              : Icon(
                                   Icons.card_giftcard,
                                   color: Colors.black,
-                                  size: 35,
+                                  size: iconSize,
                                 ),
                         ),
                         // 상단 (흰색, 반투명)
@@ -920,7 +939,7 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                           top: 0,
                           left: 0,
                           right: 0,
-                          height: 40,
+                          height: halfSize,
                           child: Container(
                             color: Colors.white.withValues(alpha: 0.3),
                           ),
@@ -930,7 +949,7 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                           bottom: 0,
                           left: 0,
                           right: 0,
-                          height: 40,
+                          height: halfSize,
                           child: Container(
                             color: item.color.withValues(alpha: 0.7),
                           ),
@@ -947,7 +966,7 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                   Text(
                     item.itemName.isEmpty ? '제목 없음' : item.itemName,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: titleFontSize,
                       fontWeight: FontWeight.bold,
                       color: item.itemName.isEmpty ? Colors.grey : Colors.black,
                     ),
@@ -956,8 +975,11 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                     textAlign: TextAlign.center,
                   ),
                   Text(
-                    '${item.percentStr}%',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                    item.percentOpen ? '(${item.percentStr}%)' : '(미공개)',
+                    style: TextStyle(
+                      fontSize: percentFontSize,
+                      color: Colors.black,
+                    ),
                   ),
                 ],
               ),
@@ -1015,7 +1037,7 @@ class _GachaSettingViewState extends State<GachaSettingView> {
               '뽑기 가능 횟수',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(width: 16),
+            const Spacer(),
             SizedBox(
               width: 70,
               child: TextFormField(
@@ -1024,17 +1046,31 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: const Color(0xFFF4FAF9),
+                  fillColor: Colors.white,
                   isDense: true,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
+                    borderSide: const BorderSide(color: Colors.black, width: 1),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Colors.black, width: 1),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(
+                      color: Colors.blue,
+                      width: 1.5,
+                    ),
                   ),
                 ),
               ),
             ),
             const SizedBox(width: 8),
-            const Text('회'),
+            const Text(
+              '회',
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
           ],
         ),
         const SizedBox(height: 40),
@@ -1277,24 +1313,22 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        Row(
+                        const Row(
                           children: <Widget>[
-                            const Text(
+                            Text(
                               '상세 설정',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Tooltip(
                               triggerMode: TooltipTriggerMode.tap,
-                              showDuration: const Duration(seconds: 4),
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 24,
-                              ),
-                              padding: const EdgeInsets.all(12),
-                              textStyle: const TextStyle(
+                              showDuration: Duration(seconds: 4),
+                              margin: EdgeInsets.symmetric(horizontal: 24),
+                              padding: EdgeInsets.all(12),
+                              textStyle: TextStyle(
                                 color: Colors.white,
                                 fontSize: 13,
                                 height: 1.5,
@@ -1306,7 +1340,7 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                                   '• 뽑기 가능 횟수 최소 1 이상\n'
                                   '• 미완성 캡슐 없음\n'
                                   '• 전체 확률 0.01% 이상 100.0% 이하',
-                              child: const Row(
+                              child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
                                   Icon(
