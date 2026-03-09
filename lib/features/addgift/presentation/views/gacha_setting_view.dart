@@ -408,33 +408,26 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                   ),
                 ),
               )
-            : CustomScrollView(
-                slivers: <Widget>[
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        Expanded(
-                          flex: 7,
-                          child: Padding(
-                            padding: const EdgeInsets.all(40.0),
-                            child: _buildItemsSection(
-                              totalPercent,
-                              remainPercent,
-                              isMobile,
-                            ),
-                          ),
-                        ),
-                        Container(width: 1, color: Colors.grey.shade200),
-                        Expanded(
-                          flex: 3,
-                          child: Padding(
-                            padding: const EdgeInsets.all(40.0),
-                            child: _buildSettingsSection(isMobile: false),
-                          ),
-                        ),
-                      ],
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: <Widget>[
+                  Expanded(
+                    flex: 7,
+                    child: Padding(
+                      padding: const EdgeInsets.all(40.0),
+                      child: _buildItemsSection(
+                        totalPercent,
+                        remainPercent,
+                        isMobile,
+                      ),
+                    ),
+                  ),
+                  Container(width: 1, color: Colors.grey.shade200),
+                  Expanded(
+                    flex: 3,
+                    child: Padding(
+                      padding: const EdgeInsets.all(40.0),
+                      child: _buildSettingsSection(isMobile: false),
                     ),
                   ),
                 ],
@@ -469,7 +462,10 @@ class _GachaSettingViewState extends State<GachaSettingView> {
           ),
         ),
         const SizedBox(width: 8),
-        const Text('님의', style: TextStyle(fontSize: 16)),
+        const Text(
+          '님의',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
         const SizedBox(width: 8),
         SizedBox(
           width: 120,
@@ -578,56 +574,63 @@ class _GachaSettingViewState extends State<GachaSettingView> {
           ),
         ],
         const SizedBox(height: 24),
-        Container(
-          width: double.infinity, // 부모 너비 가득
-          // 모바일 높이 무제한 에러 방지 위해 고정 높이 제거, Wrap 콘텐츠 크기에 맞춤
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade400, width: 1),
-            borderRadius: BorderRadius.circular(12),
+        if (isMobile)
+          _buildCapsuleListContainer()
+        else
+          Expanded(
+            child: SingleChildScrollView(child: _buildCapsuleListContainer()),
           ),
-          child: Wrap(
-            spacing: 24,
-            runSpacing: 24,
-            children: <Widget>[
-              for (int i = 0; i < _items.length; i++)
-                _buildCapsuleItem(_items[i]),
-              // 추가하기 점선 원
-              InkWell(
-                onTap: _addItem,
-                splashColor: Colors.transparent,
-                highlightColor: Colors.transparent,
-                hoverColor: Colors.transparent,
-                borderRadius: BorderRadius.circular(50),
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: const BoxDecoration(shape: BoxShape.circle),
-                  child: Stack(
-                    children: <Widget>[
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: DashedCirclePainter(
-                            color: Colors.grey.shade600,
-                            strokeWidth: 1.5,
-                          ),
-                        ),
-                      ),
-                      Center(
-                        child: Icon(
-                          Icons.add,
-                          color: Colors.grey.shade600,
-                          size: 32,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
       ],
+    );
+  }
+
+  Widget _buildCapsuleListContainer() {
+    return Container(
+      width: double.infinity, // 부모 너비 가득
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade400, width: 1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Wrap(
+        spacing: 24,
+        runSpacing: 24,
+        children: <Widget>[
+          for (int i = 0; i < _items.length; i++) _buildCapsuleItem(_items[i]),
+          // 추가하기 점선 원
+          InkWell(
+            onTap: _addItem,
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            borderRadius: BorderRadius.circular(50),
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: const BoxDecoration(shape: BoxShape.circle),
+              child: Stack(
+                children: <Widget>[
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: DashedCirclePainter(
+                        color: Colors.grey.shade600,
+                        strokeWidth: 1.5,
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Icon(
+                      Icons.add,
+                      color: Colors.grey.shade600,
+                      size: 32,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
