@@ -35,6 +35,7 @@ class GachaSettingView extends StatefulWidget {
 class _GachaSettingViewState extends State<GachaSettingView> {
   final List<GachaItemData> _items = <GachaItemData>[];
   int _nextId = 1;
+  int? _hoveredItemId;
 
   final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _subTitleController = TextEditingController();
@@ -106,6 +107,16 @@ class _GachaSettingViewState extends State<GachaSettingView> {
   void _removeAllItems() {
     setState(() {
       _items.clear();
+      _hoveredItemId = null;
+    });
+  }
+
+  void _removeItem(int id) {
+    setState(() {
+      _items.removeWhere((item) => item.id == id);
+      if (_hoveredItemId == id) {
+        _hoveredItemId = null;
+      }
     });
   }
 
@@ -345,24 +356,59 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                     ),
                   ),
                   const SizedBox(height: 40),
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(modalContext).pop(),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey.shade300,
-                      foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(modalContext).pop();
+                            _removeItem(itemData.id);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: Colors.red.shade400,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(
+                                color: Colors.red.shade400,
+                                width: 1.5,
+                              ),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            '삭제',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      '저장 완료',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () => Navigator.of(modalContext).pop(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey.shade300,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: const Text(
+                            '저장 완료',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -635,90 +681,126 @@ class _GachaSettingViewState extends State<GachaSettingView> {
   }
 
   Widget _buildCapsuleItem(GachaItemData item) {
-    return InkWell(
-      onTap: () => _showEditModal(context, item),
-      splashColor: Colors.transparent,
-      highlightColor: Colors.transparent,
-      hoverColor: Colors.transparent,
-      customBorder: const CircleBorder(),
-      child: SizedBox(
-        width: 80, // 아이템 영역 고정 (오버플로우 방지)
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.black,
-                  width: 2,
-                  strokeAlign: BorderSide.strokeAlignOutside,
-                ), // 선을 굵게 변경
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
+    return MouseRegion(
+      onEnter: (_) {
+        setState(() {
+          _hoveredItemId = item.id;
+        });
+      },
+      onExit: (_) {
+        setState(() {
+          _hoveredItemId = null;
+        });
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: <Widget>[
+          InkWell(
+            onTap: () => _showEditModal(context, item),
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
+            hoverColor: Colors.transparent,
+            customBorder: const CircleBorder(),
+            child: SizedBox(
+              width: 80, // 아이템 영역 고정 (오버플로우 방지)
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  // 가운데 아이템 이미지 (배경으로 깔림)
-                  Center(
-                    child: item.imageFile != null
-                        ? Image.network(
-                            item.imageFile!.path,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          )
-                        : const Icon(
-                            Icons.card_giftcard,
-                            color: Colors.black,
-                            size: 35,
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 2,
+                        strokeAlign: BorderSide.strokeAlignOutside,
+                      ), // 선을 굵게 변경
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      children: <Widget>[
+                        // 가운데 아이템 이미지 (배경으로 깔림)
+                        Center(
+                          child: item.imageFile != null
+                              ? Image.network(
+                                  item.imageFile!.path,
+                                  width: 80,
+                                  height: 80,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(
+                                  Icons.card_giftcard,
+                                  color: Colors.black,
+                                  size: 35,
+                                ),
+                        ),
+                        // 상단 (흰색, 반투명)
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: 40,
+                          child: Container(
+                            color: Colors.white.withValues(alpha: 0.3),
                           ),
-                  ),
-                  // 상단 (흰색, 반투명)
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: 40,
-                    child: Container(
-                      color: Colors.white.withValues(alpha: 0.3),
+                        ),
+                        // 하단 랜덤 색상 반형 디자인 (반투명하게 덮어짐)
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          height: 40,
+                          child: Container(
+                            color: item.color.withValues(alpha: 0.7),
+                          ),
+                        ),
+                        // 가운데 분리선
+                        Align(
+                          alignment: Alignment.center,
+                          child: Container(height: 1, color: Colors.black),
+                        ),
+                      ],
                     ),
                   ),
-                  // 하단 랜덤 색상 반형 디자인 (반투명하게 덮어짐)
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    height: 40,
-                    child: Container(color: item.color.withValues(alpha: 0.7)),
+                  const SizedBox(height: 8),
+                  Text(
+                    item.itemName.isEmpty ? '제목 없음' : item.itemName,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: item.itemName.isEmpty ? Colors.grey : Colors.black,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
-                  // 가운데 분리선
-                  Align(
-                    alignment: Alignment.center,
-                    child: Container(height: 1, color: Colors.black),
+                  Text(
+                    '${item.percentStr}%',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              item.itemName.isEmpty ? '제목 없음' : item.itemName,
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: item.itemName.isEmpty ? Colors.grey : Colors.black,
+          ),
+          if (_hoveredItemId == item.id)
+            Positioned(
+              top: -6,
+              right: -6,
+              child: GestureDetector(
+                onTap: () => _removeItem(item.id),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade400,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: const Icon(Icons.close, color: Colors.white, size: 16),
+                ),
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
             ),
-            Text(
-              '${item.percentStr}%',
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
