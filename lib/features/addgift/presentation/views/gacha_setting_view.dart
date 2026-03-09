@@ -65,12 +65,17 @@ class _GachaSettingViewState extends State<GachaSettingView> {
       context.read<GiftPackagingBloc>().add(
         SetReceiverName(_userNameController.text),
       );
+      setState(() {});
     });
     // 서브타이틀 수정 시에도 BLoC에 동기화
     _subTitleController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetSubTitle(_subTitleController.text),
       );
+      setState(() {});
+    });
+    _playCountController.addListener(() {
+      setState(() {});
     });
   }
 
@@ -80,6 +85,26 @@ class _GachaSettingViewState extends State<GachaSettingView> {
     _subTitleController.dispose();
     _playCountController.dispose();
     super.dispose();
+  }
+
+  bool _canComplete() {
+    if (_items.isEmpty) return false;
+    if (_userNameController.text.trim().isEmpty) return false;
+    if (_subTitleController.text.trim().isEmpty) return false;
+
+    final int? playCount = int.tryParse(_playCountController.text);
+    if (playCount == null || playCount < 1) return false;
+
+    for (final item in _items) {
+      final double? pct = double.tryParse(item.percentStr);
+      if (item.itemName.trim().isEmpty) return false;
+      if (pct == null || pct < 0.01 || pct > 100.0) return false;
+    }
+
+    final double totalPct = _getTotalPercent();
+    if (totalPct < 0.01 || totalPct > 100.0) return false;
+
+    return true;
   }
 
   Color _getRandomGachaColor() {
@@ -268,7 +293,6 @@ class _GachaSettingViewState extends State<GachaSettingView> {
             percentValue != null &&
             percentValue >= 0.01 &&
             percentValue <= 100.0;
-        final bool canSave = isTitleValid && isPercentValid;
 
         return SafeArea(
           child: Column(
@@ -498,34 +522,6 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                         ),
                         child: const Text(
                           '삭제',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: canSave
-                            ? () => Navigator.of(modalContext).pop()
-                            : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: canSave
-                              ? Colors.blue
-                              : Colors.grey.shade300,
-                          foregroundColor: canSave
-                              ? Colors.white
-                              : Colors.black,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          '저장 완료',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -1063,22 +1059,26 @@ class _GachaSettingViewState extends State<GachaSettingView> {
           SizedBox(
             height: 60,
             child: ElevatedButton(
-              onPressed: () {
-                _completePackage();
-              },
+              onPressed: _canComplete()
+                  ? () {
+                      _completePackage();
+                    }
+                  : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6DE1F1), // 하늘색 톤
+                backgroundColor: _canComplete()
+                    ? const Color(0xFF6DE1F1)
+                    : Colors.grey.shade300,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
                 elevation: 0,
               ),
-              child: const Text(
+              child: Text(
                 '포장 완료',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black,
+                  color: _canComplete() ? Colors.black : Colors.grey.shade500,
                 ),
               ),
             ),
@@ -1120,22 +1120,28 @@ class _GachaSettingViewState extends State<GachaSettingView> {
               child: SizedBox(
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () {
-                    _completePackage();
-                  },
+                  onPressed: _canComplete()
+                      ? () {
+                          _completePackage();
+                        }
+                      : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6DE1F1),
+                    backgroundColor: _canComplete()
+                        ? const Color(0xFF6DE1F1)
+                        : Colors.grey.shade300,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
+                  child: Text(
                     '포장 완료',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: _canComplete()
+                          ? Colors.black
+                          : Colors.grey.shade500,
                     ),
                   ),
                 ),
