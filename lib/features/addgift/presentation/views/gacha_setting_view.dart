@@ -552,9 +552,8 @@ class _GachaSettingViewState extends State<GachaSettingView> {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        // 모바일일 때는 앱바 영역의 오버플로우를 막고 본문으로 내림
-        title: isMobile ? null : _buildTitleBar(),
-        actions: <Widget>[_buildStepIndicator()],
+        title: _buildTitleBar(),
+        actions: <Widget>[if (!isMobile) _buildStepIndicator()],
       ),
       body: SafeArea(
         child: isMobile
@@ -564,11 +563,6 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: _buildTitleBar(),
-                      ),
-                      const SizedBox(height: 24),
                       _buildItemsSection(totalPercent, remainPercent, isMobile),
                     ],
                   ),
@@ -669,9 +663,26 @@ class _GachaSettingViewState extends State<GachaSettingView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         if (isMobile) ...<Widget>[
-          Text(
-            '전체 확률 : ${totalPercent.toStringAsFixed(2)}% ( - ${remainPercent.toStringAsFixed(2)}%)',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          RichText(
+            text: TextSpan(
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+              children: <TextSpan>[
+                const TextSpan(text: '전체 확률 : '),
+                TextSpan(
+                  text:
+                      '${totalPercent.toStringAsFixed(2)}% ( - ${remainPercent.toStringAsFixed(2)}%)',
+                  style: TextStyle(
+                    color: (totalPercent >= 0.01 && totalPercent <= 100.0)
+                        ? Colors.green
+                        : Colors.red,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 12),
           Row(
@@ -703,13 +714,27 @@ class _GachaSettingViewState extends State<GachaSettingView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Flexible(
-                child: Text(
-                  '전체 확률 : ${totalPercent.toStringAsFixed(2)}% ( - ${remainPercent.toStringAsFixed(2)}%)',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: RichText(
                   overflow: TextOverflow.ellipsis,
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    children: <TextSpan>[
+                      const TextSpan(text: '전체 확률 : '),
+                      TextSpan(
+                        text:
+                            '${totalPercent.toStringAsFixed(2)}% ( - ${remainPercent.toStringAsFixed(2)}%)',
+                        style: TextStyle(
+                          color: (totalPercent >= 0.01 && totalPercent <= 100.0)
+                              ? Colors.green
+                              : Colors.red,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               Row(
@@ -1055,6 +1080,48 @@ class _GachaSettingViewState extends State<GachaSettingView> {
         ),
         if (!isMobile) ...<Widget>[
           const Spacer(),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  '⚠️ 포장 완료 조건',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  '• 캡슐 최소 1개 이상 생성',
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+                Text(
+                  '• 상단 이름 및 서브타이틀 입력',
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+                Text(
+                  '• 뽑기 가능 횟수 최소 1회 이상',
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+                Text(
+                  '• 미완성 캡슐 없음',
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+                Text(
+                  '• 전체 확률 0.01% 이상 100.0% 이하',
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           // 포장 완료 버튼 (데스크톱 최하단 고정)
           SizedBox(
             height: 60,
@@ -1180,12 +1247,47 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        const Text(
-                          '상세 설정',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        Row(
+                          children: <Widget>[
+                            const Text(
+                              '상세 설정',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Tooltip(
+                              triggerMode: TooltipTriggerMode.tap,
+                              showDuration: const Duration(seconds: 4),
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                              ),
+                              padding: const EdgeInsets.all(12),
+                              textStyle: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                height: 1.5,
+                              ),
+                              message:
+                                  '⚠️ 포장 완료 조건\n'
+                                  '• 캡슐 최소 1개 이상 생성\n'
+                                  '• 상단 닉네임 및 서브타이틀 입력\n'
+                                  '• 뽑기 가능 횟수 최소 1 이상\n'
+                                  '• 미완성 캡슐 없음\n'
+                                  '• 전체 확률 0.01% 이상 100.0% 이하',
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  Icon(
+                                    Icons.info_outline,
+                                    size: 20,
+                                    color: Colors.grey,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                         IconButton(
                           icon: const Icon(Icons.close),
