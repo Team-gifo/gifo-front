@@ -480,6 +480,30 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      Row(
+                        children: <Widget>[
+                          Checkbox(
+                            value: itemData.percentOpen,
+                            onChanged: (bool? val) {
+                              setState(() {
+                                itemData.percentOpen = val ?? false;
+                              });
+                              updateModal();
+                            },
+                            activeColor: Colors.blue,
+                          ),
+                          const Expanded(
+                            child: Text(
+                              '확률 고지 여부',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
                       const Text(
                         '- 모든 캡슐의 확률 합이 100% 이하여야 합니다.',
                         style: TextStyle(fontSize: 14, color: Colors.grey),
@@ -665,9 +689,10 @@ class _GachaSettingViewState extends State<GachaSettingView> {
         if (isMobile) ...<Widget>[
           RichText(
             text: TextSpan(
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
+                fontFamily: DefaultTextStyle.of(context).style.fontFamily,
                 color: Colors.black,
               ),
               children: <TextSpan>[
@@ -717,9 +742,10 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                 child: RichText(
                   overflow: TextOverflow.ellipsis,
                   text: TextSpan(
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      fontFamily: DefaultTextStyle.of(context).style.fontFamily,
                       color: Colors.black,
                     ),
                     children: <TextSpan>[
@@ -990,14 +1016,15 @@ class _GachaSettingViewState extends State<GachaSettingView> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 16),
-            Expanded(
+            SizedBox(
+              width: 70,
               child: TextFormField(
                 controller: _playCountController,
                 textAlign: TextAlign.right,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   filled: true,
-                  fillColor: Colors.grey.shade200,
+                  fillColor: const Color(0xFFF4FAF9),
                   isDense: true,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -1036,7 +1063,7 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
+                        color: const Color(0xFFF4FAF9),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonHideUnderline(
@@ -1068,10 +1095,13 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: const Color(0xFFF4FAF9),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.play_arrow, color: Colors.grey),
+                    child: const Icon(
+                      Icons.play_arrow,
+                      color: Colors.blueAccent,
+                    ),
                   ),
                 ],
               ),
