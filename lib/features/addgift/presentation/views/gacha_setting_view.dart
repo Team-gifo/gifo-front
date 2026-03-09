@@ -36,6 +36,7 @@ class _GachaSettingViewState extends State<GachaSettingView> {
   final List<GachaItemData> _items = <GachaItemData>[];
   int _nextId = 1;
   int? _hoveredItemId;
+  int? _selectedItemId;
 
   final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _subTitleController = TextEditingController();
@@ -108,6 +109,7 @@ class _GachaSettingViewState extends State<GachaSettingView> {
     setState(() {
       _items.clear();
       _hoveredItemId = null;
+      _selectedItemId = null;
     });
   }
 
@@ -183,6 +185,10 @@ class _GachaSettingViewState extends State<GachaSettingView> {
   void _showEditModal(BuildContext context, GachaItemData itemData) {
     final bool isMobile = MediaQuery.sizeOf(context).width < 600;
 
+    setState(() {
+      _selectedItemId = itemData.id;
+    });
+
     if (isMobile) {
       showModalBottomSheet(
         context: context,
@@ -193,7 +199,11 @@ class _GachaSettingViewState extends State<GachaSettingView> {
         ),
         builder: (BuildContext modalContext) =>
             _buildEditForm(modalContext, itemData),
-      );
+      ).then((_) {
+        setState(() {
+          _selectedItemId = null;
+        });
+      });
     } else {
       showGeneralDialog(
         context: context,
@@ -237,7 +247,11 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                 child: child,
               );
             },
-      );
+      ).then((_) {
+        setState(() {
+          _selectedItemId = null;
+        });
+      });
     }
   }
 
@@ -248,171 +262,281 @@ class _GachaSettingViewState extends State<GachaSettingView> {
           setModalState(() {});
         }
 
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.viewInsetsOf(context).bottom,
-          ),
-          child: SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        final bool isTitleValid = itemData.itemName.trim().isNotEmpty;
+        final double? percentValue = double.tryParse(itemData.percentStr);
+        final bool isPercentValid =
+            percentValue != null &&
+            percentValue >= 0.01 &&
+            percentValue <= 100.0;
+        final bool canSave = isTitleValid && isPercentValid;
+
+        return SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(
+                    left: 32.0,
+                    right: 32.0,
+                    top: 32.0,
+                    bottom: MediaQuery.viewInsetsOf(context).bottom + 32.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
-                      const SizedBox(width: 24), // 공간 맞추기용
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          const SizedBox(width: 24), // 공간 맞추기용
+                          const Text(
+                            '세팅 화면',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(modalContext).pop(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
                       const Text(
-                        '세팅 화면',
+                        '제목',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close),
-                        onPressed: () => Navigator.of(modalContext).pop(),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  const Text(
-                    '제목',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    initialValue: itemData.itemName,
-                    onChanged: (String val) {
-                      setState(() {
-                        itemData.itemName = val;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xFFF4FAF9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    '이미지',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  InkWell(
-                    onTap: () => _pickImage(itemData, updateModal),
-                    child: Container(
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF4FAF9),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: itemData.imageFile != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                itemData.imageFile!.path,
-                                fit: BoxFit.contain,
-                              ),
-                            )
-                          : const Center(
-                              child: Icon(
-                                Icons.add_photo_alternate,
-                                size: 40,
-                                color: Colors.grey,
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    '확률 (%)',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  TextFormField(
-                    initialValue: itemData.percentStr,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    onChanged: (String val) {
-                      setState(() {
-                        itemData.percentStr = val;
-                      });
-                      updateModal();
-                    },
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xFFF4FAF9),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(modalContext).pop();
-                            _removeItem(itemData.id);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: Colors.red.shade400,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: BorderSide(
-                                color: Colors.red.shade400,
-                                width: 1.5,
-                              ),
-                            ),
-                            elevation: 0,
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        initialValue: itemData.itemName,
+                        onChanged: (String val) {
+                          setState(() {
+                            itemData.itemName = val;
+                          });
+                          updateModal();
+                        },
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: const Color(0xFFF4FAF9),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: !isTitleValid
+                                ? const BorderSide(
+                                    color: Colors.red,
+                                    width: 1.5,
+                                  )
+                                : BorderSide.none,
                           ),
-                          child: const Text(
-                            '삭제',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: !isTitleValid
+                                ? const BorderSide(
+                                    color: Colors.red,
+                                    width: 1.5,
+                                  )
+                                : BorderSide.none,
                           ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: !isTitleValid
+                                ? const BorderSide(
+                                    color: Colors.red,
+                                    width: 1.5,
+                                  )
+                                : const BorderSide(
+                                    color: Colors.blue,
+                                    width: 1.5,
+                                  ),
+                          ),
+                          errorText: !isTitleValid
+                              ? '제목은 최소 1글자 이상이어야 합니다.'
+                              : null,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(modalContext).pop(),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey.shade300,
-                            foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            '저장 완료',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        '이미지',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      InkWell(
+                        onTap: () => _pickImage(itemData, updateModal),
+                        child: Container(
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF4FAF9),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: itemData.imageFile != null
+                              ? ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.network(
+                                    itemData.imageFile!.path,
+                                    fit: BoxFit.contain,
+                                  ),
+                                )
+                              : const Center(
+                                  child: Icon(
+                                    Icons.add_photo_alternate,
+                                    size: 40,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        '- 부적합한 제목 및 이미지는 신고를 받을 수 있고, 해당 책임은 제공자에게 있습니다.',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        '확률 (%)',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        initialValue: itemData.percentStr,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        onChanged: (String val) {
+                          setState(() {
+                            itemData.percentStr = val;
+                          });
+                          updateModal();
+                        },
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: const Color(0xFFF4FAF9),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: !isPercentValid
+                                ? const BorderSide(
+                                    color: Colors.red,
+                                    width: 1.5,
+                                  )
+                                : BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: !isPercentValid
+                                ? const BorderSide(
+                                    color: Colors.red,
+                                    width: 1.5,
+                                  )
+                                : BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: !isPercentValid
+                                ? const BorderSide(
+                                    color: Colors.red,
+                                    width: 1.5,
+                                  )
+                                : const BorderSide(
+                                    color: Colors.blue,
+                                    width: 1.5,
+                                  ),
+                          ),
+                          errorText: !isPercentValid
+                              ? '확률은 0.01% 이상 100% 이하입니다.'
+                              : null,
+                          errorStyle: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        '- 모든 캡슐의 확률 합이 100% 이하여야 합니다.',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 40),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
+              // 모달 바닥에 위치하는 버튼 영역 (Bottom Sheet처럼 배치)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(modalContext).pop();
+                          _removeItem(itemData.id);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.red.shade400,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: Colors.red.shade400,
+                              width: 1.5,
+                            ),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          '삭제',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: canSave
+                            ? () => Navigator.of(modalContext).pop()
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: canSave
+                              ? Colors.blue
+                              : Colors.grey.shade300,
+                          foregroundColor: canSave
+                              ? Colors.white
+                              : Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          '저장 완료',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -681,6 +805,13 @@ class _GachaSettingViewState extends State<GachaSettingView> {
   }
 
   Widget _buildCapsuleItem(GachaItemData item) {
+    final double? percentValue = double.tryParse(item.percentStr);
+    final bool needsEdit =
+        item.itemName.trim().isEmpty ||
+        percentValue == null ||
+        percentValue < 0.01 ||
+        percentValue > 100.0;
+
     return MouseRegion(
       onEnter: (_) {
         setState(() {
@@ -712,10 +843,12 @@ class _GachaSettingViewState extends State<GachaSettingView> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: Colors.black,
-                        width: 2,
+                        color: _selectedItemId == item.id
+                            ? Colors.orange
+                            : Colors.black,
+                        width: _selectedItemId == item.id ? 3 : 2,
                         strokeAlign: BorderSide.strokeAlignOutside,
-                      ), // 선을 굵게 변경
+                      ), // 선택 시 주황색 굵은 선으로 변경
                     ),
                     clipBehavior: Clip.antiAlias,
                     child: Stack(
@@ -783,6 +916,24 @@ class _GachaSettingViewState extends State<GachaSettingView> {
               ),
             ),
           ),
+          if (needsEdit)
+            Positioned(
+              top: -6,
+              left: -6,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: const Icon(
+                  Icons.priority_high,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
           if (_hoveredItemId == item.id)
             Positioned(
               top: -6,
