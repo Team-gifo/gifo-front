@@ -7,53 +7,42 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../application/gift_packaging_bloc.dart';
-import '../../model/gallery_item.dart';
+import '../../application/memory_gallery_setting/memory_gallery_setting_bloc.dart';
 
-// 갤러리 각 객체의 데이터를 담는 클래스
-class MemoryItemData {
-  MemoryItemData({required this.id});
-
-  final int id;
-  XFile? imageFile;
-  String title = '';
-  String description = '';
-}
-
-class MemoryGallerySettingView extends StatefulWidget {
+class MemoryGallerySettingView extends StatelessWidget {
   const MemoryGallerySettingView({super.key});
 
   @override
-  State<MemoryGallerySettingView> createState() =>
+  Widget build(BuildContext context) {
+    // GiftPackagingBloc을 주입하여 MemoryGallerySettingBloc이 내부에서 갤러리 데이터를 동기화할 수 있게 합니다.
+    return BlocProvider(
+      create: (BuildContext context) =>
+          MemoryGallerySettingBloc(context.read<GiftPackagingBloc>()),
+      child: const _MemoryGallerySettingContent(),
+    );
+  }
+}
+
+class _MemoryGallerySettingContent extends StatefulWidget {
+  const _MemoryGallerySettingContent();
+
+  @override
+  State<_MemoryGallerySettingContent> createState() =>
       _MemoryGallerySettingViewState();
 }
 
-class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
-  final List<MemoryItemData> _items = <MemoryItemData>[];
-  int _nextId = 1; // 다음 객체에 부여할 고유 식별자
-  int? _selectedItemId;
-
+class _MemoryGallerySettingViewState
+    extends State<_MemoryGallerySettingContent> {
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
+
+  // hover 상태는 순수 UI 상태이므로 로컬 setState로 관리합니다.
+  int? _hoveredItemId;
 
   @override
   void initState() {
     super.initState();
-    // BLoC에 기존 갤러리 데이터가 있으면 불러오기
-    final blocState = context.read<GiftPackagingBloc>().state;
-    if (blocState.gallery.isNotEmpty) {
-      _items.clear();
-      for (int i = 0; i < blocState.gallery.length; i++) {
-        final galleryItem = blocState.gallery[i];
-        final memoryItem = MemoryItemData(id: i + 1)
-          ..title = galleryItem.title
-          ..description = galleryItem.description;
-        if (galleryItem.imageUrl.isNotEmpty) {
-          memoryItem.imageFile = XFile(galleryItem.imageUrl);
-        }
-        _items.add(memoryItem);
-      }
-      _nextId = blocState.gallery.length + 1;
-    }
+    _initBlocFromPackagingState();
   }
 
   @override
@@ -62,825 +51,863 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
     super.dispose();
   }
 
-  Future<void> _pickImage(
-    MemoryItemData itemData,
-    VoidCallback updateModal,
-  ) async {
+  // GiftPackagingBloc의 기존 gallery 데이터를 토대로 MemoryGallerySettingBloc을 초기화합니다.
+  void _initBlocFromPackagingState() {
+    final packagingState = context.read<GiftPackagingBloc>().state;
+    if (packagingState.gallery.isEmpty) return;
+
+    final List<MemoryGalleryItemData> initialItems =
+        List<MemoryGalleryItemData>.generate(packagingState.gallery.length, (
+          int i,
+        ) {
+          final item = packagingState.gallery[i];
+          return MemoryGalleryItemData(
+            id: i + 1,
+            title: item.title,
+            description: item.description,
+            imageFile: item.imageUrl.isNotEmpty ? XFile(item.imageUrl) : null,
+          );
+        });
+
+    context.read<MemoryGallerySettingBloc>().add(
+      InitMemoryGallerySetting(initialItems, packagingState.gallery.length + 1),
+    );
+  }
+
+  // 이미지 선택 후 BLoC 이벤트로 업데이트합니다.
+  Future<void> _pickImage(int itemId) async {
     try {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
       );
-      if (pickedFile != null) {
-        setState(() {
-          itemData.imageFile = pickedFile;
-        });
-        updateModal(); // 모달 내부 상태 갱신
+      if (pickedFile != null && mounted) {
+        context.read<MemoryGallerySettingBloc>().add(
+          UpdateMemoryItemImage(itemId, pickedFile),
+        );
       }
     } catch (e) {
       debugPrint('이미지 선택 오류: $e');
     }
   }
 
-  void _removeImage(MemoryItemData itemData, VoidCallback updateModal) {
-    setState(() {
-      itemData.imageFile = null;
-    });
-    updateModal();
-  }
+  // 모바일: BottomSheet / 데스크톱: 우측 슬라이드 패널
+  void _showEditModal(BuildContext context, MemoryGalleryItemData itemData) {
+    final bool isMobile = MediaQuery.sizeOf(context).width < 600;
+    final memoryBloc = context.read<MemoryGallerySettingBloc>();
 
-  // 모달을 통한 데이터 편집
-  void _showEditModal(BuildContext context, MemoryItemData itemData) {
-    setState(() {
-      _selectedItemId = itemData.id;
-    });
+    memoryBloc.add(SelectMemoryItem(itemData.id));
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true, // 내용이 많을 수 있으므로 스크롤 허용
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
-      ),
-      builder: (BuildContext modalContext) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            void updateModal() {
-              setModalState(() {});
-            }
-
-            return Padding(
-              padding: EdgeInsets.only(
-                // 키보드가 올라올 때 대비하여 하단 여백 추가
-                bottom: MediaQuery.viewInsetsOf(context).bottom,
-              ),
-              child: SafeArea(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          const Text(
-                            '추억 정보 수정',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close),
-                            onPressed: () => Navigator.of(modalContext).pop(),
-                          ),
-                        ],
+    if (isMobile) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: const Color(0xFFF8F9FA),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
+        ),
+        builder: (BuildContext modalContext) => BlocProvider.value(
+          value: memoryBloc,
+          child: _MemoryEditForm(
+            itemId: itemData.id,
+            onPickImage: () => _pickImage(itemData.id),
+          ),
+        ),
+      ).then((_) {
+        if (mounted) {
+          memoryBloc.add(const ClearMemoryItemSelection());
+        }
+      });
+    } else {
+      // 데스크톱: 우측에서 슬라이드로 나타나는 패널
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel: 'dismiss',
+        barrierColor: Colors.black.withValues(alpha: 0.5),
+        pageBuilder:
+            (
+              BuildContext context,
+              Animation<double> animation,
+              Animation<double> secondaryAnimation,
+            ) {
+              return Align(
+                alignment: Alignment.centerRight,
+                child: Material(
+                  color: const Color(0xFFF8F9FA),
+                  elevation: 8,
+                  child: SizedBox(
+                    width: 480,
+                    height: double.infinity,
+                    child: BlocProvider.value(
+                      value: memoryBloc,
+                      child: _MemoryEditForm(
+                        itemId: itemData.id,
+                        onPickImage: () => _pickImage(itemData.id),
                       ),
-                      const SizedBox(height: 16),
-
-                      // 이미지 추가 영역
-                      AspectRatio(
-                        aspectRatio: 1,
-                        child: Container(
-                          clipBehavior: Clip.antiAlias,
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12.0),
-                            border: Border.all(color: Colors.grey.shade200),
-                          ),
-                          child: itemData.imageFile == null
-                              ? InkWell(
-                                  onTap: () =>
-                                      _pickImage(itemData, updateModal),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: <Widget>[
-                                      Icon(
-                                        Icons.add_photo_alternate_outlined,
-                                        size: 48,
-                                        color: Colors.grey.shade400,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        '이미지 추가',
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                )
-                              : Stack(
-                                  fit: StackFit.expand,
-                                  children: <Widget>[
-                                    Image.network(
-                                      itemData.imageFile!.path,
-                                      fit: BoxFit.cover,
-                                    ),
-                                    Positioned(
-                                      top: 0,
-                                      left: 0,
-                                      right: 0,
-                                      height: 60,
-                                      child: Container(
-                                        decoration: BoxDecoration(
-                                          gradient: LinearGradient(
-                                            begin: Alignment.topCenter,
-                                            end: Alignment.bottomCenter,
-                                            colors: <Color>[
-                                              Colors.black.withValues(
-                                                alpha: 0.5,
-                                              ),
-                                              Colors.transparent,
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: 8,
-                                      right: 8,
-                                      child: Row(
-                                        children: <Widget>[
-                                          Material(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.6,
-                                            ),
-                                            shape: const CircleBorder(),
-                                            child: IconButton(
-                                              icon: const Icon(
-                                                Icons.edit,
-                                                color: Colors.white,
-                                                size: 20,
-                                              ),
-                                              onPressed: () => _pickImage(
-                                                itemData,
-                                                updateModal,
-                                              ),
-                                              constraints:
-                                                  const BoxConstraints.tightFor(
-                                                    width: 36,
-                                                    height: 36,
-                                                  ),
-                                              padding: EdgeInsets.zero,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Material(
-                                            color: Colors.black.withValues(
-                                              alpha: 0.6,
-                                            ),
-                                            shape: const CircleBorder(),
-                                            child: IconButton(
-                                              icon: const Icon(
-                                                Icons.delete,
-                                                color: Colors.white,
-                                                size: 20,
-                                              ),
-                                              onPressed: () => _removeImage(
-                                                itemData,
-                                                updateModal,
-                                              ),
-                                              constraints:
-                                                  const BoxConstraints.tightFor(
-                                                    width: 36,
-                                                    height: 36,
-                                                  ),
-                                              padding: EdgeInsets.zero,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // 제목 영역
-                      const Text(
-                        '제목',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        initialValue: itemData.title,
-                        onChanged: (String val) {
-                          setState(() {
-                            itemData.title = val;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          hintText: '제목을 입력해주세요',
-                          hintStyle: const TextStyle(color: Colors.grey),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                            borderSide: BorderSide(color: Colors.grey.shade200),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                            borderSide: BorderSide(color: Colors.grey.shade200),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                            borderSide: const BorderSide(
-                              color: Colors.black,
-                              width: 1.5,
-                            ),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // 설명 영역
-                      const Text(
-                        '설명',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        initialValue: itemData.description,
-                        maxLines: 4,
-                        onChanged: (String val) {
-                          setState(() {
-                            itemData.description = val;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          hintText: '설명을 입력해주세요',
-                          hintStyle: const TextStyle(color: Colors.grey),
-                          filled: true,
-                          fillColor: Colors.white,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                            borderSide: BorderSide(color: Colors.grey.shade200),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                            borderSide: BorderSide(color: Colors.grey.shade200),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                            borderSide: const BorderSide(
-                              color: Colors.black,
-                              width: 1.5,
-                            ),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: () => Navigator.of(modalContext).pop(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16.0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          '완료',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
-        );
-      },
-    ).then((_) {
-      setState(() {
-        _selectedItemId = null;
+              );
+            },
+        transitionBuilder:
+            (
+              BuildContext context,
+              Animation<double> animation,
+              Animation<double> secondaryAnimation,
+              Widget child,
+            ) {
+              return SlideTransition(
+                position:
+                    Tween<Offset>(
+                      begin: const Offset(1, 0),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(parent: animation, curve: Curves.easeOut),
+                    ),
+                child: child,
+              );
+            },
+      ).then((_) {
+        if (mounted) {
+          memoryBloc.add(const ClearMemoryItemSelection());
+        }
       });
-    });
+    }
+  }
+
+  // 모든 아이템이 완전한 데이터를 갖고 있는지 검증합니다.
+  bool _canSave(List<MemoryGalleryItemData> items) {
+    if (items.isEmpty) return false;
+    for (final item in items) {
+      if (item.title.trim().isEmpty) return false;
+      if (item.description.trim().isEmpty) return false;
+      if (item.imageFile == null) return false;
+    }
+    return true;
+  }
+
+  // 특정 아이템이 불완전한지 판단합니다.
+  bool _isItemIncomplete(MemoryGalleryItemData item) {
+    return item.title.trim().isEmpty ||
+        item.description.trim().isEmpty ||
+        item.imageFile == null;
   }
 
   @override
   Widget build(BuildContext context) {
-    // 600 기준으로 모바일 환경인지 판단 (세로 모드로 전환)
     final bool isMobile = MediaQuery.sizeOf(context).width < 600;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        toolbarHeight: 68,
-        backgroundColor: const Color(0xFFF8F9FA),
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          '추억 갤러리',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            // 현재 입력된 데이터를 Bloc에 저장
-            final List<GalleryItem> galleryItems = _items
-                .map(
-                  (MemoryItemData item) => GalleryItem(
-                    title: item.title,
-                    imageUrl: item.imageFile?.path ?? '',
-                    description: item.description,
-                  ),
-                )
-                .toList();
-            context.read<GiftPackagingBloc>().add(
-              SetGalleryItems(galleryItems),
-            );
+    return BlocBuilder<MemoryGallerySettingBloc, MemoryGallerySettingState>(
+      builder: (BuildContext context, MemoryGallerySettingState galleryState) {
+        final bool canSave = _canSave(galleryState.uiItems);
 
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/');
-            }
-          },
-        ),
-        actions: <Widget>[
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 12.0,
-              horizontal: 8.0,
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8F9FA),
+          appBar: AppBar(
+            toolbarHeight: 68,
+            backgroundColor: const Color(0xFFF8F9FA),
+            surfaceTintColor: Colors.transparent,
+            elevation: 0,
+            centerTitle: true,
+            title: const Text(
+              '추억 갤러리',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
-            child: ElevatedButton(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () {
-                setState(() {
-                  _items.clear();
-                  _nextId = 1;
-                  _selectedItemId = null;
-                });
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go('/');
+                }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.red.shade400,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: BorderSide(color: Colors.red.shade400, width: 1.5),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                '초기화',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              ),
             ),
+            // 데스크톱에서만 appbar에 진행도 표시
+            actions: <Widget>[if (!isMobile) _buildStepIndicator()],
           ),
-          if (!isMobile) _buildStepIndicator(),
-        ],
-      ),
-      body: SafeArea(
-        child: Column(
-          children: <Widget>[
-            // 본문에 있던 '추억 갤러리 세팅' 제목은 AppBar로 이동됨
-            Expanded(
-              child: Theme(
-                data: ThemeData(
-                  // 드래그 렌더링을 위해 기본 캔버스 투명하게 처리
-                  canvasColor: Colors.transparent,
-                ),
-                child: ScrollConfiguration(
-                  behavior: ScrollConfiguration.of(context).copyWith(
-                    dragDevices: <PointerDeviceKind>{
-                      PointerDeviceKind.touch,
-                      PointerDeviceKind.mouse,
-                      PointerDeviceKind.trackpad,
-                    },
+          body: SafeArea(
+            child: isMobile
+                ? _buildMobileBody(context, galleryState)
+                : _buildDesktopBody(context, galleryState),
+          ),
+          bottomNavigationBar: _buildBottomBar(
+            context,
+            galleryState.uiItems.length,
+            canSave,
+          ),
+        );
+      },
+    );
+  }
+
+  // ------------------------------------------------------------------
+  // 데스크톱 레이아웃: 헤더(초기화+추가 버튼) + ReorderableListView 세로 스크롤
+  // Wrap 기반 그리드는 ReorderableDragStartListener를 지원하지 않아 드래그가 작동하지 않습니다.
+  // ------------------------------------------------------------------
+  Widget _buildDesktopBody(
+    BuildContext context,
+    MemoryGallerySettingState galleryState,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          // 리스트 바로 위 헤더: 아이템 개수 + 추가/초기화 버튼
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  const Icon(
+                    Icons.photo_library_rounded,
+                    size: 22,
+                    color: Colors.black87,
                   ),
-                  child: Scrollbar(
-                    controller: _scrollController,
-                    thumbVisibility: true,
-                    child: Listener(
-                      onPointerSignal: (PointerSignalEvent event) {
-                        if (event is PointerScrollEvent && !isMobile) {
-                          // 데스크톱(가로스크롤) 환경에서 수직 휠 이벤트를 수평 스크롤로 변환
-                          if (_scrollController.hasClients) {
-                            final double newOffset =
-                                _scrollController.offset + event.scrollDelta.dy;
-                            _scrollController.jumpTo(
-                              newOffset.clamp(
-                                _scrollController.position.minScrollExtent,
-                                _scrollController.position.maxScrollExtent,
-                              ),
-                            );
-                          }
+                  const SizedBox(width: 8),
+                  Text(
+                    '추억 목록 [ ${galleryState.uiItems.length}개 ]',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<MemoryGallerySettingBloc>().add(
+                        const AddMemoryItem(),
+                      );
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (_scrollController.hasClients) {
+                          _scrollController.animateTo(
+                            _scrollController.position.maxScrollExtent,
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeOut,
+                          );
                         }
-                      },
-                      child: ReorderableListView.builder(
-                        scrollController: _scrollController,
-                        scrollDirection: isMobile
-                            ? Axis.vertical
-                            : Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24.0,
-                          vertical: 16.0,
-                        ),
-                        itemCount: _items.length,
-                        buildDefaultDragHandles: false,
-                        proxyDecorator:
-                            (
-                              Widget child,
-                              int index,
-                              Animation<double> animation,
-                            ) {
-                              return Material(
-                                type: MaterialType.transparency,
-                                child: Stack(
-                                  children: <Widget>[
-                                    child,
-                                    Positioned(
-                                      top: 0,
-                                      left: 0,
-                                      right: isMobile ? 0.0 : 20.0,
-                                      bottom: isMobile ? 16.0 : 0.0,
-                                      child: IgnorePointer(
-                                        child: Container(
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              16.0,
-                                            ),
-                                            border: Border.all(
-                                              color: Colors.black,
-                                              width: 3.0,
-                                            ),
-                                          ),
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                    ),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('추가'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<MemoryGallerySettingBloc>().add(
+                        const RemoveAllMemoryItems(),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade400,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                    ),
+                    icon: const Icon(Icons.delete_outline, size: 18),
+                    label: const Text('초기화'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // ReorderableListView: 드래그 재정렬 + 세로 스크롤 영역
+          Expanded(
+            child: Theme(
+              data: ThemeData(canvasColor: Colors.transparent),
+              child: ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context).copyWith(
+                  dragDevices: <PointerDeviceKind>{
+                    PointerDeviceKind.touch,
+                    PointerDeviceKind.mouse,
+                    PointerDeviceKind.trackpad,
+                  },
+                ),
+                child: Scrollbar(
+                  controller: _scrollController,
+                  thumbVisibility: true,
+                  child: ReorderableListView.builder(
+                    scrollController: _scrollController,
+                    scrollDirection: Axis.vertical,
+                    padding: const EdgeInsets.only(bottom: 16.0),
+                    buildDefaultDragHandles: false,
+                    proxyDecorator:
+                        (Widget child, int index, Animation<double> animation) {
+                          return Material(
+                            type: MaterialType.transparency,
+                            child: Stack(
+                              children: <Widget>[
+                                child,
+                                Positioned(
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 16.0,
+                                  child: IgnorePointer(
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(
+                                          16.0,
+                                        ),
+                                        border: Border.all(
+                                          color: Colors.black,
+                                          width: 3.0,
                                         ),
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              );
-                            },
-                        onReorder: (int oldIndex, int newIndex) {
-                          setState(() {
-                            if (oldIndex < newIndex) {
-                              newIndex -= 1;
-                            }
-                            final MemoryItemData item = _items.removeAt(
-                              oldIndex,
-                            );
-                            _items.insert(newIndex, item);
-                          });
+                              ],
+                            ),
+                          );
                         },
-                        footer: _buildAddButton(isMobile),
-                        itemBuilder: (BuildContext context, int index) {
-                          final MemoryItemData item = _items[index];
-                          return isMobile
-                              ? _buildSummaryItemMobile(
-                                  key: ValueKey<int>(item.id),
-                                  index: index,
-                                  itemData: item,
-                                )
-                              : _buildSummaryItemDesktop(
-                                  key: ValueKey<int>(item.id),
-                                  index: index,
-                                  itemData: item,
-                                );
-                        },
-                      ), // ReorderableListView.builder
-                    ), // Listener
-                  ), // Scrollbar
-                ), // ScrollConfiguration
-              ), // Theme
-            ), // Expanded
-          ], // children <Widget>[
-        ), // Column
-      ), // SafeArea
-      bottomNavigationBar: _buildBottomBar(context),
-    ); // Scaffold
-  }
-
-  // 데스크톱: 리스트가 가로로 진행되므로 카드는 Column 형태
-  Widget _buildSummaryItemDesktop({
-    required Key key,
-    required int index,
-    required MemoryItemData itemData,
-  }) {
-    return Container(
-      key: key,
-      width: 240, // 썸네일형 세로 카드
-      margin: const EdgeInsets.only(right: 20.0),
-      // 배경색과 테두리 터치 시 시각적 효과 부여를 위해 Material 활용
-      child: Material(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
-          side: BorderSide(
-            color: _selectedItemId == itemData.id
-                ? Colors.orange
-                : Colors.grey.shade200,
-            width: _selectedItemId == itemData.id ? 2.0 : 1.0,
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () => _showEditModal(context, itemData),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    ReorderableDragStartListener(
-                      index: index,
-                      child: const Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: Icon(Icons.drag_indicator, color: Colors.grey),
-                      ),
-                    ),
-                    if (_items.length > 1)
-                      IconButton(
-                        icon: const Icon(
-                          Icons.close,
-                          color: Colors.grey,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _items.removeAt(index);
-                          });
-                        },
-                        constraints: const BoxConstraints(),
-                        padding: EdgeInsets.zero,
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                AspectRatio(
-                  aspectRatio: 1,
-                  child: Container(
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: itemData.imageFile != null
-                        ? Image.network(
-                            itemData.imageFile!.path,
-                            fit: BoxFit.cover,
-                          )
-                        : Icon(
-                            Icons.photo,
-                            size: 40,
-                            color: Colors.grey.shade300,
-                          ),
+                    onReorder: (int oldIndex, int newIndex) {
+                      context.read<MemoryGallerySettingBloc>().add(
+                        ReorderMemoryItems(oldIndex, newIndex),
+                      );
+                    },
+                    footer: _buildDesktopAddCard(),
+                    itemCount: galleryState.uiItems.length,
+                    itemBuilder: (BuildContext context, int index) {
+                      final MemoryGalleryItemData item =
+                          galleryState.uiItems[index];
+                      return _buildDesktopCard(
+                        key: ValueKey<int>(item.id),
+                        index: index,
+                        itemData: item,
+                        selectedItemId: galleryState.selectedItemId,
+                      );
+                    },
                   ),
                 ),
-                const SizedBox(height: 16),
-                Text(
-                  itemData.title.isEmpty ? '제목 없음' : itemData.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: itemData.title.isEmpty ? Colors.grey : Colors.black,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Expanded(
-                  child: Text(
-                    itemData.description.isEmpty
-                        ? '설명 없음'
-                        : itemData.description,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: itemData.description.isEmpty
-                          ? Colors.grey
-                          : Colors.black87,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-  // 모바일: 리스트가 세로로 진행되므로 카드는 Row 형태
-  Widget _buildSummaryItemMobile({
+  // 데스크톱 카드: 신용카드 스타일 (가로 Row 배치, 전체 너비 사용, 높이 충분히 확보)
+  Widget _buildDesktopCard({
     required Key key,
     required int index,
-    required MemoryItemData itemData,
+    required MemoryGalleryItemData itemData,
+    required int? selectedItemId,
   }) {
-    return Container(
+    final bool isIncomplete = _isItemIncomplete(itemData);
+    final bool isHovered = _hoveredItemId == itemData.id;
+
+    return MouseRegion(
       key: key,
-      margin: const EdgeInsets.only(bottom: 16.0),
-      child: Material(
-        color: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
-          side: BorderSide(
-            color: _selectedItemId == itemData.id
-                ? Colors.orange
-                : Colors.grey.shade200,
-            width: _selectedItemId == itemData.id ? 2.0 : 1.0,
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () => _showEditModal(context, itemData),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 16.0,
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                ReorderableDragStartListener(
-                  index: index,
-                  child: const Padding(
-                    padding: EdgeInsets.fromLTRB(0, 8, 12, 8),
-                    child: Icon(Icons.drag_handle, color: Colors.grey),
-                  ),
+      onEnter: (_) => setState(() => _hoveredItemId = itemData.id),
+      onExit: (_) => setState(() => _hoveredItemId = null),
+      child: Container(
+        // 카드 사이 수직 여백
+        margin: const EdgeInsets.only(bottom: 16.0),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            Material(
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.0),
+                side: BorderSide(
+                  color: selectedItemId == itemData.id
+                      ? Colors.orange
+                      : Colors.grey.shade200,
+                  width: selectedItemId == itemData.id ? 2.5 : 1.0,
                 ),
-                Container(
-                  width: 80,
-                  height: 80,
-                  clipBehavior: Clip.antiAlias,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12.0),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: () => _showEditModal(context, itemData),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 20.0,
                   ),
-                  child: itemData.imageFile != null
-                      ? Image.network(
-                          itemData.imageFile!.path,
-                          fit: BoxFit.cover,
-                        )
-                      : Icon(
-                          Icons.photo,
-                          size: 30,
-                          color: Colors.grey.shade300,
-                        ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
-                      Text(
-                        itemData.title.isEmpty ? '제목 없음' : itemData.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: itemData.title.isEmpty
-                              ? Colors.grey
-                              : Colors.black,
+                      // 드래그 핸들 (햄버거 아이콘)
+                      ReorderableDragStartListener(
+                        index: index,
+                        child: const Padding(
+                          padding: EdgeInsets.only(right: 16.0),
+                          child: Icon(
+                            Icons.drag_indicator,
+                            color: Colors.grey,
+                            size: 24,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        itemData.description.isEmpty
-                            ? '설명 없음'
-                            : itemData.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: itemData.description.isEmpty
-                              ? Colors.grey
-                              : Colors.black87,
+                      // 썸네일 이미지: 높이를 140으로 키워 카드 전체 높이 확보
+                      Container(
+                        width: 140,
+                        height: 140,
+                        clipBehavior: Clip.antiAlias,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF8F9FA),
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: itemData.imageFile != null
+                            ? Image.network(
+                                itemData.imageFile!.path,
+                                fit: BoxFit.cover,
+                              )
+                            : Icon(
+                                Icons.photo,
+                                size: 40,
+                                color: Colors.grey.shade300,
+                              ),
+                      ),
+                      const SizedBox(width: 20),
+                      // 텍스트 영역
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              itemData.title.isEmpty ? '제목 없음' : itemData.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: itemData.title.isEmpty
+                                    ? Colors.grey
+                                    : Colors.black,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              itemData.description.isEmpty
+                                  ? '설명 없음'
+                                  : itemData.description,
+                              maxLines: 4,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 14,
+                                height: 1.5,
+                                color: itemData.description.isEmpty
+                                    ? Colors.grey
+                                    : Colors.black87,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
                 ),
-                if (_items.length > 1)
-                  IconButton(
-                    icon: const Icon(Icons.close, color: Colors.grey, size: 20),
-                    onPressed: () {
-                      setState(() {
-                        _items.removeAt(index);
-                      });
-                    },
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-              ],
+              ),
             ),
-          ),
+
+            // 불완전 아이템 경고 아이콘 (좌측 상단)
+            if (isIncomplete)
+              Positioned(
+                top: -6,
+                left: -6,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.orange,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: const Icon(
+                    Icons.priority_high,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              ),
+
+            // hover 시 삭제 버튼 (우측 상단)
+            if (isHovered)
+              Positioned(
+                top: -6,
+                right: -6,
+                child: GestureDetector(
+                  onTap: () {
+                    context.read<MemoryGallerySettingBloc>().add(
+                      RemoveMemoryItem(itemData.id),
+                    );
+                    setState(() => _hoveredItemId = null);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.red.shade400,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
   }
 
-  // 우측 끝 혹은 하단에 배치될 아이템 추가 위젯 빌더
-  Widget _buildAddButton(bool isMobile) {
-    return Container(
-      // 모바일일 때는 카드와 동일하게 전체 폭 사용, 높이는 명시
-      width: isMobile ? double.infinity : 240,
-      height: isMobile ? 80 : null,
-      margin: isMobile
-          ? const EdgeInsets.only(bottom: 16.0)
-          : const EdgeInsets.only(right: 24.0),
-      child: OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
-          side: BorderSide(color: Colors.grey.shade300, width: 2),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          padding: EdgeInsets.zero,
+  // 데스크톱 추가 카드 (리스트 마지막 자리에 배치, 전체 너비)
+  Widget _buildDesktopAddCard() {
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        backgroundColor: Colors.white,
+        side: BorderSide(color: Colors.grey.shade300, width: 1.5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
         ),
-        onPressed: () {
-          setState(() {
-            _items.add(MemoryItemData(id: _nextId++));
-          });
+        padding: const EdgeInsets.symmetric(vertical: 36.0),
+      ),
+      onPressed: () {
+        context.read<MemoryGallerySettingBloc>().add(const AddMemoryItem());
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            _scrollController.animateTo(
+              _scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Icon(Icons.add_circle_outline, size: 28, color: Colors.grey.shade400),
+          const SizedBox(width: 10),
+          Text(
+            '추억 추가하기',
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-          // 항목 추가 후 렌더링이 완료되면 최신 아이템(오른쪽 또는 아래쪽 끝)으로 스크롤 이동
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (_scrollController.hasClients) {
-              _scrollController.animateTo(
-                _scrollController.position.maxScrollExtent,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
-              );
-            }
-          });
-        },
-        child: isMobile
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+  // ------------------------------------------------------------------
+  // 모바일 레이아웃: 기존 세로 스크롤 리스트 유지
+  // ------------------------------------------------------------------
+  Widget _buildMobileBody(
+    BuildContext context,
+    MemoryGallerySettingState galleryState,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: <Widget>[
+        // 헤더: 아이템 개수 + 추가/초기화 버튼
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16.0, 8.0, 16.0, 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: <Widget>[
+              Row(
                 children: <Widget>[
-                  Icon(
-                    Icons.add_circle_outline,
-                    size: 28,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(width: 8),
+                  const Icon(Icons.photo_library_rounded, size: 18),
+                  const SizedBox(width: 6),
                   Text(
-                    '추억 추가하기',
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
+                    '${galleryState.uiItems.length}개',
+                    style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
                     ),
                   ),
                 ],
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+              ),
+              Row(
                 children: <Widget>[
-                  Icon(
-                    Icons.add_circle_outline,
-                    size: 40,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    '추가하기',
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.bold,
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<MemoryGallerySettingBloc>().add(
+                        const AddMemoryItem(),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
+                    icon: const Icon(Icons.add, size: 16),
+                    label: const Text('추가'),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<MemoryGallerySettingBloc>().add(
+                        const RemoveAllMemoryItems(),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade400,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                    ),
+                    icon: const Icon(Icons.delete_outline, size: 16),
+                    label: const Text('초기화'),
                   ),
                 ],
               ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // 모바일 세로 스크롤 리스트
+        Expanded(
+          child: Theme(
+            data: ThemeData(canvasColor: Colors.transparent),
+            child: ScrollConfiguration(
+              behavior: ScrollConfiguration.of(context).copyWith(
+                dragDevices: <PointerDeviceKind>{
+                  PointerDeviceKind.touch,
+                  PointerDeviceKind.mouse,
+                },
+              ),
+              child: ReorderableListView.builder(
+                scrollController: _scrollController,
+                scrollDirection: Axis.vertical,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
+                itemCount: galleryState.uiItems.length,
+                buildDefaultDragHandles: false,
+                proxyDecorator:
+                    (Widget child, int index, Animation<double> animation) {
+                      return Material(
+                        type: MaterialType.transparency,
+                        child: Stack(
+                          children: <Widget>[
+                            child,
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 16.0,
+                              child: IgnorePointer(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16.0),
+                                    border: Border.all(
+                                      color: Colors.black,
+                                      width: 3.0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                onReorder: (int oldIndex, int newIndex) {
+                  context.read<MemoryGallerySettingBloc>().add(
+                    ReorderMemoryItems(oldIndex, newIndex),
+                  );
+                },
+                // 모바일에는 하단 추가 버튼 없이 헤더의 추가 버튼을 사용합니다.
+                itemBuilder: (BuildContext context, int index) {
+                  final MemoryGalleryItemData item =
+                      galleryState.uiItems[index];
+                  return _buildMobileCard(
+                    key: ValueKey<int>(item.id),
+                    index: index,
+                    itemData: item,
+                    selectedItemId: galleryState.selectedItemId,
+                    itemCount: galleryState.uiItems.length,
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 모바일 카드 (기존 형태 유지)
+  Widget _buildMobileCard({
+    required Key key,
+    required int index,
+    required MemoryGalleryItemData itemData,
+    required int? selectedItemId,
+    required int itemCount,
+  }) {
+    final bool isIncomplete = _isItemIncomplete(itemData);
+
+    return Container(
+      key: key,
+      margin: const EdgeInsets.only(bottom: 16.0),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: <Widget>[
+          Material(
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              side: BorderSide(
+                color: selectedItemId == itemData.id
+                    ? Colors.orange
+                    : Colors.grey.shade200,
+                width: selectedItemId == itemData.id ? 2.0 : 1.0,
+              ),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () => _showEditModal(context, itemData),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 16.0,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    ReorderableDragStartListener(
+                      index: index,
+                      child: const Padding(
+                        padding: EdgeInsets.fromLTRB(0, 8, 12, 8),
+                        child: Icon(Icons.drag_handle, color: Colors.grey),
+                      ),
+                    ),
+                    Container(
+                      width: 80,
+                      height: 80,
+                      clipBehavior: Clip.antiAlias,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8F9FA),
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: itemData.imageFile != null
+                          ? Image.network(
+                              itemData.imageFile!.path,
+                              fit: BoxFit.cover,
+                            )
+                          : Icon(
+                              Icons.photo,
+                              size: 30,
+                              color: Colors.grey.shade300,
+                            ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          Text(
+                            itemData.title.isEmpty ? '제목 없음' : itemData.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: itemData.title.isEmpty
+                                  ? Colors.grey
+                                  : Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            itemData.description.isEmpty
+                                ? '설명 없음'
+                                : itemData.description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: itemData.description.isEmpty
+                                  ? Colors.grey
+                                  : Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.grey,
+                        size: 20,
+                      ),
+                      onPressed: () {
+                        context.read<MemoryGallerySettingBloc>().add(
+                          RemoveMemoryItem(itemData.id),
+                        );
+                      },
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // 불완전 아이템 경고 아이콘 (좌측 상단)
+          if (isIncomplete)
+            Positioned(
+              top: -6,
+              left: -6,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 2),
+                ),
+                padding: const EdgeInsets.all(4),
+                child: const Icon(
+                  Icons.priority_high,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  // 하단 진행 상태 표시 텍스트 및 완료 버튼 (BottomNavigationBar)
-  Widget _buildBottomBar(BuildContext context) {
+  // 하단 진행 상태 및 완료 버튼 (BottomNavigationBar)
+  Widget _buildBottomBar(BuildContext context, int itemCount, bool canSave) {
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
@@ -909,7 +936,7 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '등록된 추억 개수: ${_items.length}개',
+                      '등록된 추억 개수: ${itemCount}개',
                       style: TextStyle(
                         fontSize: MediaQuery.sizeOf(context).width < 600
                             ? 16
@@ -926,25 +953,15 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
             ),
             const SizedBox(width: 24),
             ElevatedButton(
-              onPressed: () {
-                // 로컬 MemoryItemData를 freezed GalleryItem 모델로 변환하여 BLoC에 저장
-                final List<GalleryItem> galleryItems = _items
-                    .map(
-                      (MemoryItemData item) => GalleryItem(
-                        title: item.title,
-                        imageUrl: item.imageFile?.path ?? '',
-                        description: item.description,
-                      ),
-                    )
-                    .toList();
-                context.read<GiftPackagingBloc>().add(
-                  SetGalleryItems(galleryItems),
-                );
-                context.push('/addgift/delivery-method');
-              },
+              // 조건 미충족 시 버튼 비활성화
+              onPressed: canSave
+                  ? () => context.push('/addgift/delivery-method')
+                  : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
+                backgroundColor: canSave ? Colors.black : Colors.grey.shade300,
                 foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.grey.shade300,
+                disabledForegroundColor: Colors.grey.shade500,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24.0,
                   vertical: 18.0,
@@ -1007,6 +1024,348 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
       width: 16,
       height: 2,
       color: isActive ? Colors.black : Colors.grey.shade200,
+    );
+  }
+}
+
+// ------------------------------------------------------------------
+// 편집 모달 전용 위젯 (BlocBuilder로 실시간 상태 반영)
+// ------------------------------------------------------------------
+class _MemoryEditForm extends StatelessWidget {
+  final int itemId;
+  final VoidCallback onPickImage;
+
+  const _MemoryEditForm({required this.itemId, required this.onPickImage});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<MemoryGallerySettingBloc, MemoryGallerySettingState>(
+      builder: (BuildContext context, MemoryGallerySettingState state) {
+        final MemoryGalleryItemData? itemData = state.uiItems
+            .where((item) => item.id == itemId)
+            .firstOrNull;
+
+        if (itemData == null) return const SizedBox.shrink();
+
+        final bool isTitleValid = itemData.title.trim().isNotEmpty;
+        final bool isDescriptionValid = itemData.description.trim().isNotEmpty;
+        final bool hasImage = itemData.imageFile != null;
+
+        return SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.only(
+                    left: 32.0,
+                    right: 32.0,
+                    top: 32.0,
+                    bottom: MediaQuery.viewInsetsOf(context).bottom + 32.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      // 헤더: 제목 + 닫기 버튼
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          const SizedBox(width: 24),
+                          const Text(
+                            '추억 상세 설정',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close),
+                            onPressed: () => Navigator.of(context).pop(),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+
+                      // 제목 입력 영역
+                      const Text(
+                        '제목',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        key: ValueKey<String>('title_$itemId'),
+                        initialValue: itemData.title,
+                        onChanged: (String val) {
+                          context.read<MemoryGallerySettingBloc>().add(
+                            UpdateMemoryItemTitle(itemId, val),
+                          );
+                        },
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          hintText: '제목을 입력해주세요',
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          suffixIcon: itemData.title.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 20),
+                                  onPressed: () {
+                                    context
+                                        .read<MemoryGallerySettingBloc>()
+                                        .add(UpdateMemoryItemTitle(itemId, ''));
+                                  },
+                                )
+                              : null,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isTitleValid
+                                  ? const Color(0xFF6DE1F1)
+                                  : Colors.red,
+                              width: 1.5,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isTitleValid ? Colors.black26 : Colors.red,
+                              width: isTitleValid ? 1.0 : 1.5,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isTitleValid
+                                  ? const Color(0xFF6DE1F1)
+                                  : Colors.red,
+                              width: 1.5,
+                            ),
+                          ),
+                          errorText: !isTitleValid
+                              ? '제목은 최소 1글자 이상이어야 합니다.'
+                              : null,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // 이미지 선택 영역
+                      const Text(
+                        '이미지',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      if (!hasImage)
+                        InkWell(
+                          onTap: onPickImage,
+                          child: Container(
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.black26,
+                                width: 1,
+                              ),
+                            ),
+                            child: const Center(
+                              child: Icon(
+                                Icons.add_photo_alternate,
+                                size: 40,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        )
+                      else
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: <Widget>[
+                            Container(
+                              constraints: const BoxConstraints(maxHeight: 300),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.black26,
+                                  width: 1,
+                                ),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  itemData.imageFile!.path,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: <Widget>[
+                                OutlinedButton.icon(
+                                  onPressed: onPickImage,
+                                  icon: const Icon(Icons.edit, size: 16),
+                                  label: const Text('수정'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.blue,
+                                    side: const BorderSide(color: Colors.blue),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                OutlinedButton.icon(
+                                  onPressed: () {
+                                    context
+                                        .read<MemoryGallerySettingBloc>()
+                                        .add(RemoveMemoryItemImage(itemId));
+                                  },
+                                  icon: const Icon(Icons.delete, size: 16),
+                                  label: const Text('삭제'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.red,
+                                    side: const BorderSide(color: Colors.red),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      const SizedBox(height: 24),
+
+                      // 설명 입력 영역
+                      const Text(
+                        '설명',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        key: ValueKey<String>('desc_$itemId'),
+                        initialValue: itemData.description,
+                        maxLines: 4,
+                        onChanged: (String val) {
+                          context.read<MemoryGallerySettingBloc>().add(
+                            UpdateMemoryItemDescription(itemId, val),
+                          );
+                        },
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: Colors.white,
+                          hintText: '설명을 입력해주세요',
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isDescriptionValid
+                                  ? const Color(0xFF6DE1F1)
+                                  : Colors.red,
+                              width: 1.5,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isDescriptionValid
+                                  ? Colors.black26
+                                  : Colors.red,
+                              width: isDescriptionValid ? 1.0 : 1.5,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: isDescriptionValid
+                                  ? const Color(0xFF6DE1F1)
+                                  : Colors.red,
+                              width: 1.5,
+                            ),
+                          ),
+                          errorText: !isDescriptionValid ? '설명을 입력해주세요.' : null,
+                        ),
+                      ),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+
+              // 하단 버튼 영역 (삭제 + 닫기)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          context.read<MemoryGallerySettingBloc>().add(
+                            RemoveMemoryItem(itemId),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.red.shade400,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: Colors.red.shade400,
+                              width: 1.5,
+                            ),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          '삭제',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Text(
+                          '닫기',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

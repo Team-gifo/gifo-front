@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../application/gift_packaging_bloc.dart';
 
 class MemoryDecisionView extends StatelessWidget {
   const MemoryDecisionView({super.key});
@@ -116,9 +119,65 @@ class MemoryDecisionView extends StatelessWidget {
           title: '아니요,',
           subtitle: '저는 바로 선물을 공개할거에요.',
           icon: Icons.card_giftcard_rounded,
-          onPressed: () {
-            // 추억 공유 없이 3단계로 이동 -> 배송 방식 선택으로 라우팅 완료
-            context.push('/addgift/delivery-method');
+          onPressed: () async {
+            final hasGalleryData = context
+                .read<GiftPackagingBloc>()
+                .state
+                .gallery
+                .isNotEmpty;
+
+            if (hasGalleryData) {
+              // 기존에 등록된 갤러리 데이터가 있으면 처리 방법을 사용자에게 묻습니다.
+              final bool? confirm = await showDialog<bool>(
+                context: context,
+                builder: (BuildContext dialogContext) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  backgroundColor: Colors.white,
+                  title: const Text(
+                    '추억 갤러리 데이터 존재',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  content: const Text(
+                    '등록된 추억 갤러리 데이터가 있습니다.\n초기화하고 바로 선물 공개로 진행할까요?',
+                    style: TextStyle(height: 1.5, fontSize: 16),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
+                      child: const Text(
+                        '아니오 (데이터 유지)',
+                        style: TextStyle(color: Colors.grey, fontSize: 16),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(true),
+                      child: const Text(
+                        '초기화 후 진행',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true && context.mounted) {
+                // 갤러리 데이터 초기화 후 이동
+                context.read<GiftPackagingBloc>().add(SetGalleryItems([]));
+                context.push('/addgift/delivery-method');
+              } else if (confirm == false && context.mounted) {
+                // 데이터를 유지한 채 이동
+                context.push('/addgift/delivery-method');
+              }
+            } else {
+              // 갤러리 데이터가 없으면 바로 이동
+              context.push('/addgift/delivery-method');
+            }
           },
         ),
       ],
