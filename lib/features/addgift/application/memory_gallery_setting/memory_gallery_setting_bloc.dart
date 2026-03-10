@@ -26,6 +26,8 @@ class MemoryGallerySettingBloc
     on<RemoveMemoryItemImage>(_onRemoveItemImage);
     on<SelectMemoryItem>(_onSelectItem);
     on<ClearMemoryItemSelection>(_onClearSelection);
+    on<HoverMemoryItem>(_onHoverItem);
+    on<ClearHoverMemoryItem>(_onClearHoverItem);
   }
 
   // uiItems를 GalleryItem 목록으로 변환하여 GiftPackagingBloc에 동기화합니다.
@@ -180,5 +182,21 @@ class MemoryGallerySettingBloc
     Emitter<MemoryGallerySettingState> emit,
   ) {
     emit(state.copyWithNullableSelectedId());
+  }
+
+  // 아이템 Hover 상태 설정
+  void _onHoverItem(
+    HoverMemoryItem event,
+    Emitter<MemoryGallerySettingState> emit,
+  ) {
+    emit(state.copyWith(hoveredItemId: event.id));
+  }
+
+  // 아이템 Hover 상태 해제
+  void _onClearHoverItem(
+    ClearHoverMemoryItem event,
+    Emitter<MemoryGallerySettingState> emit,
+  ) {
+    emit(state.copyWithNullableHoveredId());
   }
 }

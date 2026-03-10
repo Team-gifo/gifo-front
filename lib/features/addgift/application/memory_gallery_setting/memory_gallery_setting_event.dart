@@ -75,3 +75,14 @@ class SelectMemoryItem extends MemoryGallerySettingEvent {
 class ClearMemoryItemSelection extends MemoryGallerySettingEvent {
   const ClearMemoryItemSelection();
 }
+
+// 아이템 hover 설정
+class HoverMemoryItem extends MemoryGallerySettingEvent {
+  final int id;
+  const HoverMemoryItem(this.id);
+}
+
+// 아이템 hover 해제
+class ClearHoverMemoryItem extends MemoryGallerySettingEvent {
+  const ClearHoverMemoryItem();
+}

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
 import '../../application/gift_packaging_bloc.dart';
 import '../../application/memory_gallery_setting/memory_gallery_setting_bloc.dart';
@@ -35,9 +36,6 @@ class _MemoryGallerySettingViewState
     extends State<_MemoryGallerySettingContent> {
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
-
-  // hover 상태는 순수 UI 상태이므로 로컬 setState로 관리합니다.
-  int? _hoveredItemId;
 
   @override
   void initState() {
@@ -254,7 +252,7 @@ class _MemoryGallerySettingViewState
     MemoryGallerySettingState galleryState,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 24.0),
+      padding: const EdgeInsets.only(left: 40.0, right: 40.0, top: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
@@ -327,76 +325,79 @@ class _MemoryGallerySettingViewState
           ),
           const SizedBox(height: 20),
 
-          // ReorderableListView: 드래그 재정렬 + 세로 스크롤 영역
+          // 반응형 그리드: 화면 너비에 따라 column 수 유동 조절
           Expanded(
-            child: Theme(
-              data: ThemeData(canvasColor: Colors.transparent),
-              child: ScrollConfiguration(
-                behavior: ScrollConfiguration.of(context).copyWith(
-                  dragDevices: <PointerDeviceKind>{
-                    PointerDeviceKind.touch,
-                    PointerDeviceKind.mouse,
-                    PointerDeviceKind.trackpad,
-                  },
-                ),
-                child: Scrollbar(
-                  controller: _scrollController,
-                  thumbVisibility: true,
-                  child: ReorderableListView.builder(
-                    scrollController: _scrollController,
-                    scrollDirection: Axis.vertical,
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    buildDefaultDragHandles: false,
-                    proxyDecorator:
-                        (Widget child, int index, Animation<double> animation) {
-                          return Material(
-                            type: MaterialType.transparency,
-                            child: Stack(
-                              children: <Widget>[
-                                child,
-                                Positioned(
-                                  top: 0,
-                                  left: 0,
-                                  right: 0,
-                                  bottom: 16.0,
-                                  child: IgnorePointer(
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(
-                                          16.0,
-                                        ),
-                                        border: Border.all(
-                                          color: Colors.black,
-                                          width: 3.0,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                // 너비에 따라 열 수 자동 결정 (최소 카드 너비 기준 약 160px)
+                final double availableWidth = constraints.maxWidth;
+                int crossAxisCount;
+                if (availableWidth >= 1400) {
+                  crossAxisCount = 5;
+                } else if (availableWidth >= 1100) {
+                  crossAxisCount = 4;
+                } else if (availableWidth >= 800) {
+                  crossAxisCount = 3;
+                } else {
+                  crossAxisCount = 2;
+                }
+
+                return Theme(
+                  data: ThemeData(canvasColor: Colors.transparent),
+                  child: ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context).copyWith(
+                      dragDevices: <PointerDeviceKind>{
+                        PointerDeviceKind.touch,
+                        PointerDeviceKind.mouse,
+                        PointerDeviceKind.trackpad,
+                      },
+                    ),
+                    child: Scrollbar(
+                      controller: _scrollController,
+                      thumbVisibility: true,
+                      child: ReorderableGridView.builder(
+                        controller: _scrollController,
+                        // 그리드 외곽 padding으로 아이템 잘림 방지
+                        padding: const EdgeInsets.fromLTRB(4, 4, 20, 16),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: 24,
+                          mainAxisSpacing: 24,
+                          childAspectRatio: 0.7,
+                        ),
+                        itemCount: galleryState.uiItems.length + 1,
+                        onReorder: (int oldIndex, int newIndex) {
+                          // 마지막 요소(추가 카드)에 대한 드래그 이벤트 무시
+                          if (oldIndex == galleryState.uiItems.length ||
+                              newIndex == galleryState.uiItems.length) {
+                            return;
+                          }
+                          context.read<MemoryGallerySettingBloc>().add(
+                            ReorderMemoryItems(oldIndex, newIndex),
                           );
                         },
-                    onReorder: (int oldIndex, int newIndex) {
-                      context.read<MemoryGallerySettingBloc>().add(
-                        ReorderMemoryItems(oldIndex, newIndex),
-                      );
-                    },
-                    footer: _buildDesktopAddCard(),
-                    itemCount: galleryState.uiItems.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      final MemoryGalleryItemData item =
-                          galleryState.uiItems[index];
-                      return _buildDesktopCard(
-                        key: ValueKey<int>(item.id),
-                        index: index,
-                        itemData: item,
-                        selectedItemId: galleryState.selectedItemId,
-                      );
-                    },
+                        itemBuilder: (BuildContext context, int index) {
+                          if (index == galleryState.uiItems.length) {
+                            return Container(
+                              key: const ValueKey<String>('add_card'),
+                              child: _buildDesktopAddCard(),
+                            );
+                          }
+                          final MemoryGalleryItemData item =
+                              galleryState.uiItems[index];
+                          return _buildDesktopCard(
+                            key: ValueKey<int>(item.id),
+                            index: index,
+                            itemData: item,
+                            selectedItemId: galleryState.selectedItemId,
+                            hoveredItemId: galleryState.hoveredItemId,
+                          );
+                        },
+                      ),
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ],
@@ -404,171 +405,171 @@ class _MemoryGallerySettingViewState
     );
   }
 
-  // 데스크톱 카드: 신용카드 스타일 (가로 Row 배치, 전체 너비 사용, 높이 충분히 확보)
+  // 데스크톱 카드: Column 정렬 (이미지 상단, 텍스트 하단), 그리드 셀에 맞춰짐
   Widget _buildDesktopCard({
     required Key key,
     required int index,
     required MemoryGalleryItemData itemData,
     required int? selectedItemId,
+    required int? hoveredItemId,
   }) {
     final bool isIncomplete = _isItemIncomplete(itemData);
-    final bool isHovered = _hoveredItemId == itemData.id;
+    final bool isHovered = hoveredItemId == itemData.id;
 
     return MouseRegion(
       key: key,
-      onEnter: (_) => setState(() => _hoveredItemId = itemData.id),
-      onExit: (_) => setState(() => _hoveredItemId = null),
-      child: Container(
-        // 카드 사이 수직 여백
-        margin: const EdgeInsets.only(bottom: 16.0),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: <Widget>[
-            Material(
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16.0),
-                side: BorderSide(
-                  color: selectedItemId == itemData.id
-                      ? Colors.orange
-                      : Colors.grey.shade200,
-                  width: selectedItemId == itemData.id ? 2.5 : 1.0,
-                ),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: () => _showEditModal(context, itemData),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0,
-                    vertical: 20.0,
+      onEnter: (_) => context.read<MemoryGallerySettingBloc>().add(
+        HoverMemoryItem(itemData.id),
+      ),
+      onExit: (_) => context.read<MemoryGallerySettingBloc>().add(
+        const ClearHoverMemoryItem(),
+      ),
+      child: ReorderableDragStartListener(
+        index: index,
+        child: Container(
+          // Grid의 여백을 활용하므로 별도의 외부 bottom margin은 주지 않음
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: <Widget>[
+              // 배경 (카드 본체)
+              Positioned.fill(
+                child: Material(
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16.0),
+                    side: BorderSide(
+                      color: selectedItemId == itemData.id
+                          ? Colors.orange
+                          : Colors.grey.shade200,
+                      width: selectedItemId == itemData.id ? 2.5 : 1.0,
+                    ),
                   ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      // 드래그 핸들 (햄버거 아이콘)
-                      ReorderableDragStartListener(
-                        index: index,
-                        child: const Padding(
-                          padding: EdgeInsets.only(right: 16.0),
-                          child: Icon(
-                            Icons.drag_indicator,
-                            color: Colors.grey,
-                            size: 24,
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () => _showEditModal(context, itemData),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0,
+                        vertical: 24.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          // 썸네일 이미지
+                          Expanded(
+                            child: Container(
+                              width: double.infinity,
+                              clipBehavior: Clip.antiAlias,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8F9FA),
+                                borderRadius: BorderRadius.circular(12.0),
+                              ),
+                              child: itemData.imageFile != null
+                                  ? Image.network(
+                                      itemData.imageFile!.path,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Icon(
+                                      Icons.photo,
+                                      size: 40,
+                                      color: Colors.grey.shade300,
+                                    ),
+                            ),
                           ),
-                        ),
-                      ),
-                      // 썸네일 이미지: 높이를 140으로 키워 카드 전체 높이 확보
-                      Container(
-                        width: 140,
-                        height: 140,
-                        clipBehavior: Clip.antiAlias,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8F9FA),
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: itemData.imageFile != null
-                            ? Image.network(
-                                itemData.imageFile!.path,
-                                fit: BoxFit.cover,
-                              )
-                            : Icon(
-                                Icons.photo,
-                                size: 40,
-                                color: Colors.grey.shade300,
+                          const SizedBox(height: 20),
+                          // 하단 텍스트 영역
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                itemData.title.isEmpty
+                                    ? '제목 없음'
+                                    : itemData.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: itemData.title.isEmpty
+                                      ? Colors.grey
+                                      : Colors.black,
+                                ),
                               ),
-                      ),
-                      const SizedBox(width: 20),
-                      // 텍스트 영역
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            Text(
-                              itemData.title.isEmpty ? '제목 없음' : itemData.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: itemData.title.isEmpty
-                                    ? Colors.grey
-                                    : Colors.black,
+                              const SizedBox(height: 12),
+                              Text(
+                                itemData.description.isEmpty
+                                    ? '설명 없음'
+                                    : itemData.description,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  height: 1.5,
+                                  color: itemData.description.isEmpty
+                                      ? Colors.grey
+                                      : Colors.black87,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            Text(
-                              itemData.description.isEmpty
-                                  ? '설명 없음'
-                                  : itemData.description,
-                              maxLines: 4,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 14,
-                                height: 1.5,
-                                color: itemData.description.isEmpty
-                                    ? Colors.grey
-                                    : Colors.black87,
-                              ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // 불완전 아이템 경고 아이콘 (좌측 상단)
-            if (isIncomplete)
-              Positioned(
-                top: -6,
-                left: -6,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  padding: const EdgeInsets.all(4),
-                  child: const Icon(
-                    Icons.priority_high,
-                    color: Colors.white,
-                    size: 16,
+                    ),
                   ),
                 ),
               ),
 
-            // hover 시 삭제 버튼 (우측 상단)
-            if (isHovered)
-              Positioned(
-                top: -6,
-                right: -6,
-                child: GestureDetector(
-                  onTap: () {
-                    context.read<MemoryGallerySettingBloc>().add(
-                      RemoveMemoryItem(itemData.id),
-                    );
-                    setState(() => _hoveredItemId = null);
-                  },
+              // 불완전 아이템 경고 아이콘 (좌측 상단, Stack 최상단)
+              if (isIncomplete)
+                Positioned(
+                  top: -6,
+                  left: -6,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.red.shade400,
+                      color: Colors.orange,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
                     padding: const EdgeInsets.all(4),
                     child: const Icon(
-                      Icons.close,
+                      Icons.priority_high,
                       color: Colors.white,
                       size: 16,
                     ),
                   ),
                 ),
-              ),
-          ],
+
+              // hover 시 삭제 버튼 (우측 상단 튀어나오게, 드래그 무시하기 위해 제어)
+              if (isHovered)
+                Positioned(
+                  top: -6,
+                  right: -6,
+                  child: GestureDetector(
+                    onTap: () {
+                      context.read<MemoryGallerySettingBloc>().add(
+                        RemoveMemoryItem(itemData.id),
+                      );
+                      context.read<MemoryGallerySettingBloc>().add(
+                        const ClearHoverMemoryItem(),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade400,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      padding: const EdgeInsets.all(4),
+                      child: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -690,75 +691,88 @@ class _MemoryGallerySettingViewState
         ),
         const SizedBox(height: 12),
 
-        // 모바일 세로 스크롤 리스트
-        Expanded(
-          child: Theme(
-            data: ThemeData(canvasColor: Colors.transparent),
-            child: ScrollConfiguration(
-              behavior: ScrollConfiguration.of(context).copyWith(
-                dragDevices: <PointerDeviceKind>{
-                  PointerDeviceKind.touch,
-                  PointerDeviceKind.mouse,
-                },
-              ),
-              child: ReorderableListView.builder(
-                scrollController: _scrollController,
-                scrollDirection: Axis.vertical,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
-                ),
-                itemCount: galleryState.uiItems.length,
-                buildDefaultDragHandles: false,
-                proxyDecorator:
-                    (Widget child, int index, Animation<double> animation) {
-                      return Material(
-                        type: MaterialType.transparency,
-                        child: Stack(
-                          children: <Widget>[
-                            child,
-                            Positioned(
-                              top: 0,
-                              left: 0,
-                              right: 0,
-                              bottom: 16.0,
-                              child: IgnorePointer(
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16.0),
-                                    border: Border.all(
-                                      color: Colors.black,
-                                      width: 3.0,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+        // 리스트가 빈 경우: 중앙에 추가하기 버튼 안내
+        if (galleryState.uiItems.isEmpty)
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Icon(
+                    Icons.photo_library_outlined,
+                    size: 64,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    '아직 등록된 추억이 없어요.',
+                    style: TextStyle(color: Colors.grey.shade400, fontSize: 15),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<MemoryGallerySettingBloc>().add(
+                        const AddMemoryItem(),
                       );
                     },
-                onReorder: (int oldIndex, int newIndex) {
-                  context.read<MemoryGallerySettingBloc>().add(
-                    ReorderMemoryItems(oldIndex, newIndex),
-                  );
-                },
-                // 모바일에는 하단 추가 버튼 없이 헤더의 추가 버튼을 사용합니다.
-                itemBuilder: (BuildContext context, int index) {
-                  final MemoryGalleryItemData item =
-                      galleryState.uiItems[index];
-                  return _buildMobileCard(
-                    key: ValueKey<int>(item.id),
-                    index: index,
-                    itemData: item,
-                    selectedItemId: galleryState.selectedItemId,
-                    itemCount: galleryState.uiItems.length,
-                  );
-                },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                    ),
+                    icon: const Icon(Icons.add),
+                    label: const Text('추억 추가하기'),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: Theme(
+              data: ThemeData(canvasColor: Colors.transparent),
+              child: ScrollConfiguration(
+                behavior: ScrollConfiguration.of(context).copyWith(
+                  dragDevices: <PointerDeviceKind>{
+                    PointerDeviceKind.touch,
+                    PointerDeviceKind.mouse,
+                  },
+                ),
+                child: ReorderableListView.builder(
+                  scrollController: _scrollController,
+                  scrollDirection: Axis.vertical,
+                  padding: const EdgeInsets.only(
+                    left: 16.0,
+                    right: 16.0,
+                    top: 8.0,
+                  ),
+                  itemCount: galleryState.uiItems.length,
+                  buildDefaultDragHandles: false,
+                  onReorder: (int oldIndex, int newIndex) {
+                    context.read<MemoryGallerySettingBloc>().add(
+                      ReorderMemoryItems(oldIndex, newIndex),
+                    );
+                  },
+                  // 모바일에는 하단 추가 버튼 없이 헤더의 추가 버튼을 사용합니다.
+                  itemBuilder: (BuildContext context, int index) {
+                    final MemoryGalleryItemData item =
+                        galleryState.uiItems[index];
+                    return _buildMobileCard(
+                      key: ValueKey<int>(item.id),
+                      index: index,
+                      itemData: item,
+                      selectedItemId: galleryState.selectedItemId,
+                      itemCount: galleryState.uiItems.length,
+                    );
+                  },
+                ),
               ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -882,7 +896,7 @@ class _MemoryGallerySettingViewState
             ),
           ),
 
-          // 불완전 아이템 경고 아이콘 (좌측 상단)
+          // 불완전 아이템 경고 아이콘: Stack 마지막에 배치하여 드래그 테두리보다 위에 표시
           if (isIncomplete)
             Positioned(
               top: -6,
@@ -925,33 +939,28 @@ class _MemoryGallerySettingViewState
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Expanded(
-              child: Row(
-                children: <Widget>[
-                  const Icon(
-                    Icons.photo_library,
-                    size: 28,
-                    color: Colors.black87,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      '등록된 추억 개수: ${itemCount}개',
-                      style: TextStyle(
-                        fontSize: MediaQuery.sizeOf(context).width < 600
-                            ? 16
-                            : 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
+            const Spacer(),
+            // 저장 조건 안내 Tooltip
+            const Tooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              showDuration: Duration(seconds: 5),
+              margin: EdgeInsets.symmetric(horizontal: 24),
+              padding: EdgeInsets.all(12),
+              textStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                height: 1.5,
+              ),
+              message:
+                  '⚠️ 저장 완료 조건\n'
+                  '• 추억 최소 1개 이상 등록\n'
+                  '• 각 추억에 제목, 이미지, 설명 모두 입력',
+              child: Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: Icon(Icons.info_outline, size: 20, color: Colors.grey),
               ),
             ),
-            const SizedBox(width: 24),
+            const SizedBox(width: 12),
             ElevatedButton(
               // 조건 미충족 시 버튼 비활성화
               onPressed: canSave
@@ -1186,7 +1195,7 @@ class _MemoryEditForm extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: <Widget>[
                             Container(
-                              constraints: const BoxConstraints(maxHeight: 300),
+                              constraints: const BoxConstraints(maxHeight: 500),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(12),
@@ -1234,6 +1243,13 @@ class _MemoryEditForm extends StatelessWidget {
                             ),
                           ],
                         ),
+                      const SizedBox(height: 8),
+
+                      // 부적절한 콘텐츠 주의 안내 (gacha_setting_view와 동일한 형식)
+                      const Text(
+                        '- 부적절한 제목이나 이미지는 신고 대상이 될 수 있으며, 관련 책임은 등록 주체에게 있음을 알려드립니다.',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
                       const SizedBox(height: 24),
 
                       // 설명 입력 영역

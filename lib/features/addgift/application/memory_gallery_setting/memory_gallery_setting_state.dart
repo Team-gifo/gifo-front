@@ -43,22 +43,27 @@ class MemoryGallerySettingState extends Equatable {
   final int nextId;
   // 현재 편집 중인 아이템 ID (오렌지 테두리 강조 표시용)
   final int? selectedItemId;
+  // 현재 Hover 중인 아이템 ID (삭제 버튼 등 노출용)
+  final int? hoveredItemId;
 
   const MemoryGallerySettingState({
     this.uiItems = const [],
     this.nextId = 1,
     this.selectedItemId,
+    this.hoveredItemId,
   });
 
   MemoryGallerySettingState copyWith({
     List<MemoryGalleryItemData>? uiItems,
     int? nextId,
     int? selectedItemId,
+    int? hoveredItemId,
   }) {
     return MemoryGallerySettingState(
       uiItems: uiItems ?? this.uiItems,
       nextId: nextId ?? this.nextId,
       selectedItemId: selectedItemId ?? this.selectedItemId,
+      hoveredItemId: hoveredItemId ?? this.hoveredItemId,
     );
   }
 
@@ -68,9 +73,20 @@ class MemoryGallerySettingState extends Equatable {
       uiItems: uiItems,
       nextId: nextId,
       selectedItemId: null,
+      hoveredItemId: hoveredItemId,
+    );
+  }
+
+  // hoveredItemId를 명시적으로 null로 초기화
+  MemoryGallerySettingState copyWithNullableHoveredId() {
+    return MemoryGallerySettingState(
+      uiItems: uiItems,
+      nextId: nextId,
+      selectedItemId: selectedItemId,
+      hoveredItemId: null,
     );
   }
 
   @override
-  List<Object?> get props => [uiItems, nextId, selectedItemId];
+  List<Object?> get props => [uiItems, nextId, selectedItemId, hoveredItemId];
 }
