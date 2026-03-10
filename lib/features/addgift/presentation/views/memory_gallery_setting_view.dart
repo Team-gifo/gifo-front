@@ -28,8 +28,9 @@ class MemoryGallerySettingView extends StatefulWidget {
 }
 
 class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
-  final List<MemoryItemData> _items = <MemoryItemData>[MemoryItemData(id: 1)];
-  int _nextId = 2; // 다음 객체에 부여할 고유 식별자
+  final List<MemoryItemData> _items = <MemoryItemData>[];
+  int _nextId = 1; // 다음 객체에 부여할 고유 식별자
+  int? _selectedItemId;
 
   final ScrollController _scrollController = ScrollController();
   final ImagePicker _picker = ImagePicker();
@@ -89,6 +90,10 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
 
   // 모달을 통한 데이터 편집
   void _showEditModal(BuildContext context, MemoryItemData itemData) {
+    setState(() {
+      _selectedItemId = itemData.id;
+    });
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // 내용이 많을 수 있으므로 스크롤 허용
@@ -369,7 +374,11 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
           },
         );
       },
-    );
+    ).then((_) {
+      setState(() {
+        _selectedItemId = null;
+      });
+    });
   }
 
   @override
@@ -384,6 +393,15 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
         backgroundColor: const Color(0xFFF8F9FA),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          '추억 갤러리',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
@@ -408,25 +426,42 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
             }
           },
         ),
-        actions: <Widget>[_buildStepIndicator()],
+        actions: <Widget>[
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              vertical: 12.0,
+              horizontal: 8.0,
+            ),
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _items.clear();
+                  _nextId = 1;
+                  _selectedItemId = null;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.red.shade400,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(color: Colors.red.shade400, width: 1.5),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                '초기화',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          if (!isMobile) _buildStepIndicator(),
+        ],
       ),
       body: SafeArea(
         child: Column(
           children: <Widget>[
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  '추억 갤러리 세팅',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-            ),
+            // 본문에 있던 '추억 갤러리 세팅' 제목은 AppBar로 이동됨
             Expanded(
               child: Theme(
                 data: ThemeData(
@@ -559,7 +594,12 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
         color: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.0),
-          side: BorderSide(color: Colors.grey.shade200),
+          side: BorderSide(
+            color: _selectedItemId == itemData.id
+                ? Colors.orange
+                : Colors.grey.shade200,
+            width: _selectedItemId == itemData.id ? 2.0 : 1.0,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -665,7 +705,12 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
         color: Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.0),
-          side: BorderSide(color: Colors.grey.shade200),
+          side: BorderSide(
+            color: _selectedItemId == itemData.id
+                ? Colors.orange
+                : Colors.grey.shade200,
+            width: _selectedItemId == itemData.id ? 2.0 : 1.0,
+          ),
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -762,11 +807,11 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
   Widget _buildAddButton(bool isMobile) {
     return Container(
       // 모바일일 때는 카드와 동일하게 전체 폭 사용, 높이는 명시
-      width: isMobile ? double.infinity : 120,
+      width: isMobile ? double.infinity : 240,
       height: isMobile ? 80 : null,
       margin: isMobile
-          ? const EdgeInsets.only(bottom: 16.0, top: 8.0)
-          : const EdgeInsets.only(right: 24.0, bottom: 8.0, top: 8.0),
+          ? const EdgeInsets.only(bottom: 16.0)
+          : const EdgeInsets.only(right: 24.0),
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white,
@@ -854,14 +899,29 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Expanded(
-              child: Text(
-                '추억 갤러리는 사진 혹은 동영상을 필수적으로 넣어야하며, 텍스트는 추가 사항입니다.',
-                style: TextStyle(
-                  // 모바일(600 미만)일 때는 14, 데스크톱/태블릿 환경에서는 20으로 표시
-                  fontSize: MediaQuery.sizeOf(context).width < 600 ? 14 : 20,
-                  color: Colors.black87,
-                  height: 1.4,
-                ),
+              child: Row(
+                children: <Widget>[
+                  const Icon(
+                    Icons.photo_library,
+                    size: 28,
+                    color: Colors.black87,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '등록된 추억 개수: ${_items.length}개',
+                      style: TextStyle(
+                        fontSize: MediaQuery.sizeOf(context).width < 600
+                            ? 16
+                            : 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 24),
