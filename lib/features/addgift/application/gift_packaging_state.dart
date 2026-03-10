@@ -2,6 +2,9 @@ part of 'gift_packaging_bloc.dart';
 
 // ---- BLoC 상태 정의 ----
 
+// 서버 전송 단계를 명확히 구분
+enum SubmitStatus { idle, loading, success, failure }
+
 class GiftPackagingState {
   final String receiverName;
   final String subTitle;
@@ -11,6 +14,7 @@ class GiftPackagingState {
   final GachaContent? gachaContent;
   final QuizContent? quizContent;
   final UnboxingContent? unboxingContent;
+  final SubmitStatus submitStatus;
 
   // 랜덤한 서브타이틀 명칭 생성 헬퍼
   static String generateRandomSubTitle() {
@@ -43,6 +47,7 @@ class GiftPackagingState {
     this.gachaContent,
     this.quizContent,
     this.unboxingContent,
+    this.submitStatus = SubmitStatus.idle,
   });
 
   GiftPackagingState copyWith({
@@ -54,6 +59,7 @@ class GiftPackagingState {
     GachaContent? gachaContent,
     QuizContent? quizContent,
     UnboxingContent? unboxingContent,
+    SubmitStatus? submitStatus,
   }) {
     return GiftPackagingState(
       receiverName: receiverName ?? this.receiverName,
@@ -64,6 +70,7 @@ class GiftPackagingState {
       gachaContent: gachaContent ?? this.gachaContent,
       quizContent: quizContent ?? this.quizContent,
       unboxingContent: unboxingContent ?? this.unboxingContent,
+      submitStatus: submitStatus ?? this.submitStatus,
     );
   }
 }

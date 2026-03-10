@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/router/app_router.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../model/direct_open_setting_models.dart';
+import '../../model/gift_content.dart';
 import '../../model/unboxing_content.dart';
 
 class DirectOpenSettingView extends StatefulWidget {
@@ -90,10 +91,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
 
   void _completePackage() {
     final bloc = context.read<GiftPackagingBloc>();
-
-    // 서브타이틀, BGM 저장
-    bloc.add(SetSubTitle(_subTitleController.text.trim()));
-    bloc.add(SetBgm(_selectedBgm));
+    final packagingState = bloc.state;
 
     // 로컬 데이터 -> freezed UnboxingContent 변환
     final UnboxingContent unboxing = UnboxingContent(
@@ -107,8 +105,16 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
       ),
     );
 
-    bloc.add(SetUnboxingContent(unboxing));
-    bloc.add(SubmitPackage());
+    // 모든 데이터를 SubmitPackage 이벤트에 직접 담아 전달
+    bloc.add(
+      SubmitPackage(
+        receiverName: _userNameController.text.trim(),
+        subTitle: _subTitleController.text.trim(),
+        bgm: _selectedBgm,
+        gallery: packagingState.gallery,
+        content: GiftContent(unboxing: unboxing),
+      ),
+    );
 
     isPackageComplete = true;
     context.replace('/addgift/package-complete');

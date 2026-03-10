@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/router/app_router.dart';
 import '../../application/gift_packaging_bloc.dart';
+import '../../model/gift_content.dart';
 import '../../model/quiz_content.dart';
 import '../../model/quiz_setting_models.dart';
 
@@ -1005,7 +1006,16 @@ class _QuizSettingViewState extends State<QuizSettingView> {
     );
 
     bloc.add(SetQuizContent(quizContent));
-    bloc.add(SubmitPackage());
+    // 모든 데이터를 SubmitPackage 이벤트에 직접 담아 전달
+    bloc.add(
+      SubmitPackage(
+        receiverName: _userNameController.text.trim(),
+        subTitle: _subTitleController.text.trim(),
+        bgm: _selectedBgm,
+        gallery: bloc.state.gallery,
+        content: GiftContent(quiz: quizContent),
+      ),
+    );
 
     isPackageComplete = true;
     context.replace('/addgift/package-complete');

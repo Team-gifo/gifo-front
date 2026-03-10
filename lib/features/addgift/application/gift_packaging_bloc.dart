@@ -80,18 +80,20 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
     emit(state.copyWith(unboxingContent: event.unboxing));
   }
 
-  // --- 포장 완료 시 전체 데이터를 GiftRequest로 조립하여 로그 출력 후 서버 전송 ---
+  // --- 포장 완료: 이벤트에 담긴 데이터로 GiftRequest 조립 후 서버 전송 ---
   Future<void> _onSubmitPackage(
     SubmitPackage event,
     Emitter<GiftPackagingState> emit,
   ) async {
-    final GiftContent content = _buildContent();
+    // 전송 시작: 로딩 상태로 전환
+    emit(state.copyWith(submitStatus: SubmitStatus.loading));
+
     final GiftRequest request = GiftRequest(
-      user: state.receiverName,
-      subTitle: state.subTitle,
-      bgm: state.bgm,
-      gallery: state.gallery,
-      content: content,
+      user: event.receiverName,
+      subTitle: event.subTitle,
+      bgm: event.bgm,
+      gallery: event.gallery,
+      content: event.content,
     );
 
     // JSON 변환 후 로그 출력
@@ -110,35 +112,22 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
       debugPrint(
         '[GiftPackagingBloc] 서버 전송 성공! (상태 코드: ${response.response.statusCode})',
       );
-    } catch (e) {
-      if (e is num) {
-        // e is num은 발생할리 없으므로 dynamic으로 DioException 판별 우회(타입을 명시적으로 안 써도 되도록)
-      }
-      // 통신 중 터졌거나 에러 응답을 받았을 경우
-      final errorStr = e.toString();
-      String statusCode = '알 수 없음';
-      if (errorStr.contains('statusCode')) {
-        // 에러 객체 안에 statusCode 정보가 있을 수 있음
-        debugPrint('[GiftPackagingBloc] 서버 전송 에러 발생: $errorStr');
-      } else {
-        debugPrint(
-          '[GiftPackagingBloc] 서버 전송 실패. 네트워크를 확인하세요 (응답 코드: $statusCode) - $e',
-        );
-      }
-    }
-  }
+      // 전송 완료: 성공 상태로 전환 (뷰에서 이 상태를 감지해 화면 전환)
+      emit(state.copyWith(submitStatus: SubmitStatus.success));
+    } catch (e, stackTrace) {
+      debugPrint('========================================');
+      debugPrint('[GiftPackagingBloc] 서버 전송 중 예외 발생!');
+      debugPrint('에러 내용: $e');
+      debugPrint('스택 트레이스: \n$stackTrace');
 
-  // 선택된 콘텐츠 타입에 따라 GiftContent 조립
-  GiftContent _buildContent() {
-    switch (state.selectedContentType) {
-      case ContentType.gacha:
-        return GiftContent(gacha: state.gachaContent);
-      case ContentType.quiz:
-        return GiftContent(quiz: state.quizContent);
-      case ContentType.unboxing:
-        return GiftContent(unboxing: state.unboxingContent);
-      default:
-        return const GiftContent();
+      final errorStr = e.toString();
+      if (errorStr.contains('statusCode')) {
+        debugPrint('[GiftPackagingBloc] 상세 에러 (StatusCode 포함): $errorStr');
+      }
+      debugPrint('========================================');
+
+      // 전송 실패: 실패 상태로 전환
+      emit(state.copyWith(submitStatus: SubmitStatus.failure));
     }
   }
 

@@ -24,9 +24,10 @@ import '../../features/lobby/presentation/views/lobby_view.dart';
 import '../../features/lobby/presentation/views/memory_gallery_view.dart';
 
 bool isPackageComplete = false;
+final GiftPackagingBloc giftPackagingBloc = GiftPackagingBloc();
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/addgift',
   redirect: (BuildContext context, GoRouterState state) {
     if (isPackageComplete) {
       if (state.matchedLocation.startsWith('/addgift') &&
@@ -110,8 +111,8 @@ final GoRouter appRouter = GoRouter(
     // 선물 포장하기 전체 플로우 (ShellRoute로 묶어 GiftPackagingBloc 상태 유지)
     ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
-        return BlocProvider<GiftPackagingBloc>(
-          create: (context) => GiftPackagingBloc(),
+        return BlocProvider<GiftPackagingBloc>.value(
+          value: giftPackagingBloc,
           child: child,
         );
       },
