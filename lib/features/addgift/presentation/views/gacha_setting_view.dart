@@ -47,16 +47,19 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
   @override
   void initState() {
     super.initState();
-    final blocState = context.read<GiftPackagingBloc>().state;
-    if (blocState.receiverName.isNotEmpty) {
-      _userNameController.text = blocState.receiverName;
+    final packagingState = context.read<GiftPackagingBloc>().state;
+
+    // 이름/서브타이틀 복원
+    if (packagingState.receiverName.isNotEmpty) {
+      _userNameController.text = packagingState.receiverName;
     }
-    if (blocState.subTitle.isNotEmpty) {
-      _subTitleController.text = blocState.subTitle;
+    if (packagingState.subTitle.isNotEmpty) {
+      _subTitleController.text = packagingState.subTitle;
     }
 
-    final savedGacha = blocState.gachaContent;
-    List<DefaultGachaItemData> initItems = [];
+    // GiftPackagingBloc의 gachaContent에서 UI 아이템 목록과 뽑기 횟수 복원
+    final savedGacha = packagingState.gachaContent;
+    List<DefaultGachaItemData> initUiItems = [];
     int nextId = 1;
 
     Color getRandomColor() {
@@ -71,7 +74,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
 
     if (savedGacha != null && savedGacha.list.isNotEmpty) {
       for (final item in savedGacha.list) {
-        initItems.add(
+        initUiItems.add(
           DefaultGachaItemData(
             id: nextId++,
             color: getRandomColor(),
@@ -85,15 +88,12 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
       _playCountController.text = savedGacha.playCount.toString();
     }
 
-    final initialBgm = blocState.bgm.isNotEmpty ? blocState.bgm : '신나는 생일';
+    final initialBgm = packagingState.bgm.isNotEmpty
+        ? packagingState.bgm
+        : '신나는 생일';
 
     context.read<GachaSettingBloc>().add(
-      InitGachaSetting(
-        initItems,
-        nextId,
-        _playCountController.text,
-        initialBgm,
-      ),
+      InitGachaSetting(initUiItems, nextId, initialBgm),
     );
 
     _userNameController.addListener(() {
@@ -279,8 +279,8 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
         // Bloc 상태를 구독하여 모달 내부를 자동 리빌드하기 위함
         return BlocBuilder<GachaSettingBloc, GachaSettingState>(
           builder: (context, state) {
-            // 현재 아이템 데이터를 최신 상태에서 찾아옴 (없으면 모달 닫힘에 대비해 기존 데이터 사용)
-            final currentItemData = state.items.firstWhere(
+            // 현재 아이템 데이터를 uiItems에서 찾아옵니다.
+            final currentItemData = state.uiItems.firstWhere(
               (item) => item.id == itemData.id,
               orElse: () => itemData,
             );
@@ -301,7 +301,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                 percentValue <= 100.0;
 
             double sumWithoutCurrent = 0.0;
-            for (final item in state.items) {
+            for (final item in state.uiItems) {
               if (item.id != currentItemData.id) {
                 sumWithoutCurrent += item.percent;
               }
@@ -725,6 +725,30 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     );
   }
 
+  // GiftPackagingBloc의 gachaContent를 기반으로 완료 가능 여부를 판단합니다.
+  bool _canComplete() {
+    final packagingState = context.read<GiftPackagingBloc>().state;
+    final gachaContent = packagingState.gachaContent;
+
+    if (gachaContent == null || gachaContent.list.isEmpty) return false;
+    if (_userNameController.text.trim().isEmpty) return false;
+    if (_subTitleController.text.trim().isEmpty) return false;
+    if (gachaContent.playCount < 1) return false;
+
+    for (final item in gachaContent.list) {
+      if (item.itemName.trim().isEmpty) return false;
+      if (item.percent < 0.01 || item.percent > 100.0) return false;
+    }
+
+    final double total = gachaContent.list.fold(
+      0.0,
+      (sum, item) => sum + item.percent,
+    );
+    if (total < 99.99 || total > 100.01) return false;
+
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<GiftPackagingBloc, GiftPackagingState>(
@@ -744,105 +768,124 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
           );
         }
       },
-      child: BlocBuilder<GachaSettingBloc, GachaSettingState>(
-        builder: (context, state) {
-          final bool isMobile = MediaQuery.sizeOf(context).width < 800;
-          final double totalPercent = state.totalPercent;
-          final double remainPercent = 100.0 - totalPercent;
+      // GiftPackagingBloc과 GachaSettingBloc을 모두 구독하여
+      // 어느 한 쪽이라도 변경되면 전체 UI를 리빌드합니다.
+      child: BlocBuilder<GiftPackagingBloc, GiftPackagingState>(
+        builder: (context, packagingState) {
+          return BlocBuilder<GachaSettingBloc, GachaSettingState>(
+            builder: (context, gachaState) {
+              final bool isMobile = MediaQuery.sizeOf(context).width < 800;
 
-          // GiftPackagingBloc의 로딩 상태를 읽어 오버레이 표시 여부 결정
-          final packagingState = context.watch<GiftPackagingBloc>().state;
-          final bool isLoading =
-              packagingState.submitStatus == SubmitStatus.loading;
+              // 확률 계산 기준: GiftPackagingBloc의 gachaContent
+              final gachaItems = packagingState.gachaContent?.list ?? [];
+              final double totalPercent = gachaItems.fold(
+                0.0,
+                (sum, item) => sum + item.percent,
+              );
+              final double remainPercent = 100.0 - totalPercent;
 
-          return PopScope(
-            canPop: false,
-            onPopInvoked: (bool didPop) {
-              if (didPop) return;
-              // 로딩 중에는 뒤로가기 차단
-              if (isLoading) return;
-              if (context.canPop()) {
-                context.pop();
-              } else {
-                context.go('/');
-              }
-            },
-            child: Stack(
-              children: <Widget>[
-                Scaffold(
-                  backgroundColor: Colors.white,
-                  appBar: AppBar(
-                    toolbarHeight: 68,
-                    backgroundColor: Colors.white,
-                    surfaceTintColor: Colors.transparent,
-                    elevation: 0,
-                    leading: IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black),
-                      onPressed: isLoading
-                          ? null
-                          : () {
-                              if (context.canPop()) {
-                                context.pop();
-                              } else {
-                                context.go('/');
-                              }
-                            },
-                    ),
-                    title: _buildTitleBar(),
-                    actions: <Widget>[if (!isMobile) _buildStepIndicator()],
-                  ),
-                  body: SafeArea(
-                    child: isMobile
-                        ? SingleChildScrollView(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24.0),
-                              child: Column(
+              final bool isLoading =
+                  packagingState.submitStatus == SubmitStatus.loading;
+
+              return PopScope(
+                canPop: false,
+                onPopInvoked: (bool didPop) {
+                  if (didPop) return;
+                  // 로딩 중에는 뒤로가기 차단
+                  if (isLoading) return;
+                  if (context.canPop()) {
+                    context.pop();
+                  } else {
+                    context.go('/');
+                  }
+                },
+                child: Stack(
+                  children: <Widget>[
+                    Scaffold(
+                      backgroundColor: Colors.white,
+                      appBar: AppBar(
+                        toolbarHeight: 68,
+                        backgroundColor: Colors.white,
+                        surfaceTintColor: Colors.transparent,
+                        elevation: 0,
+                        leading: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.black,
+                          ),
+                          onPressed: isLoading
+                              ? null
+                              : () {
+                                  if (context.canPop()) {
+                                    context.pop();
+                                  } else {
+                                    context.go('/');
+                                  }
+                                },
+                        ),
+                        title: _buildTitleBar(),
+                        actions: <Widget>[if (!isMobile) _buildStepIndicator()],
+                      ),
+                      body: SafeArea(
+                        child: isMobile
+                            ? SingleChildScrollView(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: <Widget>[
+                                      _buildItemsSection(
+                                        totalPercent,
+                                        remainPercent,
+                                        isMobile,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : Row(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: <Widget>[
-                                  _buildItemsSection(
-                                    totalPercent,
-                                    remainPercent,
-                                    isMobile,
+                                  Expanded(
+                                    flex: 7,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(40.0),
+                                      child: _buildItemsSection(
+                                        totalPercent,
+                                        remainPercent,
+                                        isMobile,
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    color: Colors.grey.shade200,
+                                  ),
+                                  Expanded(
+                                    flex: 4,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(40.0),
+                                      child: _buildSettingsSection(
+                                        isMobile: false,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
-                            ),
-                          )
-                        : Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: <Widget>[
-                              Expanded(
-                                flex: 7,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(40.0),
-                                  child: _buildItemsSection(
-                                    totalPercent,
-                                    remainPercent,
-                                    isMobile,
-                                  ),
-                                ),
-                              ),
-                              Container(width: 1, color: Colors.grey.shade200),
-                              Expanded(
-                                flex: 4,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(40.0),
-                                  child: _buildSettingsSection(isMobile: false),
-                                ),
-                              ),
-                            ],
-                          ),
-                  ),
-                  // 모바일인 경우 하단 네비게이션 적용 (톱니바퀴 모달 + 완료버튼)
-                  bottomNavigationBar: isMobile
-                      ? _buildMobileBottomBar()
-                      : null,
-                ),
+                      ),
+                      // 모바일인 경우 하단 네비게이션 적용 (톱니바퀴 모달 + 완료버튼)
+                      bottomNavigationBar: isMobile
+                          ? _buildMobileBottomBar()
+                          : null,
+                    ),
 
-                // 로딩 오버레이: 전송 중 터치 차단 + 프로그레스 표시
-                if (isLoading) _buildLoadingOverlay(),
-              ],
-            ),
+                    // 로딩 오버레이: 전송 중 터치 차단 + 프로그레스 표시
+                    if (isLoading) _buildLoadingOverlay(),
+                  ],
+                ),
+              );
+            },
           );
         },
       ),
@@ -964,7 +1007,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     double remainPercent,
     bool isMobile,
   ) {
-    final state = context.read<GachaSettingBloc>().state;
+    final uiItems = context.read<GachaSettingBloc>().state.uiItems;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -997,7 +1040,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                   ),
                 ),
                 TextSpan(
-                  text: ' : ${state.items.length}개 ]',
+                  text: ' : ${uiItems.length}개 ]',
                   style: const TextStyle(color: Colors.black),
                 ),
               ],
@@ -1068,7 +1111,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                         ),
                       ),
                       TextSpan(
-                        text: ' : ${state.items.length}개 ]',
+                        text: ' : ${uiItems.length}개 ]',
                         style: const TextStyle(color: Colors.black),
                       ),
                     ],
@@ -1122,7 +1165,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
   }
 
   Widget _buildCapsuleListContainer({required bool isMobile}) {
-    final items = context.read<GachaSettingBloc>().state.items;
+    final uiItems = context.read<GachaSettingBloc>().state.uiItems;
     return Container(
       width: double.infinity, // 부모 너비 가득
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -1134,8 +1177,8 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
         spacing: 32,
         runSpacing: 32,
         children: <Widget>[
-          for (int i = 0; i < items.length; i++)
-            _buildCapsuleItem(items[i], isMobile),
+          for (int i = 0; i < uiItems.length; i++)
+            _buildCapsuleItem(uiItems[i], isMobile),
           // 추가하기 점선 원
           InkWell(
             onTap: () => context.read<GachaSettingBloc>().add(
@@ -1515,21 +1558,13 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
           SizedBox(
             height: 60,
             child: ElevatedButton(
-              onPressed:
-                  context.read<GachaSettingBloc>().state.canComplete(
-                    _userNameController.text,
-                    _subTitleController.text,
-                  )
+              onPressed: _canComplete()
                   ? () {
                       _completePackage();
                     }
                   : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    context.read<GachaSettingBloc>().state.canComplete(
-                      _userNameController.text,
-                      _subTitleController.text,
-                    )
+                backgroundColor: _canComplete()
                     ? const Color(0xFF6DE1F1)
                     : Colors.grey.shade300,
                 shape: RoundedRectangleBorder(
@@ -1542,13 +1577,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color:
-                      context.read<GachaSettingBloc>().state.canComplete(
-                        _userNameController.text,
-                        _subTitleController.text,
-                      )
-                      ? Colors.black
-                      : Colors.grey.shade500,
+                  color: _canComplete() ? Colors.black : Colors.grey.shade500,
                 ),
               ),
             ),
@@ -1590,21 +1619,13 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
               child: SizedBox(
                 height: 56,
                 child: ElevatedButton(
-                  onPressed:
-                      context.read<GachaSettingBloc>().state.canComplete(
-                        _userNameController.text,
-                        _subTitleController.text,
-                      )
+                  onPressed: _canComplete()
                       ? () {
                           _completePackage();
                         }
                       : null,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        context.read<GachaSettingBloc>().state.canComplete(
-                          _userNameController.text,
-                          _subTitleController.text,
-                        )
+                    backgroundColor: _canComplete()
                         ? const Color(0xFF6DE1F1)
                         : Colors.grey.shade300,
                     shape: RoundedRectangleBorder(
@@ -1617,11 +1638,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color:
-                          context.read<GachaSettingBloc>().state.canComplete(
-                            _userNameController.text,
-                            _subTitleController.text,
-                          )
+                      color: _canComplete()
                           ? Colors.black
                           : Colors.grey.shade500,
                     ),

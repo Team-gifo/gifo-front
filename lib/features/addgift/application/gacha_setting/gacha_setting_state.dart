@@ -1,5 +1,8 @@
 part of 'gacha_setting_bloc.dart';
 
+// GachaSettingView에서 사용하는 UI 전용 아이템 모델
+// 실제 데이터는 GiftPackagingBloc에 저장되지만, View 렌더링(이미지 파일, 색상, 선택 상태 등)
+// 에 필요한 일시적인 정보를 별도로 관리합니다.
 class DefaultGachaItemData extends Equatable {
   final int id;
   final Color color;
@@ -47,62 +50,35 @@ class DefaultGachaItemData extends Equatable {
   ];
 }
 
+// GachaSettingBloc의 로컬 상태
+// 실제 캡슐 데이터는 GiftPackagingBloc이 보유하며, 이 State는
+// View 렌더링에 필요한 UI 전용 정보(이미지, 색상 등)와 BGM, 다음 ID 등만 관리합니다.
 class GachaSettingState extends Equatable {
-  final List<DefaultGachaItemData> items;
+  // View 렌더링용 UI 데이터 (이미지 파일, 색상 포함)
+  final List<DefaultGachaItemData> uiItems;
+  // 다음 캡슐 아이템 ID 카운터
   final int nextId;
-  final String playCountStr;
+  // 선택된 BGM
   final String selectedBgm;
 
   const GachaSettingState({
-    this.items = const [],
+    this.uiItems = const [],
     this.nextId = 1,
-    this.playCountStr = '3',
     this.selectedBgm = '신나는 생일',
   });
 
-  double get totalPercent {
-    double total = 0.0;
-    for (final DefaultGachaItemData item in items) {
-      total += item.percent;
-    }
-    return total;
-  }
-
-  bool canComplete(String userName, String subTitle) {
-    if (items.isEmpty) return false;
-    if (userName.trim().isEmpty) return false;
-    if (subTitle.trim().isEmpty) return false;
-
-    final int? playCount = int.tryParse(playCountStr);
-    if (playCount == null || playCount < 1) return false;
-
-    for (final item in items) {
-      final double? pct = double.tryParse(item.percentStr);
-      if (item.itemName.trim().isEmpty) return false;
-      if (pct == null || pct < 0.01 || pct > 100.0) return false;
-    }
-
-    final double totalPct = totalPercent;
-    // 부동소수점 오차를 고려하여 99.99% ~ 100.01% 사이면 100%로 인정
-    if (totalPct < 99.99 || totalPct > 100.01) return false;
-
-    return true;
-  }
-
   GachaSettingState copyWith({
-    List<DefaultGachaItemData>? items,
+    List<DefaultGachaItemData>? uiItems,
     int? nextId,
-    String? playCountStr,
     String? selectedBgm,
   }) {
     return GachaSettingState(
-      items: items ?? this.items,
+      uiItems: uiItems ?? this.uiItems,
       nextId: nextId ?? this.nextId,
-      playCountStr: playCountStr ?? this.playCountStr,
       selectedBgm: selectedBgm ?? this.selectedBgm,
     );
   }
 
   @override
-  List<Object?> get props => [items, nextId, playCountStr, selectedBgm];
+  List<Object?> get props => [uiItems, nextId, selectedBgm];
 }
