@@ -24,6 +24,7 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
     on<UpdateGachaItemPercent>(_onUpdateItemPercent);
     on<UpdateGachaItemPercentOpen>(_onUpdateItemPercentOpen);
     on<UpdateGachaItemImage>(_onUpdateItemImage);
+    on<RemoveGachaItemImage>(_onRemoveGachaItemImage);
     on<UpdatePlayCount>(_onUpdatePlayCount);
     on<UpdateBgm>(_onUpdateBgm);
     on<SubmitGachaSetting>(_onSubmitGachaSetting);
@@ -117,6 +118,27 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
     final newItems = state.items.map((item) {
       if (item.id == event.id) {
         return item.copyWith(imageFile: event.image);
+      }
+      return item;
+    }).toList();
+    emit(state.copyWith(items: newItems));
+  }
+
+  void _onRemoveGachaItemImage(
+    RemoveGachaItemImage event,
+    Emitter<GachaSettingState> emit,
+  ) {
+    final newItems = state.items.map((item) {
+      if (item.id == event.id) {
+        // 기존 상태 기반 복사본을 직접 생성하여 imageFile을 null로 초기화합니다.
+        return DefaultGachaItemData(
+          id: item.id,
+          color: item.color,
+          imageFile: null,
+          itemName: item.itemName,
+          percentStr: item.percentStr,
+          percentOpen: item.percentOpen,
+        );
       }
       return item;
     }).toList();

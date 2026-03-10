@@ -39,6 +39,9 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     text: '3',
   );
 
+  TextEditingController? _modalNameController;
+  TextEditingController? _modalPercentController;
+
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -118,6 +121,8 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     _userNameController.dispose();
     _subTitleController.dispose();
     _playCountController.dispose();
+    _modalNameController?.dispose();
+    _modalPercentController?.dispose();
     super.dispose();
   }
 
@@ -173,6 +178,13 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
       _selectedItemId = itemData.id;
     });
 
+    // 기존 컨트롤러를 먼저 해제하고 새로 생성하여 덮어씁니다. ( disposed 에러 방지 )
+    _modalNameController?.dispose();
+    _modalPercentController?.dispose();
+
+    _modalNameController = TextEditingController(text: itemData.itemName);
+    _modalPercentController = TextEditingController(text: itemData.percentStr);
+
     if (isMobile) {
       showModalBottomSheet(
         context: context,
@@ -183,9 +195,16 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
         ),
         builder: (BuildContext modalContext) => BlocProvider.value(
           value: gachaBloc,
-          child: _buildEditForm(modalContext, itemData),
+          child: _buildEditForm(
+            modalContext,
+            itemData,
+            _modalNameController!,
+            _modalPercentController!,
+          ),
         ),
       ).then((_) {
+        // 하단 모달창이 종료될 때 위젯 트리가 완전히 제거되기 전까지 컨트롤러가 메모리상에서 유지되어야 하므로
+        // 여기에 있는 컨트롤러 dispose() 동작을 삭제하고 _modalNameController의 생명주기에 맡깁니다.
         setState(() {
           _selectedItemId = null;
         });
@@ -212,7 +231,12 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                     height: double.infinity,
                     child: BlocProvider.value(
                       value: gachaBloc,
-                      child: _buildEditForm(context, itemData),
+                      child: _buildEditForm(
+                        context,
+                        itemData,
+                        _modalNameController!,
+                        _modalPercentController!,
+                      ),
                     ),
                   ),
                 ),
@@ -247,6 +271,8 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
   Widget _buildEditForm(
     BuildContext modalContext,
     DefaultGachaItemData itemData,
+    TextEditingController nameController,
+    TextEditingController percentController,
   ) {
     return StatefulBuilder(
       builder: (BuildContext context, StateSetter setModalState) {
@@ -273,6 +299,50 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                 percentValue != null &&
                 percentValue >= 0.01 &&
                 percentValue <= 100.0;
+
+            double sumWithoutCurrent = 0.0;
+            for (final item in state.items) {
+              if (item.id != currentItemData.id) {
+                sumWithoutCurrent += item.percent;
+              }
+            }
+            double rem = 100.0 - sumWithoutCurrent;
+            if (rem < 0) rem = 0.0;
+            String formatPercent(double p) {
+              String s = p.toStringAsFixed(2);
+              if (s.endsWith('.00')) return s.substring(0, s.length - 3);
+              if (s.endsWith('0')) return s.substring(0, s.length - 1);
+              return s;
+            }
+
+            final String remainingStr = formatPercent(rem);
+
+            Widget buildQuickPercentBtn(String value, String label) {
+              return TextButton(
+                onPressed: () {
+                  final String rawVal = value.replaceAll('%', '');
+                  percentController.text = rawVal;
+                  context.read<GachaSettingBloc>().add(
+                    UpdateGachaItemPercent(currentItemData.id, rawVal),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.blue.shade50,
+                  foregroundColor: Colors.blue.shade700,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  label,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              );
+            }
 
             return SafeArea(
               child: Column(
@@ -317,7 +387,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                           ),
                           const SizedBox(height: 8),
                           TextFormField(
-                            initialValue: currentItemData.itemName,
+                            controller: nameController,
                             onChanged: (String val) {
                               context.read<GachaSettingBloc>().add(
                                 UpdateGachaItemName(currentItemData.id, val),
@@ -326,6 +396,20 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: const Color(0xFFF4FAF9),
+                              suffixIcon: currentItemData.itemName.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear, size: 20),
+                                      onPressed: () {
+                                        nameController.clear();
+                                        context.read<GachaSettingBloc>().add(
+                                          UpdateGachaItemName(
+                                            currentItemData.id,
+                                            '',
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : null,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: !isTitleValid
@@ -370,32 +454,88 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          InkWell(
-                            onTap: () =>
-                                _pickImage(currentItemData, updateModal),
-                            child: Container(
-                              height: 120,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF4FAF9),
-                                borderRadius: BorderRadius.circular(12),
+                          if (currentItemData.imageFile == null)
+                            InkWell(
+                              onTap: () =>
+                                  _pickImage(currentItemData, updateModal),
+                              child: Container(
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF4FAF9),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.add_photo_alternate,
+                                    size: 40,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                               ),
-                              child: currentItemData.imageFile != null
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        currentItemData.imageFile!.path,
-                                        fit: BoxFit.contain,
+                            )
+                          else
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Container(
+                                  constraints: const BoxConstraints(
+                                    maxHeight: 500,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF4FAF9),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: Image.network(
+                                      currentItemData.imageFile!.path,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    OutlinedButton.icon(
+                                      onPressed: () => _pickImage(
+                                        currentItemData,
+                                        updateModal,
                                       ),
-                                    )
-                                  : const Center(
-                                      child: Icon(
-                                        Icons.add_photo_alternate,
-                                        size: 40,
-                                        color: Colors.grey,
+                                      icon: const Icon(Icons.edit, size: 16),
+                                      label: const Text('수정'),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.blue,
+                                        side: const BorderSide(
+                                          color: Colors.blue,
+                                        ),
                                       ),
                                     ),
+                                    const SizedBox(width: 8),
+                                    OutlinedButton.icon(
+                                      onPressed: () {
+                                        context.read<GachaSettingBloc>().add(
+                                          RemoveGachaItemImage(
+                                            currentItemData.id,
+                                          ),
+                                        );
+                                      },
+                                      icon: const Icon(Icons.delete, size: 16),
+                                      label: const Text('삭제'),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.red,
+                                        side: const BorderSide(
+                                          color: Colors.red,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
-                          ),
                           const SizedBox(height: 24),
                           const Text(
                             '- 부적합한 제목 및 이미지는 신고를 받을 수 있고, 해당 책임은 제공자에게 있습니다.',
@@ -411,7 +551,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                           ),
                           const SizedBox(height: 8),
                           TextFormField(
-                            initialValue: currentItemData.percentStr,
+                            controller: percentController,
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
@@ -423,6 +563,20 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                             decoration: InputDecoration(
                               filled: true,
                               fillColor: const Color(0xFFF4FAF9),
+                              suffixIcon: currentItemData.percentStr.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear, size: 20),
+                                      onPressed: () {
+                                        percentController.clear();
+                                        context.read<GachaSettingBloc>().add(
+                                          UpdateGachaItemPercent(
+                                            currentItemData.id,
+                                            '',
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  : null,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: !isPercentValid
@@ -456,8 +610,23 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                               errorText: !isPercentValid
                                   ? '확률은 0.01% 이상 100% 이하입니다.'
                                   : null,
-                              errorStyle: TextStyle(fontSize: 14),
+                              errorStyle: const TextStyle(fontSize: 14),
                             ),
+                          ),
+                          const SizedBox(height: 12),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              buildQuickPercentBtn(
+                                remainingStr,
+                                '(남은 확률) $remainingStr%',
+                              ),
+                              buildQuickPercentBtn('1', '1%'),
+                              buildQuickPercentBtn('10', '10%'),
+                              buildQuickPercentBtn('50', '50%'),
+                              buildQuickPercentBtn('100', '100%'),
+                            ],
                           ),
                           const SizedBox(height: 16),
                           Row(

@@ -59,6 +59,11 @@ class UpdateGachaItemImage extends GachaSettingEvent {
   const UpdateGachaItemImage(this.id, this.image);
 }
 
+class RemoveGachaItemImage extends GachaSettingEvent {
+  final int id;
+  const RemoveGachaItemImage(this.id);
+}
+
 class UpdatePlayCount extends GachaSettingEvent {
   final String countStr;
   const UpdatePlayCount(this.countStr);
