@@ -1394,11 +1394,11 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
           ],
         ),
         const SizedBox(height: 40),
-        Row(
+        const Row(
           children: <Widget>[
-            const Icon(Icons.music_note, size: 20, color: Colors.black87),
-            const SizedBox(width: 8),
-            const Text(
+            Icon(Icons.music_note, size: 20, color: Colors.black87),
+            SizedBox(width: 8),
+            Text(
               'BGM 설정',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
@@ -1421,6 +1421,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
+                          dropdownColor: Colors.white,
                           value: context
                               .read<GachaSettingBloc>()
                               .state
