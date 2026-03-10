@@ -189,7 +189,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF8F9FA),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
         ),
@@ -224,7 +224,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
               return Align(
                 alignment: Alignment.centerRight,
                 child: Material(
-                  color: Colors.white,
+                  color: const Color(0xFFF8F9FA),
                   elevation: 8,
                   child: SizedBox(
                     width: 480,
@@ -364,7 +364,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                             children: <Widget>[
                               const SizedBox(width: 24), // 공간 맞추기용
                               const Text(
-                                '세팅 화면',
+                                '캡슐 상세 설정',
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -395,7 +395,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                             },
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: const Color(0xFFF4FAF9),
+                              fillColor: Colors.white,
                               suffixIcon: currentItemData.itemName.isNotEmpty
                                   ? IconButton(
                                       icon: const Icon(Icons.clear, size: 20),
@@ -417,7 +417,10 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                         color: Colors.red,
                                         width: 1.5,
                                       )
-                                    : BorderSide.none,
+                                    : const BorderSide(
+                                        color: Color(0xFF6DE1F1),
+                                        width: 1.5,
+                                      ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -426,7 +429,10 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                         color: Colors.red,
                                         width: 1.5,
                                       )
-                                    : BorderSide.none,
+                                    : const BorderSide(
+                                        color: Colors.black26,
+                                        width: 1,
+                                      ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -436,7 +442,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                         width: 1.5,
                                       )
                                     : const BorderSide(
-                                        color: Colors.blue,
+                                        color: Color(0xFF6DE1F1),
                                         width: 1.5,
                                       ),
                               ),
@@ -461,8 +467,12 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                               child: Container(
                                 height: 120,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF4FAF9),
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Colors.black26,
+                                    width: 1,
+                                  ),
                                 ),
                                 child: const Center(
                                   child: Icon(
@@ -482,10 +492,11 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                     maxHeight: 500,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFF4FAF9),
+                                    color: Colors.white,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: Colors.grey.shade300,
+                                      color: Colors.black26,
+                                      width: 1,
                                     ),
                                   ),
                                   child: ClipRRect(
@@ -538,7 +549,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                             ),
                           const SizedBox(height: 24),
                           const Text(
-                            '- 부적합한 제목 및 이미지는 신고를 받을 수 있고, 해당 책임은 제공자에게 있습니다.',
+                            '- 부적절한 제목이나 이미지는 신고 대상이 될 수 있으며, 관련 책임은 등록 주체에게 있음을 알려드립니다.',
                             style: TextStyle(fontSize: 14, color: Colors.grey),
                           ),
                           const SizedBox(height: 24),
@@ -562,7 +573,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                             },
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: const Color(0xFFF4FAF9),
+                              fillColor: Colors.white,
                               suffixIcon: currentItemData.percentStr.isNotEmpty
                                   ? IconButton(
                                       icon: const Icon(Icons.clear, size: 20),
@@ -584,7 +595,10 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                         color: Colors.red,
                                         width: 1.5,
                                       )
-                                    : BorderSide.none,
+                                    : const BorderSide(
+                                        color: Color(0xFF6DE1F1),
+                                        width: 1.5,
+                                      ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -593,7 +607,10 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                         color: Colors.red,
                                         width: 1.5,
                                       )
-                                    : BorderSide.none,
+                                    : const BorderSide(
+                                        color: Colors.black26,
+                                        width: 1,
+                                      ),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -603,7 +620,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                         width: 1.5,
                                       )
                                     : const BorderSide(
-                                        color: Colors.blue,
+                                        color: Color(0xFF6DE1F1),
                                         width: 1.5,
                                       ),
                               ),
@@ -826,10 +843,10 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                 child: Stack(
                   children: <Widget>[
                     Scaffold(
-                      backgroundColor: Colors.white,
+                      backgroundColor: const Color(0xFFF8F9FA),
                       appBar: AppBar(
                         toolbarHeight: 68,
-                        backgroundColor: Colors.white,
+                        backgroundColor: const Color(0xFFF8F9FA),
                         surfaceTintColor: Colors.transparent,
                         elevation: 0,
                         leading: IconButton(
@@ -884,7 +901,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                   ),
                                   Container(
                                     width: 1,
-                                    color: Colors.grey.shade200,
+                                    color: const Color(0xFFEAEAEA),
                                   ),
                                   Expanded(
                                     flex: 4,
@@ -983,6 +1000,8 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
           child: TextFormField(
             controller: _userNameController,
             decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
               hintText: '닉네임',
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
@@ -991,7 +1010,21 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
+                borderSide: const BorderSide(
+                  color: Color(0xFF6DE1F1),
+                  width: 1.5,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.black26, width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFF6DE1F1),
+                  width: 1.5,
+                ),
               ),
             ),
           ),
@@ -1007,6 +1040,8 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
           child: TextFormField(
             controller: _subTitleController,
             decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
               hintText: '서브 타이틀',
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
@@ -1015,7 +1050,21 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
+                borderSide: const BorderSide(
+                  color: Color(0xFF6DE1F1),
+                  width: 1.5,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.black26, width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: Color(0xFF6DE1F1),
+                  width: 1.5,
+                ),
               ),
             ),
           ),
@@ -1093,6 +1142,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                               : Colors.red,
                         ),
                       ),
+                      const TextSpan(text: ' / 100.0%'),
                       const TextSpan(text: ' [ '),
                       WidgetSpan(
                         alignment: PlaceholderAlignment.middle,
@@ -1162,8 +1212,16 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
       width: double.infinity, // 부모 너비 가득
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade400, width: 1),
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFEAEAEA), width: 1),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Wrap(
         spacing: 32,
@@ -1388,9 +1446,13 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
           children: <Widget>[
             const Icon(Icons.casino, size: 20, color: Colors.black87),
             const SizedBox(width: 8),
-            const Text(
-              '뽑기 가능 횟수',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            const Expanded(
+              child: Text(
+                '뽑기 가능 횟수',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             ),
             const Spacer(),
             SizedBox(
@@ -1405,16 +1467,22 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                   isDense: true,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Colors.black, width: 1),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF6DE1F1),
+                      width: 1.5,
+                    ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Colors.black, width: 1),
+                    borderSide: const BorderSide(
+                      color: Colors.black26,
+                      width: 1,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                     borderSide: const BorderSide(
-                      color: Colors.blue,
+                      color: Color(0xFF6DE1F1),
                       width: 1.5,
                     ),
                   ),
@@ -1451,8 +1519,15 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF4FAF9),
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(8),
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
@@ -1489,8 +1564,15 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF4FAF9),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(8),
+                      boxShadow: <BoxShadow>[
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: const Icon(
                       Icons.play_arrow,
@@ -1507,8 +1589,16 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFEAEAEA), width: 1),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1518,29 +1608,39 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 13,
-                    color: Colors.black87,
+                    color: Colors.deepOrange,
                   ),
                 ),
                 SizedBox(height: 8),
                 Text(
                   '• 캡슐 최소 1개 이상 생성',
                   style: TextStyle(fontSize: 16, color: Colors.black54),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
                 Text(
                   '• 상단 이름 및 서브타이틀 입력',
                   style: TextStyle(fontSize: 16, color: Colors.black54),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
                 Text(
                   '• 뽑기 가능 횟수 최소 1회 이상',
                   style: TextStyle(fontSize: 16, color: Colors.black54),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
                 Text(
                   '• 미완성 캡슐 없음',
                   style: TextStyle(fontSize: 16, color: Colors.black54),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
                 Text(
                   '• 전체 확률 100% 충족',
                   style: TextStyle(fontSize: 16, color: Colors.black54),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ],
             ),
@@ -1640,6 +1740,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                               : Colors.red,
                         ),
                       ),
+                      const TextSpan(text: ' / 100.00%'),
                       const TextSpan(text: ' [ '),
                       WidgetSpan(
                         alignment: PlaceholderAlignment.middle,
@@ -1670,7 +1771,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade50,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: Colors.grey.shade300, width: 2),
                     ),
@@ -1723,7 +1824,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
       ),

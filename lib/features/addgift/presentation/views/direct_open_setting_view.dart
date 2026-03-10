@@ -125,10 +125,10 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
     final bool isMobile = MediaQuery.sizeOf(context).width < 800;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         toolbarHeight: 68,
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF8F9FA),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: isMobile ? null : _buildTitleBar(),
@@ -319,7 +319,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1FBFA),
+        color: const Color(0xFFF8F9FA),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -570,7 +570,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey.shade300, width: 2),
                 ),

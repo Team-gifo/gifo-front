@@ -30,10 +30,10 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         toolbarHeight: 68,
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF8F9FA),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         actions: <Widget>[_buildStepIndicator()],
@@ -72,7 +72,7 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
                         fontSize: 20,
                       ),
                       filled: true,
-                      fillColor: Colors.grey.shade50,
+                      fillColor: Colors.white,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 20.0,
                         vertical: 24.0,

@@ -139,7 +139,7 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
                         child: Container(
                           clipBehavior: Clip.antiAlias,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(12.0),
                             border: Border.all(color: Colors.grey.shade200),
                           ),
@@ -274,7 +274,7 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
                           hintText: '제목을 입력해주세요',
                           hintStyle: const TextStyle(color: Colors.grey),
                           filled: true,
-                          fillColor: Colors.grey.shade50,
+                          fillColor: Colors.white,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8.0),
                             borderSide: BorderSide(color: Colors.grey.shade200),
@@ -319,7 +319,7 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
                           hintText: '설명을 입력해주세요',
                           hintStyle: const TextStyle(color: Colors.grey),
                           filled: true,
-                          fillColor: Colors.grey.shade50,
+                          fillColor: Colors.white,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8.0),
                             borderSide: BorderSide(color: Colors.grey.shade200),
@@ -378,10 +378,10 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
     final bool isMobile = MediaQuery.sizeOf(context).width < 600;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         toolbarHeight: 68,
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF8F9FA),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -602,7 +602,7 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
                   child: Container(
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12.0),
                     ),
                     child: itemData.imageFile != null
@@ -690,7 +690,7 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
                   height: 80,
                   clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(12.0),
                   ),
                   child: itemData.imageFile != null
@@ -769,7 +769,7 @@ class _MemoryGallerySettingViewState extends State<MemoryGallerySettingView> {
           : const EdgeInsets.only(right: 24.0, bottom: 8.0, top: 8.0),
       child: OutlinedButton(
         style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.grey.shade50,
+          backgroundColor: Colors.white,
           side: BorderSide(color: Colors.grey.shade300, width: 2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16.0),

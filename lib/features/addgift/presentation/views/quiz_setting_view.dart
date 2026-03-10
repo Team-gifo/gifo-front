@@ -268,10 +268,10 @@ class _QuizSettingViewState extends State<QuizSettingView> {
     final bool isMobile = MediaQuery.sizeOf(context).width < 800;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
         toolbarHeight: 68,
-        backgroundColor: Colors.white,
+        backgroundColor: const Color(0xFFF8F9FA),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: isMobile ? null : _buildTitleBar(),
@@ -830,7 +830,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey.shade300, width: 2),
                 ),
@@ -1154,7 +1154,7 @@ class _QuizEditFormState extends State<_QuizEditForm> {
           : BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1FBFA),
+        color: const Color(0xFFF8F9FA),
         borderRadius: widget.isDesktop
             ? BorderRadius.zero
             : const BorderRadius.only(
