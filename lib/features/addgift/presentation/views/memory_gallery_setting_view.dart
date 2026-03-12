@@ -218,6 +218,9 @@ class _MemoryGallerySettingViewState
             leading: IconButton(
               icon: const Icon(Icons.arrow_back, color: Colors.black),
               onPressed: () {
+                context.read<MemoryGallerySettingBloc>().add(
+                  const SortMemoryItems(MemorySortType.manual),
+                );
                 if (context.canPop()) {
                   context.pop();
                 } else {
@@ -243,6 +246,58 @@ class _MemoryGallerySettingViewState
     );
   }
 
+  Widget _buildSortButton(
+    BuildContext context,
+    MemoryGallerySettingState state,
+    MemorySortType type,
+    String label, {
+    bool isMobile = false,
+  }) {
+    final bool isSelected = state.sortType == type;
+
+    return InkWell(
+      onTap: () {
+        context.read<MemoryGallerySettingBloc>().add(SortMemoryItems(type));
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobile ? 8 : 12,
+          vertical: isMobile ? 6 : 8,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.black : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? Colors.black : Colors.grey.shade300,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text(
+              label,
+              style: TextStyle(
+                fontFamily: 'PFStardust',
+                color: isSelected ? Colors.white : Colors.grey.shade700,
+                fontSize: isMobile ? 12 : 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+            if (isSelected) ...<Widget>[
+              const SizedBox(width: 4),
+              Icon(
+                state.isAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                size: isMobile ? 14 : 16,
+                color: Colors.white,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
   // ------------------------------------------------------------------
   // 데스크톱 레이아웃: 헤더(초기화+추가 버튼) + ReorderableListView 세로 스크롤
   // Wrap 기반 그리드는 ReorderableDragStartListener를 지원하지 않아 드래그가 작동하지 않습니다.
@@ -260,21 +315,28 @@ class _MemoryGallerySettingViewState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Row(
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: <Widget>[
-                  const Icon(
-                    Icons.photo_library_rounded,
-                    size: 22,
-                    color: Colors.black87,
+                  _buildSortButton(
+                    context,
+                    galleryState,
+                    MemorySortType.createdAt,
+                    '생성순',
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '추억 목록 [ ${galleryState.uiItems.length}개 ]',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                  _buildSortButton(
+                    context,
+                    galleryState,
+                    MemorySortType.titleKo,
+                    '제목 (한글)',
+                  ),
+                  _buildSortButton(
+                    context,
+                    galleryState,
+                    MemorySortType.titleEn,
+                    '제목 (영어)',
                   ),
                 ],
               ),
@@ -302,7 +364,10 @@ class _MemoryGallerySettingViewState
                       elevation: 0,
                     ),
                     icon: const Icon(Icons.add, size: 18),
-                    label: const Text('추가'),
+                    label: const Text(
+                      '추가',
+                      style: TextStyle(fontFamily: 'PFStardust'),
+                    ),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
@@ -317,7 +382,10 @@ class _MemoryGallerySettingViewState
                       elevation: 0,
                     ),
                     icon: const Icon(Icons.delete_outline, size: 18),
-                    label: const Text('초기화'),
+                    label: const Text(
+                      '초기화',
+                      style: TextStyle(fontFamily: 'PFStardust'),
+                    ),
                   ),
                 ],
               ),
@@ -488,6 +556,7 @@ class _MemoryGallerySettingViewState
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
+                                  fontFamily: 'PFStardust',
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: itemData.title.isEmpty
@@ -503,6 +572,7 @@ class _MemoryGallerySettingViewState
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
+                                  fontFamily: 'PFStardust',
                                   fontSize: 14,
                                   height: 1.5,
                                   color: itemData.description.isEmpty
@@ -606,6 +676,7 @@ class _MemoryGallerySettingViewState
           Text(
             '추억 추가하기',
             style: TextStyle(
+              fontFamily: 'PFStardust',
               color: Colors.grey.shade600,
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -632,16 +703,31 @@ class _MemoryGallerySettingViewState
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
-              Row(
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: <Widget>[
-                  const Icon(Icons.photo_library_rounded, size: 18),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${galleryState.uiItems.length}개',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                  _buildSortButton(
+                    context,
+                    galleryState,
+                    MemorySortType.createdAt,
+                    '생성순',
+                    isMobile: true,
+                  ),
+                  _buildSortButton(
+                    context,
+                    galleryState,
+                    MemorySortType.titleKo,
+                    '제목 (한글)',
+                    isMobile: true,
+                  ),
+                  _buildSortButton(
+                    context,
+                    galleryState,
+                    MemorySortType.titleEn,
+                    '제목 (영어)',
+                    isMobile: true,
                   ),
                 ],
               ),
@@ -663,7 +749,10 @@ class _MemoryGallerySettingViewState
                       ),
                     ),
                     icon: const Icon(Icons.add, size: 16),
-                    label: const Text('추가'),
+                    label: const Text(
+                      '추가',
+                      style: TextStyle(fontFamily: 'PFStardust'),
+                    ),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
@@ -682,7 +771,10 @@ class _MemoryGallerySettingViewState
                       ),
                     ),
                     icon: const Icon(Icons.delete_outline, size: 16),
-                    label: const Text('초기화'),
+                    label: const Text(
+                      '초기화',
+                      style: TextStyle(fontFamily: 'PFStardust'),
+                    ),
                   ),
                 ],
               ),
@@ -725,7 +817,10 @@ class _MemoryGallerySettingViewState
                       ),
                     ),
                     icon: const Icon(Icons.add),
-                    label: const Text('추억 추가하기'),
+                    label: const Text(
+                      '추억 추가하기',
+                      style: TextStyle(fontFamily: 'PFStardust'),
+                    ),
                   ),
                 ],
               ),
@@ -852,6 +947,7 @@ class _MemoryGallerySettingViewState
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
+                              fontFamily: 'PFStardust',
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: itemData.title.isEmpty
@@ -867,6 +963,7 @@ class _MemoryGallerySettingViewState
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
+                              fontFamily: 'PFStardust',
                               fontSize: 13,
                               color: itemData.description.isEmpty
                                   ? Colors.grey
@@ -939,6 +1036,25 @@ class _MemoryGallerySettingViewState
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Icon(
+                  Icons.photo_library_rounded,
+                  size: 20,
+                  color: Colors.black87,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '추억 목록 [ $itemCount개 ]',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
             const Spacer(),
             // 저장 조건 안내 Tooltip
             const Tooltip(
@@ -964,7 +1080,12 @@ class _MemoryGallerySettingViewState
             ElevatedButton(
               // 조건 미충족 시 버튼 비활성화
               onPressed: canSave
-                  ? () => context.push('/addgift/delivery-method')
+                  ? () {
+                      context.read<MemoryGallerySettingBloc>().add(
+                        const SortMemoryItems(MemorySortType.manual),
+                      );
+                      context.push('/addgift/delivery-method');
+                    }
                   : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: canSave ? Colors.black : Colors.grey.shade300,
@@ -1302,7 +1423,9 @@ class _MemoryEditForm extends StatelessWidget {
                               width: 1.5,
                             ),
                           ),
-                          errorText: !isDescriptionValid ? '설명을 입력해주세요.' : null,
+                          errorText: !isDescriptionValid
+                              ? '설명은 최소 1글자 이상이어야 합니다.'
+                              : null,
                         ),
                       ),
                       const SizedBox(height: 40),

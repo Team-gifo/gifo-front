@@ -86,3 +86,12 @@ class HoverMemoryItem extends MemoryGallerySettingEvent {
 class ClearHoverMemoryItem extends MemoryGallerySettingEvent {
   const ClearHoverMemoryItem();
 }
+
+// 아이템 정렬
+class SortMemoryItems extends MemoryGallerySettingEvent {
+  final MemorySortType sortType;
+  const SortMemoryItems(this.sortType);
+
+  @override
+  List<Object?> get props => [sortType];
+}

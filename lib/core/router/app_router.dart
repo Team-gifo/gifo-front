@@ -27,7 +27,7 @@ bool isPackageComplete = false;
 final GiftPackagingBloc giftPackagingBloc = GiftPackagingBloc();
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/addgift',
+  initialLocation: '/',
   redirect: (BuildContext context, GoRouterState state) {
     if (isPackageComplete) {
       if (state.matchedLocation.startsWith('/addgift') &&

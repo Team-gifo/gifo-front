@@ -3,6 +3,14 @@ part of 'memory_gallery_setting_bloc.dart';
 // MemoryGallerySettingView에서 사용하는 UI 전용 아이템 모델
 // 실제 데이터는 GiftPackagingBloc에 저장되지만, View 렌더링(이미지 파일 등)에
 // 필요한 일시적인 정보를 별도로 관리합니다.
+
+enum MemorySortType {
+  manual,
+  createdAt,
+  titleKo,
+  titleEn,
+}
+
 class MemoryGalleryItemData extends Equatable {
   final int id;
   final XFile? imageFile;
@@ -45,12 +53,18 @@ class MemoryGallerySettingState extends Equatable {
   final int? selectedItemId;
   // 현재 Hover 중인 아이템 ID (삭제 버튼 등 노출용)
   final int? hoveredItemId;
+  // 현재 정렬 기준 (생성순, 제목 한글, 제목 영어)
+  final MemorySortType sortType;
+  // 정렬 방향 (오름차순/내림차순)
+  final bool isAscending;
 
   const MemoryGallerySettingState({
     this.uiItems = const [],
     this.nextId = 1,
     this.selectedItemId,
     this.hoveredItemId,
+    this.sortType = MemorySortType.createdAt,
+    this.isAscending = true,
   });
 
   MemoryGallerySettingState copyWith({
@@ -58,12 +72,16 @@ class MemoryGallerySettingState extends Equatable {
     int? nextId,
     int? selectedItemId,
     int? hoveredItemId,
+    MemorySortType? sortType,
+    bool? isAscending,
   }) {
     return MemoryGallerySettingState(
       uiItems: uiItems ?? this.uiItems,
       nextId: nextId ?? this.nextId,
       selectedItemId: selectedItemId ?? this.selectedItemId,
       hoveredItemId: hoveredItemId ?? this.hoveredItemId,
+      sortType: sortType ?? this.sortType,
+      isAscending: isAscending ?? this.isAscending,
     );
   }
 
@@ -74,6 +92,8 @@ class MemoryGallerySettingState extends Equatable {
       nextId: nextId,
       selectedItemId: null,
       hoveredItemId: hoveredItemId,
+      sortType: sortType,
+      isAscending: isAscending,
     );
   }
 
@@ -84,9 +104,18 @@ class MemoryGallerySettingState extends Equatable {
       nextId: nextId,
       selectedItemId: selectedItemId,
       hoveredItemId: null,
+      sortType: sortType,
+      isAscending: isAscending,
     );
   }
 
   @override
-  List<Object?> get props => [uiItems, nextId, selectedItemId, hoveredItemId];
+  List<Object?> get props => [
+        uiItems,
+        nextId,
+        selectedItemId,
+        hoveredItemId,
+        sortType,
+        isAscending,
+      ];
 }

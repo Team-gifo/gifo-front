@@ -28,6 +28,7 @@ class MemoryGallerySettingBloc
     on<ClearMemoryItemSelection>(_onClearSelection);
     on<HoverMemoryItem>(_onHoverItem);
     on<ClearHoverMemoryItem>(_onClearHoverItem);
+    on<SortMemoryItems>(_onSortMemoryItems);
   }
 
   // uiItems를 GalleryItem 목록으로 변환하여 GiftPackagingBloc에 동기화합니다.
@@ -102,7 +103,10 @@ class MemoryGallerySettingBloc
     }
     final MemoryGalleryItemData item = newUiItems.removeAt(event.oldIndex);
     newUiItems.insert(newIndex, item);
-    emit(state.copyWith(uiItems: newUiItems));
+    emit(state.copyWith(
+      uiItems: newUiItems,
+      sortType: MemorySortType.manual,
+    ));
     _pushToPackagingBloc(newUiItems);
   }
 
@@ -198,5 +202,93 @@ class MemoryGallerySettingBloc
     Emitter<MemoryGallerySettingState> emit,
   ) {
     emit(state.copyWithNullableHoveredId());
+  }
+
+  // 언어 우선순위 판별 (첫 글자 기준)
+  // return: 0 (가장 높음) ~ 3 (가장 낮음)
+  int _getLanguagePriority(String text, bool isKoreanPriority) {
+    if (text.trim().isEmpty) return 3;
+
+    final int codeUnit = text.trim().codeUnitAt(0);
+    // 한글: 0xAC00 ~ 0xD7A3 (가-힣) / 0x3131 ~ 0x318E (ㄱ-ㅎ, ㅏ-ㅣ)
+    final bool isKorean = (codeUnit >= 0xAC00 && codeUnit <= 0xD7A3) ||
+        (codeUnit >= 0x3131 && codeUnit <= 0x318E);
+    // 영문: a-z, A-Z -> 0x41 ~ 0x5A, 0x61 ~ 0x7A
+    final bool isEnglish = (codeUnit >= 0x41 && codeUnit <= 0x5A) ||
+        (codeUnit >= 0x61 && codeUnit <= 0x7A);
+
+    if (isKoreanPriority) {
+      if (isKorean) return 0;
+      if (isEnglish) return 1;
+      return 2;
+    } else {
+      if (isEnglish) return 0;
+      if (isKorean) return 1;
+      return 2;
+    }
+  }
+
+  // 한글 제목 정렬 로직 (한글 우선)
+  int _compareKoreanPriority(String a, String b) {
+    final int priorityA = _getLanguagePriority(a, true);
+    final int priorityB = _getLanguagePriority(b, true);
+
+    if (priorityA != priorityB) {
+      return priorityA.compareTo(priorityB);
+    }
+    return a.compareTo(b);
+  }
+
+  // 영문 제목 정렬 로직 (영문 우선)
+  int _compareEnglishPriority(String a, String b) {
+    final int priorityA = _getLanguagePriority(a, false);
+    final int priorityB = _getLanguagePriority(b, false);
+
+    if (priorityA != priorityB) {
+      return priorityA.compareTo(priorityB);
+    }
+    return a.toLowerCase().compareTo(b.toLowerCase());
+  }
+
+  // 아이템 정렬 처리
+  void _onSortMemoryItems(
+    SortMemoryItems event,
+    Emitter<MemoryGallerySettingState> emit,
+  ) {
+    if (event.sortType == MemorySortType.manual) return;
+
+    bool newIsAscending = true;
+    if (state.sortType == event.sortType) {
+      newIsAscending = !state.isAscending;
+    }
+
+    final List<MemoryGalleryItemData> sortedItems =
+        List<MemoryGalleryItemData>.from(state.uiItems);
+
+    sortedItems.sort((a, b) {
+      int comparison = 0;
+      switch (event.sortType) {
+        case MemorySortType.createdAt:
+          comparison = a.id.compareTo(b.id);
+          break;
+        case MemorySortType.titleKo:
+          comparison = _compareKoreanPriority(a.title, b.title);
+          break;
+        case MemorySortType.titleEn:
+          comparison = _compareEnglishPriority(a.title, b.title);
+          break;
+        case MemorySortType.manual:
+          break;
+      }
+      return newIsAscending ? comparison : -comparison;
+    });
+
+    emit(state.copyWith(
+      uiItems: sortedItems,
+      sortType: event.sortType,
+      isAscending: newIsAscending,
+    ));
+
+    _pushToPackagingBloc(sortedItems);
   }
 }
