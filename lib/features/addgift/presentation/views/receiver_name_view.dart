@@ -60,6 +60,7 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
                 child: SizedBox(
                   width: 340,
                   child: TextField(
+                    textAlign: TextAlign.center,
                     controller: _nameController,
                     style: const TextStyle(
                       fontSize: 24,
