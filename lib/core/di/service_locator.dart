@@ -2,7 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 
-import '../../features/addgift/application/gift_packaging_bloc.dart';
 import '../../features/addgift/repository/addgift_api.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -31,7 +30,4 @@ void setupServiceLocator() {
 
   // AddGiftApi 등록
   getIt.registerLazySingleton<AddGiftApi>(() => AddGiftApi(dio));
-
-  // GiftPackagingBloc 싱글톤 등록
-  getIt.registerLazySingleton<GiftPackagingBloc>(() => GiftPackagingBloc());
 }

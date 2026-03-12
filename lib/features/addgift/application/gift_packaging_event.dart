@@ -55,8 +55,22 @@ class SetUnboxingContent extends GiftPackagingEvent {
   SetUnboxingContent(this.unboxing);
 }
 
-// 포장 완료 (로그 출력 + 추후 서버 전송)
-class SubmitPackage extends GiftPackagingEvent {}
+// 포장 완료: 뷰에서 조립한 최종 데이터를 이벤트에 직접 담아 전달 (BLoC state 의존 제거)
+class SubmitPackage extends GiftPackagingEvent {
+  final String receiverName;
+  final String subTitle;
+  final String bgm;
+  final List<GalleryItem> gallery;
+  final GiftContent content;
+
+  SubmitPackage({
+    required this.receiverName,
+    required this.subTitle,
+    required this.bgm,
+    required this.gallery,
+    required this.content,
+  });
+}
 
 // 전체 상태 초기화
 class ResetPackaging extends GiftPackagingEvent {}

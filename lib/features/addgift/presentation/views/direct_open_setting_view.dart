@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/router/app_router.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../model/direct_open_setting_models.dart';
+import '../../model/gift_content.dart';
 import '../../model/unboxing_content.dart';
 
 class DirectOpenSettingView extends StatefulWidget {
@@ -30,6 +31,26 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
   @override
   void initState() {
     super.initState();
+    final blocState = context.read<GiftPackagingBloc>().state;
+    if (blocState.receiverName.isNotEmpty) {
+      _userNameController.text = blocState.receiverName;
+    }
+    // 초기 생성된 랜덤 타이틀을 서브타이틀 필드에 세팅
+    if (blocState.subTitle.isNotEmpty) {
+      _subTitleController.text = blocState.subTitle;
+    }
+
+    _userNameController.addListener(() {
+      context.read<GiftPackagingBloc>().add(
+        SetReceiverName(_userNameController.text),
+      );
+    });
+    _subTitleController.addListener(() {
+      context.read<GiftPackagingBloc>().add(
+        SetSubTitle(_subTitleController.text),
+      );
+    });
+
     _beforeDescController.text = _beforeData.description;
     _afterNameController.text = _afterData.itemName;
 
@@ -70,10 +91,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
 
   void _completePackage() {
     final bloc = context.read<GiftPackagingBloc>();
-
-    // 서브타이틀, BGM 저장
-    bloc.add(SetSubTitle(_subTitleController.text.trim()));
-    bloc.add(SetBgm(_selectedBgm));
+    final packagingState = bloc.state;
 
     // 로컬 데이터 -> freezed UnboxingContent 변환
     final UnboxingContent unboxing = UnboxingContent(
@@ -87,8 +105,16 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
       ),
     );
 
-    bloc.add(SetUnboxingContent(unboxing));
-    bloc.add(SubmitPackage());
+    // 모든 데이터를 SubmitPackage 이벤트에 직접 담아 전달
+    bloc.add(
+      SubmitPackage(
+        receiverName: _userNameController.text.trim(),
+        subTitle: _subTitleController.text.trim(),
+        bgm: _selectedBgm,
+        gallery: packagingState.gallery,
+        content: GiftContent(unboxing: unboxing),
+      ),
+    );
 
     isPackageComplete = true;
     context.replace('/addgift/package-complete');
@@ -99,9 +125,10 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
     final bool isMobile = MediaQuery.sizeOf(context).width < 800;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        toolbarHeight: 68,
+        backgroundColor: const Color(0xFFF8F9FA),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: isMobile ? null : _buildTitleBar(),
@@ -222,7 +249,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
           child: TextFormField(
             controller: _userNameController,
             decoration: InputDecoration(
-              hintText: '이름/닉네임',
+              hintText: '닉네임',
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,
@@ -292,7 +319,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1FBFA),
+        color: const Color(0xFFF8F9FA),
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -543,7 +570,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey.shade300, width: 2),
                 ),

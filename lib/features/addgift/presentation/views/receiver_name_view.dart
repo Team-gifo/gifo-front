@@ -30,21 +30,12 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        toolbarHeight: 68,
+        backgroundColor: const Color(0xFFF8F9FA),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/');
-            }
-          },
-        ),
         actions: <Widget>[_buildStepIndicator()],
       ),
       body: SafeArea(
@@ -55,7 +46,8 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
             children: <Widget>[
               const SizedBox(height: 24),
               const Text(
-                '선물 받는 분의\n성함을 알려주세요',
+                '선물 받는 분의\n닉네임을 알려주세요',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -64,62 +56,107 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
                 ),
               ),
               const SizedBox(height: 40),
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  hintText: '이름 입력',
-                  hintStyle: TextStyle(
-                    color: Colors.grey.shade400,
-                    fontSize: 16,
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 16.0,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: BorderSide(color: Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                    borderSide: const BorderSide(
-                      color: Colors.black,
-                      width: 2.0,
+              Center(
+                child: SizedBox(
+                  width: 340,
+                  child: TextField(
+                    textAlign: TextAlign.center,
+                    controller: _nameController,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: '닉네임 입력',
+                      hintStyle: TextStyle(
+                        color: Colors.grey.shade400,
+                        fontSize: 20,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20.0,
+                        vertical: 24.0,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16.0),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16.0),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16.0),
+                        borderSide: const BorderSide(
+                          color: Colors.black,
+                          width: 2.0,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
               const Spacer(),
-              ElevatedButton(
-                onPressed: () {
-                  final String name = _nameController.text.trim();
-                  if (name.isNotEmpty) {
-                    // BLoC에 수신자 이름 저장
-                    context.read<GiftPackagingBloc>().add(
-                      SetReceiverName(name),
-                    );
-                    context.push('/addgift/memory-decision');
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0),
-                  ),
-                  elevation: 0,
-                ),
-                child: const Text(
-                  '다음',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                ),
+              ValueListenableBuilder<TextEditingValue>(
+                valueListenable: _nameController,
+                builder:
+                    (
+                      BuildContext context,
+                      TextEditingValue value,
+                      Widget? child,
+                    ) {
+                      final bool isNameEmpty = value.text.trim().isEmpty;
+                      final bool isMobile =
+                          MediaQuery.sizeOf(context).width < 600;
+
+                      final Widget button = ElevatedButton(
+                        onPressed: isNameEmpty
+                            ? null
+                            : () {
+                                final String name = value.text.trim();
+                                // BLoC에 수신자 이름 저장
+                                context.read<GiftPackagingBloc>().add(
+                                  SetReceiverName(name),
+                                );
+                                context.push('/addgift/memory-decision');
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: Colors.grey.shade300,
+                          disabledForegroundColor: Colors.grey.shade600,
+                          padding: const EdgeInsets.symmetric(vertical: 20.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.0),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const <Widget>[
+                            Text(
+                              '다음',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(Icons.arrow_forward_rounded, size: 24),
+                          ],
+                        ),
+                      );
+
+                      return Align(
+                        alignment: Alignment.centerRight,
+                        child: SizedBox(
+                          width: isMobile ? double.infinity : 200,
+                          child: button,
+                        ),
+                      );
+                    },
               ),
               const SizedBox(height: 16),
             ],

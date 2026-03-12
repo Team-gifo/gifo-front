@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../application/gift_packaging_bloc.dart';
+import '../../model/gacha_content.dart';
 
 class GiftDeliveryMethodView extends StatelessWidget {
   const GiftDeliveryMethodView({super.key});
@@ -10,9 +11,10 @@ class GiftDeliveryMethodView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        toolbarHeight: 68,
+        backgroundColor: const Color(0xFFF8F9FA),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -134,27 +136,85 @@ class GiftDeliveryMethodView extends StatelessWidget {
           title: options[index]['title']!,
           iconData: options[index]['icon']!,
           type: options[index]['type']!,
-          onTap: () {
-            if (options[index]['title'] == '캡슐 뽑기') {
-              context.read<GiftPackagingBloc>().add(
-                SetContentType(ContentType.gacha),
-              );
-              context.push('/addgift/gacha-setting');
-            } else if (options[index]['title'] == '문제 맞추기') {
-              context.read<GiftPackagingBloc>().add(
-                SetContentType(ContentType.quiz),
-              );
-              context.push('/addgift/quiz-setting');
-            } else if (options[index]['title'] == '바로 오픈') {
-              context.read<GiftPackagingBloc>().add(
-                SetContentType(ContentType.unboxing),
-              );
-              context.push('/addgift/direct-open-setting');
-            }
-          },
+          onTap: () => _handleOptionTap(context, options[index]['title']!),
         );
       },
     );
+  }
+
+  Future<void> _handleOptionTap(BuildContext context, String title) async {
+    final bloc = context.read<GiftPackagingBloc>();
+    final state = bloc.state;
+
+    // 현재 각 콘텐츠별 데이터 유무 확인
+    final savedGacha = state.gachaContent;
+    final bool hasGachaData = savedGacha != null && savedGacha.list.isNotEmpty;
+
+    ContentType selectedType = ContentType.gacha;
+    String route = '/addgift/gacha-setting';
+
+    if (title == '캡슐 뽑기') {
+      selectedType = ContentType.gacha;
+      route = '/addgift/gacha-setting';
+    } else if (title == '문제 맞추기') {
+      selectedType = ContentType.quiz;
+      route = '/addgift/quiz-setting';
+    } else if (title == '바로 오픈') {
+      selectedType = ContentType.unboxing;
+      route = '/addgift/direct-open-setting';
+    }
+
+    if (hasGachaData && selectedType != ContentType.gacha) {
+      final bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: Colors.white,
+          title: const Text(
+            '콘텐츠 변경',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            '캡슐 뽑기에 작성 중인 데이터가 있습니다.\n초기화하고 새로운 콘텐츠로 넘어가겠습니까?',
+            style: TextStyle(height: 1.5, fontSize: 16),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text(
+                '아니오',
+                style: TextStyle(color: Colors.grey, fontSize: 16),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text(
+                '예',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (confirm == true) {
+        // 기존 캡슐 뽑기 데이터 초기화
+        bloc.add(SetGachaContent(const GachaContent()));
+        bloc.add(SetContentType(selectedType));
+        if (context.mounted) {
+          context.push(route);
+        }
+      }
+    } else {
+      bloc.add(SetContentType(selectedType));
+      context.push(route);
+    }
   }
 
   // 개별 방식 선택 카드
