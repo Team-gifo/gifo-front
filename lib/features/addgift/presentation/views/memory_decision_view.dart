@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../application/gift_packaging_bloc.dart';
 
 class MemoryDecisionView extends StatelessWidget {
   const MemoryDecisionView({super.key});
@@ -7,9 +10,10 @@ class MemoryDecisionView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        toolbarHeight: 68,
+        backgroundColor: const Color(0xFFF8F9FA),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -51,22 +55,26 @@ class MemoryDecisionView extends StatelessWidget {
                 ),
               );
             } else {
-              // 모바일 환경
-              return SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      const SizedBox(height: 40),
-                      _buildMainText(TextAlign.center),
-                      const SizedBox(height: 60),
-                      _buildButtonsColumn(context),
-                      const SizedBox(height: 40),
-                    ],
+              // 모바일 및 아이패드 환경: 스크롤 가능하되 내용물이 적으면 버튼이 하단에 배치됨
+              return CustomScrollView(
+                slivers: [
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: <Widget>[
+                          const SizedBox(height: 48),
+                          _buildMainText(TextAlign.center),
+                          const Spacer(),
+                          const SizedBox(height: 48),
+                          _buildButtonsColumn(context),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               );
             }
           },
@@ -97,7 +105,9 @@ class MemoryDecisionView extends StatelessWidget {
       children: <Widget>[
         // 첫 번째 옵션
         _buildSelectionButton(
-          text: '네,\n저는 친구와 함께 추억을 공유하고 싶어요!',
+          title: '네,',
+          subtitle: '저는 친구와 함께 추억을 공유하고 싶어요!',
+          icon: Icons.photo_library_rounded,
           onPressed: () {
             // 추억 공유 기능을 거쳐가는 2단계(갤러리 셋팅)로 이동
             context.push('/addgift/memory-gallery');
@@ -106,12 +116,69 @@ class MemoryDecisionView extends StatelessWidget {
         const SizedBox(height: 16),
         // 두 번째 옵션
         _buildSelectionButton(
-          text: '아니요,\n저는 바로 선물을 공개할거에요.',
-          onPressed: () {
-            // 추억 공유 없이 3단계로 이동 -> 배송 방식 선택으로 라우팅 완료
-            context.push('/addgift/delivery-method');
+          title: '아니요,',
+          subtitle: '저는 바로 선물을 공개할거에요.',
+          icon: Icons.card_giftcard_rounded,
+          onPressed: () async {
+            final hasGalleryData = context
+                .read<GiftPackagingBloc>()
+                .state
+                .gallery
+                .isNotEmpty;
+
+            if (hasGalleryData) {
+              // 기존에 등록된 갤러리 데이터가 있으면 처리 방법을 사용자에게 묻습니다.
+              final bool? confirm = await showDialog<bool>(
+                context: context,
+                builder: (BuildContext dialogContext) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  backgroundColor: Colors.white,
+                  title: const Text(
+                    '추억 갤러리 데이터 존재',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  content: const Text(
+                    '등록된 추억 갤러리 데이터가 있습니다.\n초기화하고 바로 선물 공개로 진행할까요?',
+                    style: TextStyle(height: 1.5, fontSize: 16),
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(false),
+                      child: const Text(
+                        '아니오 (데이터 유지)',
+                        style: TextStyle(color: Colors.grey, fontSize: 16),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.of(dialogContext).pop(true),
+                      child: const Text(
+                        '초기화 후 진행',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true && context.mounted) {
+                // 갤러리 데이터 초기화 후 이동
+                context.read<GiftPackagingBloc>().add(SetGalleryItems([]));
+                context.push('/addgift/delivery-method');
+              } else if (confirm == false && context.mounted) {
+                // 데이터를 유지한 채 이동
+                context.push('/addgift/delivery-method');
+              }
+            } else {
+              // 갤러리 데이터가 없으면 바로 이동
+              context.push('/addgift/delivery-method');
+            }
           },
-          isOutlined: true,
         ),
       ],
     );
@@ -119,53 +186,59 @@ class MemoryDecisionView extends StatelessWidget {
 
   // 개별 선택 버튼 빌더
   Widget _buildSelectionButton({
-    required String text,
+    required String title,
+    required String subtitle,
+    required IconData icon,
     required VoidCallback onPressed,
-    bool isOutlined = false,
   }) {
-    if (isOutlined) {
-      return OutlinedButton(
-        onPressed: onPressed,
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.black,
-          padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16.0),
+    final Color contentColor = Colors.black;
+
+    // 버튼 내부에 렌더링될 위젯 구조
+    final Widget buttonContent = Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 56, color: contentColor),
+          const SizedBox(height: 24),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 26, // 크기를 좀 더 크게
+              fontWeight: FontWeight.bold,
+              height: 1.3,
+              color: contentColor,
+            ),
           ),
-          side: BorderSide(color: Colors.grey.shade300, width: 2),
-        ),
-        child: Text(
-          text,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            height: 1.5,
+          const SizedBox(height: 8),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              height: 1.5,
+              color: contentColor,
+            ),
           ),
-        ),
-      );
-    }
+        ],
+      ),
+    );
 
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+        backgroundColor: Colors.white,
+        padding: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16.0),
+          borderRadius: BorderRadius.circular(20.0),
+          side: BorderSide(color: Colors.grey.shade400, width: 2.0),
         ),
         elevation: 0,
+        shadowColor: Colors.transparent,
       ),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          height: 1.5,
-        ),
-      ),
+      child: buttonContent,
     );
   }
 

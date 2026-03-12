@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../core/router/app_router.dart';
+import '../../application/gift_packaging_bloc.dart';
+import '../../model/gift_content.dart';
+import '../../model/quiz_content.dart';
 import '../../model/quiz_setting_models.dart';
 
 class QuizSettingView extends StatefulWidget {
@@ -23,6 +27,32 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   QuizRewardData _failReward = QuizRewardData();
 
   String _selectedBgm = '신나는 생일';
+
+  @override
+  void initState() {
+    super.initState();
+    final blocState = context.read<GiftPackagingBloc>().state;
+    // BLoC에 기존 입력된 받는 분 정보가 있다면 불러오기
+    if (blocState.receiverName.isNotEmpty) {
+      _userNameController.text = blocState.receiverName;
+    }
+    // 초기 생성된 랜덤 타이틀을 서브타이틀 필드에 세팅
+    if (blocState.subTitle.isNotEmpty) {
+      _subTitleController.text = blocState.subTitle;
+    }
+
+    _userNameController.addListener(() {
+      context.read<GiftPackagingBloc>().add(
+        SetReceiverName(_userNameController.text),
+      );
+    });
+    // 서브타이틀 리스너 추가
+    _subTitleController.addListener(() {
+      context.read<GiftPackagingBloc>().add(
+        SetSubTitle(_subTitleController.text),
+      );
+    });
+  }
 
   @override
   void dispose() {
@@ -238,9 +268,10 @@ class _QuizSettingViewState extends State<QuizSettingView> {
     final bool isMobile = MediaQuery.sizeOf(context).width < 800;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        toolbarHeight: 68,
+        backgroundColor: const Color(0xFFF8F9FA),
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: isMobile ? null : _buildTitleBar(),
@@ -356,7 +387,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
           child: TextFormField(
             controller: _userNameController,
             decoration: InputDecoration(
-              hintText: '이름/닉네임',
+              hintText: '닉네임',
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,
@@ -799,7 +830,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(color: Colors.grey.shade300, width: 2),
                 ),
@@ -914,7 +945,78 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   }
 
   void _completePackage() {
-    // TODO: 데이터 직렬화 및 서버 전송 로직
+    final bloc = context.read<GiftPackagingBloc>();
+
+    // 서브타이틀, BGM 저장
+    bloc.add(SetSubTitle(_subTitleController.text.trim()));
+    bloc.add(SetBgm(_selectedBgm));
+
+    // 로컬 QuizItemData -> freezed QuizItemModel 변환
+    final List<QuizItemModel> quizItems = _items.asMap().entries.map((
+      MapEntry<int, QuizItemData> entry,
+    ) {
+      final QuizItemData item = entry.value;
+      // 퀸즈 타입 문자열 변환
+      String typeStr;
+      switch (item.type) {
+        case QuizType.multipleChoice:
+          typeStr = 'multiple_choice';
+        case QuizType.ox:
+          typeStr = 'ox';
+        case QuizType.subjective:
+          typeStr = 'subjective';
+      }
+
+      // 객관식의 경우 인덱스 기반 answer를 실제 텍스트로 변환
+      List<String> answerTexts = item.answer;
+      if (item.type == QuizType.multipleChoice) {
+        answerTexts = item.answer.map((String idxStr) {
+          final int? idx = int.tryParse(idxStr);
+          if (idx != null && idx < item.options.length) {
+            return item.options[idx];
+          }
+          return idxStr;
+        }).toList();
+      }
+
+      return QuizItemModel(
+        quizId: entry.key + 1,
+        type: typeStr,
+        title: item.title,
+        imageUrl: item.imageFile?.path,
+        description: item.description.isEmpty ? null : item.description,
+        hint: item.hint.isEmpty ? null : item.hint,
+        options: item.options,
+        answer: answerTexts,
+        playLimit: item.playLimit,
+      );
+    }).toList();
+
+    final QuizContent quizContent = QuizContent(
+      successReward: QuizSuccessReward(
+        requiredCount: _successReward.requiredCount ?? 1,
+        itemName: _successReward.itemName,
+        imageUrl: _successReward.imageFile?.path ?? '',
+      ),
+      failReward: QuizFailReward(
+        itemName: _failReward.itemName,
+        imageUrl: _failReward.imageFile?.path ?? '',
+      ),
+      list: quizItems,
+    );
+
+    bloc.add(SetQuizContent(quizContent));
+    // 모든 데이터를 SubmitPackage 이벤트에 직접 담아 전달
+    bloc.add(
+      SubmitPackage(
+        receiverName: _userNameController.text.trim(),
+        subTitle: _subTitleController.text.trim(),
+        bgm: _selectedBgm,
+        gallery: bloc.state.gallery,
+        content: GiftContent(quiz: quizContent),
+      ),
+    );
+
     isPackageComplete = true;
     context.replace('/addgift/package-complete');
   }
@@ -1052,7 +1154,7 @@ class _QuizEditFormState extends State<_QuizEditForm> {
           : BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1FBFA),
+        color: const Color(0xFFF8F9FA),
         borderRadius: widget.isDesktop
             ? BorderRadius.zero
             : const BorderRadius.only(
