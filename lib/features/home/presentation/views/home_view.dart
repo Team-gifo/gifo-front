@@ -92,14 +92,17 @@ class _HomeViewState extends State<HomeView>
     final box = context.findRenderObject() as RenderBox?;
     if (box == null) return;
 
-    final offset =
-        box.localToGlobal(Offset.zero, ancestor: null).dy +
-        _scrollController.offset;
+    // AppBar 높이(80.0)를 빼주어 정확한 스크롤 offset 위치 보정
+    final double targetOffset = index == 0
+        ? 0.0
+        : (box.localToGlobal(Offset.zero, ancestor: null).dy +
+            _scrollController.offset -
+            80.0);
 
     _isScrolling = true;
     _scrollController
         .animateTo(
-          offset,
+          targetOffset,
           duration: const Duration(milliseconds: 700),
           curve: Curves.fastOutSlowIn,
         )
@@ -179,23 +182,28 @@ class _HomeViewState extends State<HomeView>
 
     return Scaffold(
       backgroundColor: AppColors.darkBg,
-      floatingActionButton: AnimatedOpacity(
-        opacity: _showFab ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 300),
-        child: IgnorePointer(
-          ignoring: !_showFab,
-          child: FloatingActionButton(
-            onPressed: () {
-              setState(() => _currentSection = 0);
-              _scrollToTop();
-            },
-            backgroundColor: AppColors.neonPurple,
-            shape: const RoundedRectangleBorder(),
-            elevation: 0,
-            child: const Icon(
-              Icons.keyboard_arrow_up,
-              color: Colors.white,
-              size: 28,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: Padding(
+        // 우측 하단 기본 위치에서 좌로 10, 위로 10 오프셋
+        padding: const EdgeInsets.only(right: 10, bottom: 10),
+        child: AnimatedOpacity(
+          opacity: _showFab ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 300),
+          child: IgnorePointer(
+            ignoring: !_showFab,
+            child: FloatingActionButton(
+              onPressed: () {
+                setState(() => _currentSection = 0);
+                _scrollToTop();
+              },
+              backgroundColor: AppColors.neonPurple,
+              shape: const RoundedRectangleBorder(),
+              elevation: 0,
+              child: const Icon(
+                Icons.keyboard_arrow_up,
+                color: Colors.white,
+                size: 28,
+              ),
             ),
           ),
         ),
@@ -268,12 +276,12 @@ class _HomeViewState extends State<HomeView>
                             ),
                           ],
                         ),
-                        child: const Text(
+                        child: Text(
                           '초대코드 입력',
                           style: TextStyle(
-                            fontFamily: 'PFStardust',
+                            fontFamily: 'PFStardustS',
                             color: AppColors.neonPurpleLight,
-                            fontSize: 12,
+                            fontSize: isMobile ? 11 : 18,
                           ),
                         ),
                       ),
@@ -319,7 +327,7 @@ class _HomeViewState extends State<HomeView>
                           'Surprise, Play, and Gift.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontFamily: 'PFStardust',
+                            fontFamily: 'PFStardustS',
                             fontSize: isMobile
                                 ? 22
                                 : isTablet
@@ -334,6 +342,7 @@ class _HomeViewState extends State<HomeView>
                           '기억에 남고 특별한 감동을 선물하고 싶다면\n오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
+                            fontFamily: 'WantedSans',
                             fontSize: isMobile
                                 ? 12
                                 : isTablet
@@ -341,7 +350,7 @@ class _HomeViewState extends State<HomeView>
                                 : 18,
                             color: Colors.white70,
                             fontWeight: FontWeight.w300,
-                            height: 1.6,
+                            height: 1.8,
                           ),
                         ),
                         SizedBox(height: isMobile ? 28 : 48),
@@ -381,9 +390,9 @@ class _HomeViewState extends State<HomeView>
                                   child: Text(
                                     '선물 포장하기',
                                     style: TextStyle(
-                                      fontFamily: 'PFStardust',
+                                      fontFamily: 'PFStardustS',
                                       color: Colors.white,
-                                      fontSize: isMobile ? 11 : 14,
+                                      fontSize: isMobile ? 11 : 18,
                                     ),
                                   ),
                                 ),
@@ -418,9 +427,9 @@ class _HomeViewState extends State<HomeView>
                                   child: Text(
                                     '초대코드 입력',
                                     style: TextStyle(
-                                      fontFamily: 'PFStardust',
+                                      fontFamily: 'PFStardustS',
                                       color: AppColors.neonPurpleLight,
-                                      fontSize: isMobile ? 11 : 14,
+                                      fontSize: isMobile ? 11 : 18,
                                     ),
                                   ),
                                 ),
@@ -467,7 +476,7 @@ class _HomeViewState extends State<HomeView>
                           child: Text(
                             'WHAT IS GIFO?',
                             style: TextStyle(
-                              fontFamily: 'PFStardust',
+                              fontFamily: 'PFStardustS',
                               color: AppColors.neonPurpleLight,
                               fontSize: isMobile
                                   ? 13
@@ -505,8 +514,9 @@ class _HomeViewState extends State<HomeView>
                           child: Column(
                             children: [
                               Text(
-                                '선물은 진심을 담아 전할 때 비로소 가치가 빛납니다.\n최근 모바일 교환권으로 가볍게 주고받는 트렌드 속에서,\n우리는 점차 희미해져 가는 \'진짜 선물의 의미\'를 되찾고자 합니다.',
+                                "선물은 진심을 담아 전할 때 비로소 가치가 빛납니다.\n최근 모바일 교환권으로 가볍게 주고받는 트렌드 속에서,\n우리는 점차 희미해져 가는 '진짜 선물의 의미'를 되찾고자 합니다.",
                                 style: TextStyle(
+                                  fontFamily: 'WantedSans',
                                   fontSize: isMobile
                                       ? 11
                                       : isTablet
@@ -521,6 +531,7 @@ class _HomeViewState extends State<HomeView>
                               Text(
                                 'Gifo는 특별한 날, 당신만의 마음을 꾹꾹 눌러 담아\n세상에 단 하나뿐인 포장 공간을 만들고 전달하는 서비스입니다.',
                                 style: TextStyle(
+                                  fontFamily: 'WantedSans',
                                   fontSize: isMobile
                                       ? 11
                                       : isTablet
@@ -553,6 +564,7 @@ class _HomeViewState extends State<HomeView>
                         '당신만의 공간에서 소중한 기억들이\n'
                         '픽셀 아트로 아름답게 펼쳐집니다.',
                     imagePlaceholderLabel: 'Lobby Preview',
+                    imagePath: 'assets/images/example/surprise_ex.png',
                   ),
 
                   // ---- 4. Play 섹션 ----
@@ -570,6 +582,7 @@ class _HomeViewState extends State<HomeView>
                         '(콘텐츠는 주기적으로 업데이트 됩니다.)\n\n'
                         '당신이 준비한 콘텐츠를 통해 더 특별한 순간을 만드세요.',
                     imagePlaceholderLabel: 'Play Contents',
+                    imagePath: 'assets/images/example/play_ex.png',
                     reversed: true, // 이미지 좌측, 텍스트 우측
                   ),
 
@@ -587,6 +600,7 @@ class _HomeViewState extends State<HomeView>
                         '특별한 날의 추억을 이미지로 간직하고,\n'
                         '소중한 사람에게 영원히 기억될 선물을 전하세요.',
                     imagePlaceholderLabel: 'Gift Coupon',
+                    imagePath: 'assets/images/example/gift_ex.png',
                   ),
 
                   // ---- 6. 하단 권유 섹션 ----
@@ -603,8 +617,9 @@ class _HomeViewState extends State<HomeView>
                         Text(
                           '지금 바로 특별한 선물을 준비해보세요.',
                           style: TextStyle(
-                            fontSize: isMobile ? 15 : 24,
-                            fontWeight: FontWeight.w700,
+                            fontFamily: 'PFStardustS',
+                            fontSize: isMobile ? 11 : 40,
+                            fontWeight: FontWeight.w400,
                             color: Colors.white,
                           ),
                           textAlign: TextAlign.center,
@@ -613,6 +628,7 @@ class _HomeViewState extends State<HomeView>
                         Text(
                           '몇 번의 클릭만으로 링크로 전달할 수 있습니다.',
                           style: TextStyle(
+                            fontFamily: 'WantedSans',
                             fontSize: isMobile ? 11 : 16,
                             color: Colors.white54,
                           ),
@@ -651,11 +667,11 @@ class _HomeViewState extends State<HomeView>
                                 ],
                               ),
                               child: Text(
-                                '선물 포장하러 가기',
+                                '선물 포장하기',
                                 style: TextStyle(
-                                  fontFamily: 'PFStardust',
+                                  fontFamily: 'PFStardustS',
                                   color: Colors.white,
-                                  fontSize: isMobile ? 12 : 16,
+                                  fontSize: isMobile ? 11 : 18,
                                 ),
                               ),
                             ),
@@ -700,21 +716,7 @@ class _HomeViewState extends State<HomeView>
             SizedBox(
               width: innerSize,
               height: innerSize,
-              child: GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
-                  crossAxisSpacing: 2,
-                  mainAxisSpacing: 2,
-                ),
-                itemCount: 16,
-                itemBuilder: (context, index) {
-                  final bool isWhite = [2, 5, 8, 11, 14].contains(index);
-                  return Container(
-                    color: isWhite ? Colors.white : AppColors.neonPurple,
-                  );
-                },
-              ),
+              child: Image.asset('assets/images/icons/app_icon.png'),
             ),
           ],
         ),
@@ -736,6 +738,7 @@ class _SectionLayout extends StatelessWidget {
   final String title;
   final String description;
   final String imagePlaceholderLabel;
+  final String? imagePath;
   final bool reversed;
 
   const _SectionLayout({
@@ -747,19 +750,21 @@ class _SectionLayout extends StatelessWidget {
     required this.title,
     required this.description,
     required this.imagePlaceholderLabel,
+    this.imagePath,
     this.reversed = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    // 데스크톱 양 끝 여백을 넓게 설정 (시각적 여유)
     final double hPad = isMobile
         ? 20.0
         : isTablet
-        ? 40.0
-        : 80.0;
+        ? 48.0
+        : 120.0;
 
     final Widget textBlock = _buildTextBlock();
-    final Widget imageBlock = _buildImageBlock();
+    final Widget imageBlock = _buildImageBlock(context);
 
     return Container(
       key: sectionKey,
@@ -772,7 +777,7 @@ class _SectionLayout extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: isTablet ? 24 : 16),
+                SizedBox(height: isTablet ? 40 : 28),
                 imageBlock,
                 SizedBox(height: isTablet ? 40 : 28),
                 // 텍스트 블록은 내부적으로 start 정렬을 유지하되 전체는 center
@@ -782,21 +787,22 @@ class _SectionLayout extends StatelessWidget {
                   ),
                   child: textBlock,
                 ),
-                SizedBox(height: isTablet ? 24 : 16),
               ],
             )
-          // 데스크톱: 가로 배치 (reversed 여부에 따라 순서 변경)
+          // 데스크톱: 가로 배치, 내부 gap은 reversed 무관하게 동일
           : Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: reversed
                   ? [
+                      // reversed: 이미지(좌) -> 텍스트(우)
                       Expanded(flex: 5, child: Center(child: imageBlock)),
-                      const SizedBox(width: 80),
+                      const SizedBox(width: 60),
                       Expanded(flex: 5, child: textBlock),
                     ]
                   : [
+                      // normal: 텍스트(좌) -> 이미지(우)
                       Expanded(flex: 5, child: textBlock),
-                      const SizedBox(width: 80),
+                      const SizedBox(width: 60),
                       Expanded(flex: 5, child: Center(child: imageBlock)),
                     ],
             ),
@@ -804,14 +810,18 @@ class _SectionLayout extends StatelessWidget {
   }
 
   Widget _buildTextBlock() {
-    // 모바일 / 태블릿이면 중앙 정렬, 데스크톱은 좌측 정렬
+    // 모바일/태블릿: center 정렬, 데스크톱: reversed 여부에 따라 end / start 분기
     final bool centerAlign = isMobile || isTablet;
     final CrossAxisAlignment crossAlign = centerAlign
         ? CrossAxisAlignment.center
-        : CrossAxisAlignment.start;
+        : reversed
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start;
     final TextAlign textAlign = centerAlign
         ? TextAlign.center
-        : TextAlign.start;
+        : reversed
+            ? TextAlign.end
+            : TextAlign.start;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -835,9 +845,9 @@ class _SectionLayout extends StatelessWidget {
           child: Text(
             tag,
             style: TextStyle(
-              fontFamily: 'PFStardust',
+              fontFamily: 'PFStardustS',
               color: AppColors.neonPurpleLight,
-              fontSize: isMobile ? 10 : 14,
+              fontSize: isMobile ? 10 : 18,
             ),
           ),
         ),
@@ -847,7 +857,7 @@ class _SectionLayout extends StatelessWidget {
           title,
           textAlign: textAlign,
           style: TextStyle(
-            fontFamily: 'PFStardust',
+            fontFamily: 'PFStardustS',
             fontSize: isMobile
                 ? 20
                 : isTablet
@@ -863,6 +873,7 @@ class _SectionLayout extends StatelessWidget {
           description,
           textAlign: textAlign,
           style: TextStyle(
+            fontFamily: 'WantedSans',
             fontSize: isMobile
                 ? 12
                 : isTablet
@@ -876,15 +887,9 @@ class _SectionLayout extends StatelessWidget {
     );
   }
 
-  Widget _buildImageBlock() {
-    final double boxSize = isMobile
-        ? 180
-        : isTablet
-        ? 240
-        : 320;
-    return Container(
-      width: boxSize,
-      height: boxSize,
+  Widget _buildImageBlock(BuildContext context) {
+    // 뷰포트 축소 시 이미지가 잘리지 않고 비율을 유지하며 줄어들도록 반경형 제약 적용
+    Widget contentContainer = Container(
       decoration: BoxDecoration(
         color: AppColors.darkBg,
         border: Border.all(
@@ -898,31 +903,97 @@ class _SectionLayout extends StatelessWidget {
           ),
         ],
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // 이미지 자리 표시자 (추후 실제 이미지로 교체)
-          Positioned.fill(child: CustomPaint(painter: _DotGridPainter())),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.image_outlined,
-                size: isMobile ? 40 : 56,
-                color: Colors.white24,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                imagePlaceholderLabel,
-                style: TextStyle(
-                  fontFamily: 'PFStardust',
-                  fontSize: isMobile ? 10 : 13,
-                  color: Colors.white24,
+      child: imagePath != null
+          ? MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return Stack(
+                        children: [
+                          // Stack으로 회색 불투명 배경이 깔림
+                          GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              color: Colors.black.withValues(alpha: 0.8),
+                            ),
+                          ),
+                          // 크게 확대되어서 볼 수 있게 처리
+                          Center(
+                            child: InteractiveViewer(
+                              child: Image.asset(imagePath!),
+                            ),
+                          ),
+                          // 닫기 버튼
+                          Positioned(
+                            top: 40,
+                            right: 20,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 32,
+                              ),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                },
+                child: ClipRect(
+                  child: Image.asset(
+                    imagePath!,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.topCenter,
+                  ),
                 ),
               ),
-            ],
-          ),
-        ],
+            )
+          : Stack(
+              alignment: Alignment.center,
+              children: [
+                // 이미지 자리 표시자 (추후 실제 이미지로 교체)
+                Positioned.fill(child: CustomPaint(painter: _DotGridPainter())),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.image_outlined,
+                      size: isMobile ? 40 : 56,
+                      color: Colors.white24,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      imagePlaceholderLabel,
+                      style: TextStyle(
+                        fontFamily: 'PFStardustS',
+                        fontSize: isMobile ? 10 : 13,
+                        color: Colors.white24,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+    );
+
+    // 데스크톱에서는 꽉 차게 커지되, 너무 커지는 것을 방지(maxWidth: 800)
+    // 모바일/태블릿에서는 각각 maxWidth 320, 480 할당
+    final double maxW = isMobile
+        ? 320
+        : isTablet
+        ? 480
+        : 800;
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxW),
+      child: AspectRatio(
+        aspectRatio: 1.6, // 가로 대 세로 1.6:1 비율 (넓고 긴 이미지)
+        child: contentContainer,
       ),
     );
   }
@@ -1008,7 +1079,7 @@ class _InviteModalContentState extends State<_InviteModalContent>
           ),
           title: const Text(
             '알림',
-            style: TextStyle(color: Colors.white, fontFamily: 'PFStardust'),
+            style: TextStyle(color: Colors.white, fontFamily: 'PFStardustS'),
           ),
           content: const Text(
             '잘못된 코드입니다',
@@ -1059,7 +1130,7 @@ class _InviteModalContentState extends State<_InviteModalContent>
                 '초대 코드 입력',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontFamily: 'PFStardust',
+                  fontFamily: 'PFStardustS',
                   fontSize: 24,
                   height: 1.5,
                   color: Colors.white,
@@ -1081,7 +1152,7 @@ class _InviteModalContentState extends State<_InviteModalContent>
                   autofocus: true,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontFamily: 'PFStardust',
+                    fontFamily: 'PFStardustS',
                     color: AppColors.pixelPurple,
                     fontSize: 20,
                     letterSpacing: 2.0,
@@ -1091,7 +1162,7 @@ class _InviteModalContentState extends State<_InviteModalContent>
                   decoration: InputDecoration(
                     hintText: 'ex) 1234ABC',
                     hintStyle: TextStyle(
-                      fontFamily: 'PFStardust',
+                      fontFamily: 'WantedSans',
                       color: Colors.purple.shade900,
                     ),
                     border: InputBorder.none,
@@ -1122,7 +1193,7 @@ class _InviteModalContentState extends State<_InviteModalContent>
                       child: Text(
                         '입장하기',
                         style: TextStyle(
-                          fontFamily: 'PFStardust',
+                          fontFamily: 'PFStardustS',
                           color: Colors.black,
                           fontSize: 18,
                         ),
@@ -1173,7 +1244,7 @@ class _TitleAndSubtitleAnimationState
     const Duration pauseDuration = Duration(milliseconds: 400);
 
     const String step1 = 'Gifo';
-    const String remainingAfterDelete = 't for ~';
+    const String remainingAfterDelete = 't for';
 
     // 1. "Gifo" 타이핑
     for (int i = 1; i <= step1.length; i++) {
@@ -1246,9 +1317,9 @@ class _TitleAndSubtitleAnimationState
               Opacity(
                 opacity: 0.0,
                 child: Text(
-                  'Gift for ~_',
+                  'Gift for',
                   style: TextStyle(
-                    fontFamily: 'PFStardust',
+                    fontFamily: 'PFStardustS',
                     fontSize: titleFontSize,
                     height: 1.2,
                   ),
@@ -1260,7 +1331,7 @@ class _TitleAndSubtitleAnimationState
                     ? '$_currentText${!_isTypingFinished ? '_' : ''}'
                     : '',
                 style: TextStyle(
-                  fontFamily: 'PFStardust',
+                  fontFamily: 'PFStardustS',
                   color: Colors.white,
                   fontSize: titleFontSize,
                   height: 1.2,
@@ -1276,6 +1347,7 @@ class _TitleAndSubtitleAnimationState
             child: Text(
               '오직 한 사람을 위한 특별한 선물',
               style: TextStyle(
+                fontFamily: 'WantedSans',
                 fontSize: subtitleFontSize,
                 color: AppColors.neonPurpleLight,
                 fontWeight: FontWeight.w600,
