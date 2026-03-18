@@ -88,43 +88,17 @@ class _HomeViewState extends State<HomeView>
           ),
         ),
         title: Padding(
-          padding: EdgeInsets.symmetric(horizontal: isCompact ? 8.0 : 20.0),
+          padding: EdgeInsets.symmetric(horizontal: isCompact ? 10.0 : 60.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+            children: <Widget>[
               // Logo
               Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          offset: const Offset(4, 4),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Container(
-                        width: 16,
-                        height: 16,
-                        color: AppColors.neonPurple,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Gifo',
-                    style: TextStyle(
-                      fontFamily: 'PFStardust',
-                      fontSize: 20,
-                      color: Colors.white,
-                      letterSpacing: -1,
-                    ),
+                children: <Widget>[
+                  Image.asset(
+                    'assets/images/title_logo.png',
+                    width: 100,
+                    color: Colors.white,
                   ),
                 ],
               ),
@@ -178,82 +152,82 @@ class _HomeViewState extends State<HomeView>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                        // Pixel Art 박스 (애니메이션 적용)
-                        ScaleTransition(
-                          scale: _pulseAnimation,
-                          child: _buildMockPixelGiftBox(),
+                      // Pixel Art 박스 (애니메이션 적용)
+                      ScaleTransition(
+                        scale: _pulseAnimation,
+                        child: _buildMockPixelGiftBox(),
+                      ),
+                      const SizedBox(height: 48),
+                      Text(
+                        'Surprise, Play, and Gift.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontFamily: 'PFStardust',
+                          fontSize: isCompact ? 32 : 56,
+                          height: 1.5,
+                          color: Colors.white,
                         ),
-                        const SizedBox(height: 48),
-                        Text(
-                          'Surprise, Play, and Gift.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontFamily: 'PFStardust',
-                            fontSize: isCompact ? 32 : 56,
-                            height: 1.5,
-                            color: Colors.white,
-                          ),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        '기억에 남고 특별한 감동을 선물하고 싶다면\n오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w300,
+                          height: 1.6,
                         ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          '기억에 남고 특별한 감동을 선물하고 싶다면\n오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white70,
-                            fontWeight: FontWeight.w300,
-                            height: 1.6,
-                          ),
-                        ),
-                        const SizedBox(height: 48),
-                        // 선물 버튼
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            GestureDetector(
-                              onTap: () async {
-                                final Uri url = Uri.base.resolve('/addgift');
-                                if (await canLaunchUrl(url)) {
-                                  await launchUrl(
-                                    url,
-                                    webOnlyWindowName: '_blank',
-                                  );
-                                } else {
-                                  if (context.mounted) {
-                                    context.push('/');
-                                  }
+                      ),
+                      const SizedBox(height: 48),
+                      // 선물 버튼
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              final Uri url = Uri.base.resolve('/addgift');
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(
+                                  url,
+                                  webOnlyWindowName: '_blank',
+                                );
+                              } else {
+                                if (context.mounted) {
+                                  context.push('/');
                                 }
-                              },
-                              child: MouseRegion(
-                                cursor: SystemMouseCursors.click,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 40,
-                                    vertical: 20,
+                              }
+                            },
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 40,
+                                  vertical: 20,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.neonPurple,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 4,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.neonPurple,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 4,
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    '선물 포장하기',
-                                    style: TextStyle(
-                                      fontFamily: 'PFStardust',
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                    ),
+                                ),
+                                child: const Text(
+                                  '선물 포장하기',
+                                  style: TextStyle(
+                                    fontFamily: 'PFStardust',
+                                    color: Colors.white,
+                                    fontSize: 14,
                                   ),
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
+                ),
 
                 // 2. Gifo 서비스 소개 섹션
                 Container(
