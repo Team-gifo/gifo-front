@@ -96,8 +96,8 @@ class _HomeViewState extends State<HomeView>
     final double targetOffset = index == 0
         ? 0.0
         : (box.localToGlobal(Offset.zero, ancestor: null).dy +
-            _scrollController.offset -
-            80.0);
+              _scrollController.offset -
+              80.0);
 
     _isScrolling = true;
     _scrollController
@@ -185,7 +185,7 @@ class _HomeViewState extends State<HomeView>
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Padding(
         // 우측 하단 기본 위치에서 좌로 10, 위로 10 오프셋
-        padding: const EdgeInsets.only(right: 10, bottom: 10),
+        padding: const EdgeInsets.only(right: 30, bottom: 30),
         child: AnimatedOpacity(
           opacity: _showFab ? 1.0 : 0.0,
           duration: const Duration(milliseconds: 300),
@@ -196,12 +196,15 @@ class _HomeViewState extends State<HomeView>
                 setState(() => _currentSection = 0);
                 _scrollToTop();
               },
-              backgroundColor: AppColors.neonPurple,
-              shape: const RoundedRectangleBorder(),
+              backgroundColor: Colors.transparent,
+              shape: const RoundedRectangleBorder(
+                side: BorderSide(color: AppColors.neonPurple, width: 2),
+              ),
               elevation: 0,
+              highlightElevation: 0,
               child: const Icon(
                 Icons.keyboard_arrow_up,
-                color: Colors.white,
+                color: AppColors.neonPurple,
                 size: 28,
               ),
             ),
@@ -777,9 +780,8 @@ class _SectionLayout extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: isTablet ? 40 : 28),
                 imageBlock,
-                SizedBox(height: isTablet ? 40 : 28),
+                SizedBox(height: isTablet ? 60 : 28),
                 // 텍스트 블록은 내부적으로 start 정렬을 유지하되 전체는 center
                 ConstrainedBox(
                   constraints: BoxConstraints(
@@ -815,13 +817,13 @@ class _SectionLayout extends StatelessWidget {
     final CrossAxisAlignment crossAlign = centerAlign
         ? CrossAxisAlignment.center
         : reversed
-            ? CrossAxisAlignment.end
-            : CrossAxisAlignment.start;
+        ? CrossAxisAlignment.end
+        : CrossAxisAlignment.start;
     final TextAlign textAlign = centerAlign
         ? TextAlign.center
         : reversed
-            ? TextAlign.end
-            : TextAlign.start;
+        ? TextAlign.end
+        : TextAlign.start;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
