@@ -1,7 +1,9 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
@@ -59,7 +61,12 @@ class _HomeViewState extends State<HomeView>
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final topPadding = MediaQuery.of(context).padding.top;
     final isCompact = screenWidth < _kCompactBreakpoint;
+
+    // 전체 높이에서 AppBar 높이(80.0)와 상단 safe area 여백을 제외한 값을 계산
+    final heroHeight = math.max(600.0, screenHeight - 80.0 - topPadding);
 
     return Scaffold(
       backgroundColor: AppColors.darkBg,
@@ -164,15 +171,13 @@ class _HomeViewState extends State<HomeView>
             child: Column(
               children: [
                 // 1. 메인 히어로 섹션
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 120.0,
-                    horizontal: 24.0,
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
+                Container(
+                  width: double.infinity,
+                  height: heroHeight,
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                         // Pixel Art 박스 (애니메이션 적용)
                         ScaleTransition(
                           scale: _pulseAnimation,
@@ -249,7 +254,6 @@ class _HomeViewState extends State<HomeView>
                       ],
                     ),
                   ),
-                ),
 
                 // 2. Gifo 서비스 소개 섹션
                 Container(
@@ -290,26 +294,8 @@ class _HomeViewState extends State<HomeView>
                         ),
                       ),
                       const SizedBox(height: 60),
-                      Text(
-                        'Gift for ~',
-                        style: TextStyle(
-                          fontFamily: 'PFStardust',
-                          color: Colors.white,
-                          fontSize: isCompact ? 36 : 48,
-                          height: 1.2,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        '오직 한 사람을 위한 특별한 선물',
-                        style: TextStyle(
-                          fontSize: isCompact ? 18 : 22,
-                          color: AppColors.neonPurpleLight,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                      const SizedBox(height: 60),
+                      _TitleAndSubtitleAnimation(isCompact: isCompact),
                       const SizedBox(height: 48),
                       Container(
                         constraints: const BoxConstraints(maxWidth: 600),
@@ -709,7 +695,6 @@ class _InviteModalContentState extends State<_InviteModalContent>
                 child: MouseRegion(
                   cursor: SystemMouseCursors.click,
                   child: Container(
-                    width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     decoration: BoxDecoration(
                       color: AppColors.pixelPurple,
@@ -739,6 +724,141 @@ class _InviteModalContentState extends State<_InviteModalContent>
           ),
         );
       },
+    );
+  }
+}
+
+// ==========================================
+// 타이핑 애니메이션 및 자막 위젯
+// ==========================================
+class _TitleAndSubtitleAnimation extends StatefulWidget {
+  final bool isCompact;
+
+  const _TitleAndSubtitleAnimation({super.key, required this.isCompact});
+
+  @override
+  State<_TitleAndSubtitleAnimation> createState() =>
+      _TitleAndSubtitleAnimationState();
+}
+
+class _TitleAndSubtitleAnimationState
+    extends State<_TitleAndSubtitleAnimation> {
+  bool _hasStarted = false;
+  bool _isTypingFinished = false;
+  String _currentText = '';
+
+  void _runTypingSequence() async {
+    if (_hasStarted) return;
+    setState(() {
+      _hasStarted = true;
+    });
+
+    // 0. 스크롤 진입 시 0.5초 대기
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (!mounted) return;
+
+    const typingSpeed = Duration(milliseconds: 60); // 상당히 빠른 속도로 조정
+    const backspaceSpeed = Duration(milliseconds: 50);
+    const pauseDuration = Duration(milliseconds: 400); // 멈춤을 짧게
+
+    final step1 = 'Gifo';
+    final remainingAfterDelete = 't for ~';
+
+    // 1. "Gifo" 타이핑
+    for (int i = 1; i <= step1.length; i++) {
+      await Future.delayed(typingSpeed);
+      if (!mounted) return;
+      setState(() {
+        _currentText = step1.substring(0, i);
+      });
+    }
+
+    // 2. 잠시 대기
+    await Future.delayed(pauseDuration);
+    if (!mounted) return;
+
+    // 3. 'o' 삭제 ("Gif" 남김)
+    await Future.delayed(backspaceSpeed);
+    if (!mounted) return;
+    setState(() {
+      _currentText = 'Gif';
+    });
+    // 지우고 살짝 대기
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // 4. "t for ~" 타이핑
+    for (int i = 1; i <= remainingAfterDelete.length; i++) {
+      await Future.delayed(typingSpeed);
+      if (!mounted) return;
+      setState(() {
+        _currentText = 'Gif' + remainingAfterDelete.substring(0, i);
+      });
+    }
+
+    // 5. 완전히 끝난 후, 커서 숨기고 자막 노출
+    setState(() {
+      _isTypingFinished = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return VisibilityDetector(
+      key: const Key('custom-typing-animation'),
+      onVisibilityChanged: (info) {
+        if (info.visibleFraction > 0.1 && !_hasStarted) {
+          _runTypingSequence();
+        }
+      },
+      child: Column(
+        children: [
+          // 레이아웃 쉬프트(높이 들썩임) 방지를 위해 Stack 사용
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              // 공간 확보용 (투명)
+              Opacity(
+                opacity: 0.0,
+                child: Text(
+                  'Gift for ~_',
+                  style: TextStyle(
+                    fontFamily: 'PFStardust',
+                    fontSize: widget.isCompact ? 36 : 48,
+                    height: 1.2,
+                  ),
+                ),
+              ),
+              // 실제 애니메이션용 문자열 노출 (타이핑 중엔 _ 커서 포함)
+              Text(
+                _hasStarted
+                    ? '$_currentText${!_isTypingFinished ? '_' : ''}'
+                    : '',
+                style: TextStyle(
+                  fontFamily: 'PFStardust',
+                  color: Colors.white,
+                  fontSize: widget.isCompact ? 36 : 48,
+                  height: 1.2,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          AnimatedOpacity(
+            opacity: _isTypingFinished ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 600), // 자막도 조금 더 빠르게 노출
+            child: Text(
+              '오직 한 사람을 위한 특별한 선물',
+              style: TextStyle(
+                fontSize: widget.isCompact ? 18 : 22,
+                color: AppColors.neonPurpleLight,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
