@@ -5,11 +5,10 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
+import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../lobby/model/lobby_data.dart';
-
-const double _kCompactBreakpoint = 768.0;
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -63,10 +62,17 @@ class _HomeViewState extends State<HomeView>
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final topPadding = MediaQuery.of(context).padding.top;
-    final isCompact = screenWidth < _kCompactBreakpoint;
+
+    final bool isMobile = screenWidth < AppBreakpoints.mobile;
+    final bool isTablet =
+        screenWidth >= AppBreakpoints.mobile &&
+        screenWidth < AppBreakpoints.tablet;
 
     // 전체 높이에서 AppBar 높이(80.0)와 상단 safe area 여백을 제외한 값을 계산
-    final heroHeight = math.max(600.0, screenHeight - 80.0 - topPadding);
+    final heroHeight = math.max(
+      isMobile ? 520.0 : 600.0,
+      screenHeight - 80.0 - topPadding,
+    );
 
     return Scaffold(
       backgroundColor: AppColors.darkBg,
@@ -88,7 +94,13 @@ class _HomeViewState extends State<HomeView>
           ),
         ),
         title: Padding(
-          padding: EdgeInsets.symmetric(horizontal: isCompact ? 10.0 : 60.0),
+          padding: EdgeInsets.symmetric(
+            horizontal: isMobile
+                ? 8.0
+                : isTablet
+                ? 16.0
+                : 60.0,
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
@@ -97,7 +109,7 @@ class _HomeViewState extends State<HomeView>
                 children: <Widget>[
                   Image.asset(
                     'assets/images/title_logo.png',
-                    width: 100,
+                    width: isMobile ? 72 : 100,
                     color: Colors.white,
                   ),
                 ],
@@ -148,38 +160,48 @@ class _HomeViewState extends State<HomeView>
                 Container(
                   width: double.infinity,
                   height: heroHeight,
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isMobile ? 20.0 : 40.0,
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Pixel Art 박스 (애니메이션 적용)
                       ScaleTransition(
                         scale: _pulseAnimation,
-                        child: _buildMockPixelGiftBox(),
+                        child: _buildMockPixelGiftBox(isMobile: isMobile),
                       ),
-                      const SizedBox(height: 48),
+                      SizedBox(height: isMobile ? 28 : 48),
                       Text(
                         'Surprise, Play, and Gift.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontFamily: 'PFStardust',
-                          fontSize: isCompact ? 32 : 56,
-                          height: 1.5,
+                          fontSize: isMobile
+                              ? 22
+                              : isTablet
+                              ? 36
+                              : 56,
+                          height: 1.4,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      const Text(
+                      SizedBox(height: isMobile ? 14 : 24),
+                      Text(
                         '기억에 남고 특별한 감동을 선물하고 싶다면\n오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: isMobile
+                              ? 12
+                              : isTablet
+                              ? 15
+                              : 18,
                           color: Colors.white70,
                           fontWeight: FontWeight.w300,
                           height: 1.6,
                         ),
                       ),
-                      const SizedBox(height: 48),
+                      SizedBox(height: isMobile ? 28 : 48),
                       // 선물 버튼
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -201,23 +223,23 @@ class _HomeViewState extends State<HomeView>
                             child: MouseRegion(
                               cursor: SystemMouseCursors.click,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 40,
-                                  vertical: 20,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: isMobile ? 24 : 40,
+                                  vertical: isMobile ? 14 : 20,
                                 ),
                                 decoration: BoxDecoration(
                                   color: AppColors.neonPurple,
                                   border: Border.all(
                                     color: Colors.white,
-                                    width: 4,
+                                    width: isMobile ? 2 : 4,
                                   ),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   '선물 포장하기',
                                   style: TextStyle(
                                     fontFamily: 'PFStardust',
                                     color: Colors.white,
-                                    fontSize: 14,
+                                    fontSize: isMobile ? 11 : 14,
                                   ),
                                 ),
                               ),
@@ -232,17 +254,17 @@ class _HomeViewState extends State<HomeView>
                 // 2. Gifo 서비스 소개 섹션
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 120.0,
-                    horizontal: 24.0,
+                  padding: EdgeInsets.symmetric(
+                    vertical: isMobile ? 60.0 : 120.0,
+                    horizontal: isMobile ? 20.0 : 24.0,
                   ),
                   color: Colors.black.withValues(alpha: 0.3),
                   child: Column(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 8,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isMobile ? 12 : 20,
+                          vertical: isMobile ? 6 : 8,
                         ),
                         decoration: BoxDecoration(
                           border: Border.all(
@@ -263,17 +285,27 @@ class _HomeViewState extends State<HomeView>
                           style: TextStyle(
                             fontFamily: 'PFStardust',
                             color: AppColors.neonPurpleLight,
-                            fontSize: isCompact ? 20 : 24,
+                            fontSize: isMobile
+                                ? 13
+                                : isTablet
+                                ? 18
+                                : 24,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 60),
-                      const SizedBox(height: 60),
-                      _TitleAndSubtitleAnimation(isCompact: isCompact),
-                      const SizedBox(height: 48),
+                      SizedBox(height: isMobile ? 32 : 60),
+                      SizedBox(height: isMobile ? 0 : 60),
+                      _TitleAndSubtitleAnimation(screenWidth: screenWidth),
+                      SizedBox(height: isMobile ? 28 : 48),
                       Container(
                         constraints: const BoxConstraints(maxWidth: 600),
-                        padding: EdgeInsets.all(isCompact ? 24.0 : 40.0),
+                        padding: EdgeInsets.all(
+                          isMobile
+                              ? 16.0
+                              : isTablet
+                              ? 24.0
+                              : 40.0,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.darkBg,
                           border: Border.all(
@@ -292,17 +324,25 @@ class _HomeViewState extends State<HomeView>
                             Text(
                               '선물은 진심을 담아 전할 때 비로소 가치가 빛납니다.\n최근 모바일 교환권으로 가볍게 주고받는 트렌드 속에서,\n우리는 점차 희미해져 가는 \'진짜 선물의 의미\'를 되찾고자 합니다.',
                               style: TextStyle(
-                                fontSize: isCompact ? 14 : 16,
+                                fontSize: isMobile
+                                    ? 11
+                                    : isTablet
+                                    ? 13
+                                    : 16,
                                 color: Colors.white70,
                                 height: 1.8,
                               ),
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: isMobile ? 16 : 24),
                             Text(
                               'Gifo는 특별한 날, 당신만의 마음을 꾹꾹 눌러 담아\n세상에 단 하나뿐인 포장 공간을 만들고 전달하는 서비스입니다.',
                               style: TextStyle(
-                                fontSize: isCompact ? 14 : 16,
+                                fontSize: isMobile
+                                    ? 11
+                                    : isTablet
+                                    ? 13
+                                    : 16,
                                 color: Colors.white,
                                 height: 1.8,
                                 fontWeight: FontWeight.w500,
@@ -312,141 +352,43 @@ class _HomeViewState extends State<HomeView>
                           ],
                         ),
                       ),
-                      const SizedBox(height: 48),
+                      SizedBox(height: isMobile ? 28 : 48),
                       // 하단에는 이미지 스크롤 할 수 있는 공간
                     ],
                   ),
                 ),
 
-                // 3. Surprise (로비창, 추억 갤러리 view)
+                // 3. Surprise (로비창, 추억 갤러리 view, 상대방의 이름과 함께했던 추억을 저에게 알려주시면 멋진 초기 로비 화면 및 갤러리등을 확인할 수 있습니다.)
 
-                // 4. play (3개의 콘텐츠 / 캡슐 뽑기, 문제 맞추기, 바로 오픈)
+                // 4. play (3개의 콘텐츠 / 캡슐 뽑기, 문제 맞추기, 바로 오픈, 단순하게 선물만 주면 너무 시시하잖아요? 당신이 준비한 콘텐츠를 상대방이 즐길수있습니다.)
 
-                // 5. gift (선물 전달하기)
-
-                // 2. 서비스 소개 섹션 (기존 것을 유지하되 다크 모드 톤 앤 매너로 변경)
-                // Container(
-                //   width: double.infinity,
-                //   color: Colors.white.withValues(alpha: 0.05),
-                //   padding: const EdgeInsets.symmetric(
-                //     vertical: 100.0,
-                //     horizontal: 24.0,
-                //   ),
-                //   child: Column(
-                //     children: [
-                //       const Text(
-                //         'HOW IT WORKS',
-                //         style: TextStyle(
-                //           fontFamily: 'PFStardust',
-                //           fontSize: 24,
-                //           color: Colors.white,
-                //         ),
-                //       ),
-                //       const SizedBox(height: 48),
-                //       Wrap(
-                //         spacing: 24.0,
-                //         runSpacing: 24.0,
-                //         alignment: WrapAlignment.center,
-                //         children: List.generate(3, (index) {
-                //           return Container(
-                //             width: 300,
-                //             padding: const EdgeInsets.all(32.0),
-                //             decoration: BoxDecoration(
-                //               color: AppColors.darkBg,
-                //               border: Border.all(
-                //                 color: Colors.white.withValues(alpha: 0.1),
-                //                 width: 2,
-                //               ),
-                //             ),
-                //             child: Column(
-                //               children: [
-                //                 Container(
-                //                   width: 80,
-                //                   height: 80,
-                //                   decoration: BoxDecoration(
-                //                     color: Colors.black,
-                //                     border: Border.all(
-                //                       color: Colors.white,
-                //                       width: 4,
-                //                     ),
-                //                     boxShadow: [
-                //                       BoxShadow(
-                //                         color: Colors.white.withValues(
-                //                           alpha: 0.2,
-                //                         ),
-                //                         offset: const Offset(4, 4),
-                //                       ),
-                //                     ],
-                //                   ),
-                //                   child: Center(
-                //                     child: Text(
-                //                       '0${index + 1}',
-                //                       style: const TextStyle(
-                //                         fontFamily: 'PFStardust',
-                //                         fontSize: 24,
-                //                         color: Colors.white,
-                //                       ),
-                //                     ),
-                //                   ),
-                //                 ),
-                //                 const SizedBox(height: 32),
-                //                 Text(
-                //                   index == 0
-                //                       ? '선택하기'
-                //                       : index == 1
-                //                       ? '커스텀하기'
-                //                       : '전달하기',
-                //                   style: const TextStyle(
-                //                     fontFamily: 'PFStardust',
-                //                     fontSize: 16,
-                //                     color: Colors.white,
-                //                   ),
-                //                 ),
-                //                 const SizedBox(height: 16),
-                //                 Text(
-                //                   index == 0
-                //                       ? 'ai를 통해서 간편하게 만들지, 본인이 직접 만들지 선택할 수 있어요.'
-                //                       : index == 1
-                //                       ? '추억이 담긴 사진첩, 다양한 선물 컨텐츠를 통해 선물을 꾸며보세요.'
-                //                       : '포장이 완료되면 생성된 링크를 그대로 친구에게 보내주세요!',
-                //                   textAlign: TextAlign.center,
-                //                   style: const TextStyle(
-                //                     fontSize: 14,
-                //                     color: Colors.white54,
-                //                     height: 1.6,
-                //                   ),
-                //                 ),
-                //               ],
-                //             ),
-                //           );
-                //         }),
-                //       ),
-                //     ],
-                //   ),
-                // ),
+                // 5. gift (선물 전달하기, 결과에 따른 선물은 언제든지 당신에게 받을 수 있게 쿠폰처럼 이미지로 발급해서 제공해드립니다. 추억을 항상 간직해보세요.)
 
                 // 6. 하단 권유 섹션
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 120.0,
-                    horizontal: 24.0,
+                  padding: EdgeInsets.symmetric(
+                    vertical: isMobile ? 60.0 : 120.0,
+                    horizontal: isMobile ? 20.0 : 24.0,
                   ),
-                  child: const Column(
+                  child: Column(
                     children: [
                       Text(
                         '지금 바로 특별한 선물을 준비해보세요.',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: isMobile ? 15 : 24,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: isMobile ? 10 : 16),
                       Text(
                         '몇 번의 클릭만으로 링크로 전달할 수 있습니다.',
-                        style: TextStyle(fontSize: 16, color: Colors.white54),
+                        style: TextStyle(
+                          fontSize: isMobile ? 11 : 16,
+                          color: Colors.white54,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -460,13 +402,18 @@ class _HomeViewState extends State<HomeView>
     );
   }
 
-  Widget _buildMockPixelGiftBox() {
+  Widget _buildMockPixelGiftBox({bool isMobile = false}) {
+    final double boxSize = isMobile ? 140 : 200;
+    final double innerSize = isMobile ? 70 : 100;
     return Container(
-      width: 200,
-      height: 200,
+      width: boxSize,
+      height: boxSize,
       decoration: BoxDecoration(
         color: Colors.black,
-        border: Border.all(color: AppColors.neonPurple, width: 4),
+        border: Border.all(
+          color: AppColors.neonPurple,
+          width: isMobile ? 3 : 4,
+        ),
         boxShadow: [
           BoxShadow(
             color: AppColors.neonPurple.withValues(alpha: 0.3),
@@ -481,8 +428,8 @@ class _HomeViewState extends State<HomeView>
           children: [
             // 심플 픽셀 큐브
             SizedBox(
-              width: 100,
-              height: 100,
+              width: innerSize,
+              height: innerSize,
               child: GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -493,7 +440,7 @@ class _HomeViewState extends State<HomeView>
                 itemCount: 16,
                 itemBuilder: (context, index) {
                   // 임의의 패턴
-                  final isWhite = [2, 5, 8, 11, 14].contains(index);
+                  final bool isWhite = [2, 5, 8, 11, 14].contains(index);
                   return Container(
                     color: isWhite ? Colors.white : AppColors.neonPurple,
                   );
@@ -706,9 +653,9 @@ class _InviteModalContentState extends State<_InviteModalContent>
 // 타이핑 애니메이션 및 자막 위젯
 // ==========================================
 class _TitleAndSubtitleAnimation extends StatefulWidget {
-  final bool isCompact;
+  final double screenWidth;
 
-  const _TitleAndSubtitleAnimation({super.key, required this.isCompact});
+  const _TitleAndSubtitleAnimation({super.key, required this.screenWidth});
 
   @override
   State<_TitleAndSubtitleAnimation> createState() =>
@@ -777,6 +724,23 @@ class _TitleAndSubtitleAnimationState
 
   @override
   Widget build(BuildContext context) {
+    final bool isMobile = widget.screenWidth < AppBreakpoints.mobile;
+    final bool isTablet =
+        widget.screenWidth >= AppBreakpoints.mobile &&
+        widget.screenWidth < AppBreakpoints.tablet;
+
+    // 반응형 폰트 크기
+    final double titleFontSize = isMobile
+        ? 26
+        : isTablet
+        ? 36
+        : 48;
+    final double subtitleFontSize = isMobile
+        ? 13
+        : isTablet
+        ? 16
+        : 22;
+
     return VisibilityDetector(
       key: const Key('custom-typing-animation'),
       onVisibilityChanged: (info) {
@@ -797,7 +761,7 @@ class _TitleAndSubtitleAnimationState
                   'Gift for ~_',
                   style: TextStyle(
                     fontFamily: 'PFStardust',
-                    fontSize: widget.isCompact ? 36 : 48,
+                    fontSize: titleFontSize,
                     height: 1.2,
                   ),
                 ),
@@ -810,21 +774,21 @@ class _TitleAndSubtitleAnimationState
                 style: TextStyle(
                   fontFamily: 'PFStardust',
                   color: Colors.white,
-                  fontSize: widget.isCompact ? 36 : 48,
+                  fontSize: titleFontSize,
                   height: 1.2,
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: isMobile ? 10 : 16),
           AnimatedOpacity(
             opacity: _isTypingFinished ? 1.0 : 0.0,
-            duration: const Duration(milliseconds: 600), // 자막도 조금 더 빠르게 노출
+            duration: const Duration(milliseconds: 600),
             child: Text(
               '오직 한 사람을 위한 특별한 선물',
               style: TextStyle(
-                fontSize: widget.isCompact ? 18 : 22,
+                fontSize: subtitleFontSize,
                 color: AppColors.neonPurpleLight,
                 fontWeight: FontWeight.w600,
               ),
