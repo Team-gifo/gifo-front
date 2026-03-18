@@ -111,7 +111,7 @@ class _HomeViewState extends State<HomeView>
                   ),
                   const SizedBox(width: 12),
                   const Text(
-                    'gifo',
+                    'Gifo',
                     style: TextStyle(
                       fontFamily: 'PFStardust',
                       fontSize: 20,
@@ -180,7 +180,7 @@ class _HomeViewState extends State<HomeView>
                         ),
                         const SizedBox(height: 48),
                         Text(
-                          '기쁨을 전합니다,\n픽셀 단위로',
+                          'Surprise, Play, and Gift.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontFamily: 'PFStardust',
@@ -191,7 +191,7 @@ class _HomeViewState extends State<HomeView>
                         ),
                         const SizedBox(height: 24),
                         const Text(
-                          '가장 특별한 형태의 디지털 선물이 당신을 기다립니다.\n레트로한 픽셀과 함께 소중한 마음을 배달해보세요.',
+                          '기억에 남고 특별한 감동을 선물하고 싶다면\n오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요.',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 18,
@@ -234,7 +234,7 @@ class _HomeViewState extends State<HomeView>
                                     ),
                                   ),
                                   child: const Text(
-                                    '선물 보내기',
+                                    '선물 포장하기',
                                     style: TextStyle(
                                       fontFamily: 'PFStardust',
                                       color: Colors.white,
@@ -251,108 +251,221 @@ class _HomeViewState extends State<HomeView>
                   ),
                 ),
 
-                // 2. 서비스 소개 섹션 (기존 것을 유지하되 다크 모드 톤 앤 매너로 변경)
+                // 2. Gifo 서비스 소개 섹션
                 Container(
                   width: double.infinity,
-                  color: Colors.white.withValues(alpha: 0.05),
                   padding: const EdgeInsets.symmetric(
-                    vertical: 100.0,
+                    vertical: 120.0,
                     horizontal: 24.0,
                   ),
+                  color: Colors.black.withValues(alpha: 0.3),
                   child: Column(
                     children: [
-                      const Text(
-                        'HOW IT WORKS',
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: AppColors.neonPurple,
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.neonPurple.withValues(
+                                alpha: 0.2,
+                              ),
+                              offset: const Offset(4, 4),
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          'WHAT IS GIFO?',
+                          style: TextStyle(
+                            fontFamily: 'PFStardust',
+                            color: AppColors.neonPurpleLight,
+                            fontSize: isCompact ? 20 : 24,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 60),
+                      Text(
+                        'Gift for ~',
                         style: TextStyle(
                           fontFamily: 'PFStardust',
-                          fontSize: 24,
                           color: Colors.white,
+                          fontSize: isCompact ? 36 : 48,
+                          height: 1.2,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        '오직 한 사람을 위한 특별한 선물',
+                        style: TextStyle(
+                          fontSize: isCompact ? 18 : 22,
+                          color: AppColors.neonPurpleLight,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 48),
+                      Container(
+                        constraints: const BoxConstraints(maxWidth: 600),
+                        padding: EdgeInsets.all(isCompact ? 24.0 : 40.0),
+                        decoration: BoxDecoration(
+                          color: AppColors.darkBg,
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              offset: const Offset(8, 8),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              '선물은 진심을 담아 전할 때 비로소 가치가 빛납니다.\n최근 모바일 교환권으로 가볍게 주고받는 트렌드 속에서,\n우리는 점차 희미해져 가는 \'진짜 선물의 의미\'를 되찾고자 합니다.',
+                              style: TextStyle(
+                                fontSize: isCompact ? 14 : 16,
+                                color: Colors.white70,
+                                height: 1.8,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 24),
+                            Text(
+                              'Gifo는 특별한 날, 당신만의 마음을 꾹꾹 눌러 담아\n세상에 단 하나뿐인 포장 공간을 만들고 전달하는 서비스입니다.',
+                              style: TextStyle(
+                                fontSize: isCompact ? 14 : 16,
+                                color: Colors.white,
+                                height: 1.8,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 48),
-                      Wrap(
-                        spacing: 24.0,
-                        runSpacing: 24.0,
-                        alignment: WrapAlignment.center,
-                        children: List.generate(3, (index) {
-                          return Container(
-                            width: 300,
-                            padding: const EdgeInsets.all(32.0),
-                            decoration: BoxDecoration(
-                              color: AppColors.darkBg,
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.1),
-                                width: 2,
-                              ),
-                            ),
-                            child: Column(
-                              children: [
-                                Container(
-                                  width: 80,
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    color: Colors.black,
-                                    border: Border.all(
-                                      color: Colors.white,
-                                      width: 4,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                        offset: const Offset(4, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '0${index + 1}',
-                                      style: const TextStyle(
-                                        fontFamily: 'PFStardust',
-                                        fontSize: 24,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 32),
-                                Text(
-                                  index == 0
-                                      ? '선택하기'
-                                      : index == 1
-                                      ? '커스텀하기'
-                                      : '전달하기',
-                                  style: const TextStyle(
-                                    fontFamily: 'PFStardust',
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  index == 0
-                                      ? 'ai를 통해서 간편하게 만들지, 본인이 직접 만들지 선택할 수 있어요.'
-                                      : index == 1
-                                      ? '추억이 담긴 사진첩, 다양한 선물 컨텐츠를 통해 선물을 꾸며보세요.'
-                                      : '포장이 완료되면 생성된 링크를 그대로 친구에게 보내주세요!',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white54,
-                                    height: 1.6,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-                      ),
+                      // 하단에는 이미지 스크롤 할 수 있는 공간
                     ],
                   ),
                 ),
 
-                // 3. 하단 권유 섹션
+                // 3. Surprise (로비창, 추억 갤러리 view)
+
+                // 4. play (3개의 콘텐츠 / 캡슐 뽑기, 문제 맞추기, 바로 오픈)
+
+                // 5. gift (선물 전달하기)
+
+                // 2. 서비스 소개 섹션 (기존 것을 유지하되 다크 모드 톤 앤 매너로 변경)
+                // Container(
+                //   width: double.infinity,
+                //   color: Colors.white.withValues(alpha: 0.05),
+                //   padding: const EdgeInsets.symmetric(
+                //     vertical: 100.0,
+                //     horizontal: 24.0,
+                //   ),
+                //   child: Column(
+                //     children: [
+                //       const Text(
+                //         'HOW IT WORKS',
+                //         style: TextStyle(
+                //           fontFamily: 'PFStardust',
+                //           fontSize: 24,
+                //           color: Colors.white,
+                //         ),
+                //       ),
+                //       const SizedBox(height: 48),
+                //       Wrap(
+                //         spacing: 24.0,
+                //         runSpacing: 24.0,
+                //         alignment: WrapAlignment.center,
+                //         children: List.generate(3, (index) {
+                //           return Container(
+                //             width: 300,
+                //             padding: const EdgeInsets.all(32.0),
+                //             decoration: BoxDecoration(
+                //               color: AppColors.darkBg,
+                //               border: Border.all(
+                //                 color: Colors.white.withValues(alpha: 0.1),
+                //                 width: 2,
+                //               ),
+                //             ),
+                //             child: Column(
+                //               children: [
+                //                 Container(
+                //                   width: 80,
+                //                   height: 80,
+                //                   decoration: BoxDecoration(
+                //                     color: Colors.black,
+                //                     border: Border.all(
+                //                       color: Colors.white,
+                //                       width: 4,
+                //                     ),
+                //                     boxShadow: [
+                //                       BoxShadow(
+                //                         color: Colors.white.withValues(
+                //                           alpha: 0.2,
+                //                         ),
+                //                         offset: const Offset(4, 4),
+                //                       ),
+                //                     ],
+                //                   ),
+                //                   child: Center(
+                //                     child: Text(
+                //                       '0${index + 1}',
+                //                       style: const TextStyle(
+                //                         fontFamily: 'PFStardust',
+                //                         fontSize: 24,
+                //                         color: Colors.white,
+                //                       ),
+                //                     ),
+                //                   ),
+                //                 ),
+                //                 const SizedBox(height: 32),
+                //                 Text(
+                //                   index == 0
+                //                       ? '선택하기'
+                //                       : index == 1
+                //                       ? '커스텀하기'
+                //                       : '전달하기',
+                //                   style: const TextStyle(
+                //                     fontFamily: 'PFStardust',
+                //                     fontSize: 16,
+                //                     color: Colors.white,
+                //                   ),
+                //                 ),
+                //                 const SizedBox(height: 16),
+                //                 Text(
+                //                   index == 0
+                //                       ? 'ai를 통해서 간편하게 만들지, 본인이 직접 만들지 선택할 수 있어요.'
+                //                       : index == 1
+                //                       ? '추억이 담긴 사진첩, 다양한 선물 컨텐츠를 통해 선물을 꾸며보세요.'
+                //                       : '포장이 완료되면 생성된 링크를 그대로 친구에게 보내주세요!',
+                //                   textAlign: TextAlign.center,
+                //                   style: const TextStyle(
+                //                     fontSize: 14,
+                //                     color: Colors.white54,
+                //                     height: 1.6,
+                //                   ),
+                //                 ),
+                //               ],
+                //             ),
+                //           );
+                //         }),
+                //       ),
+                //     ],
+                //   ),
+                // ),
+
+                // 6. 하단 권유 섹션
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
