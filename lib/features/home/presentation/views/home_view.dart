@@ -130,7 +130,7 @@ class _HomeViewState extends State<HomeView>
     );
   }
 
-  // 마우스 휠 이벤트: 섹션 단위 이동
+  // 마우스 휠 이벤트: 섹션 단위 이동 (데스크톱)
   void _handlePointerSignal(PointerSignalEvent event) {
     if (event is! PointerScrollEvent) return;
     if (_isScrolling) return;
@@ -145,6 +145,31 @@ class _HomeViewState extends State<HomeView>
       }
     } else if (dy < 0) {
       // 위로
+      final prev = math.max(_currentSection - 1, 0);
+      if (prev != _currentSection) {
+        setState(() => _currentSection = prev);
+        _scrollToSection(prev);
+      }
+    }
+  }
+
+  // 터치 스와이프 종료: 속도 기반으로 수직 방향 판단 후 섹션 이동 (모바일 웹)
+  void _handleTouchEnd(DragEndDetails details) {
+    if (_isScrolling) return;
+    // primaryVelocity: 위로 스와이프 시 음수, 아래로 스와이프 시 양수
+    final double? velocity = details.primaryVelocity;
+    if (velocity == null) return;
+
+    // 충분한 속도(300)가 있을 때만 섹션 이동 (오작동 방지)
+    if (velocity < -300) {
+      // 위로 스와이프 -> 다음 섹션
+      final next = math.min(_currentSection + 1, _sectionKeys.length - 1);
+      if (next != _currentSection) {
+        setState(() => _currentSection = next);
+        _scrollToSection(next);
+      }
+    } else if (velocity > 300) {
+      // 아래로 스와이프 -> 이전 섹션
       final prev = math.max(_currentSection - 1, 0);
       if (prev != _currentSection) {
         setState(() => _currentSection = prev);
@@ -172,16 +197,22 @@ class _HomeViewState extends State<HomeView>
 
   // 선물 포장하기 모드 선택 모달 표시
   void _showGiftModeModal(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isMobileModal = screenWidth < AppBreakpoints.mobile;
+
     showDialog(
       context: context,
       barrierColor: Colors.black87,
       builder: (context) {
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: const Dialog(
+          child: Dialog(
             backgroundColor: Colors.transparent,
-            insetPadding: EdgeInsets.symmetric(horizontal: 16),
-            child: GiftModeModal(),
+            // 모바일에서는 좌우 여백을 최소화하여 모달 너비를 최대한 확보
+            insetPadding: isMobileModal
+                ? const EdgeInsets.symmetric(horizontal: 12, vertical: 24)
+                : const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            child: const GiftModeModal(),
           ),
         );
       },
@@ -386,14 +417,16 @@ class _HomeViewState extends State<HomeView>
               child: CustomPaint(painter: GridBackgroundPainter()),
             ),
 
-            // 마우스 휠 이벤트 감지 (데스크톱)
-            Listener(
-              onPointerSignal: _handlePointerSignal,
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                // 마우스 휠의 기본 스크롤을 막고, 섹션 단위로만 동작
-                physics: const NeverScrollableScrollPhysics(),
-                child: Column(
+            // 마우스 휠(데스크톱) 및 터치 스와이프(모바일 웹) 이벤트 감지
+            GestureDetector(
+              onVerticalDragEnd: _handleTouchEnd,
+              child: Listener(
+                onPointerSignal: _handlePointerSignal,
+                child: SingleChildScrollView(
+                  controller: _scrollController,
+                  // 기본 스크롤을 막고 섹션 단위 이동만 허용
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Column(
                   children: [
                     // ---- 1. 메인 히어로 섹션 ----
                     Container(
@@ -979,6 +1012,7 @@ class _HomeViewState extends State<HomeView>
                 ),
               ),
             ),
+          ),
           ],
         ),
       ),
