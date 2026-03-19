@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -13,7 +14,10 @@ import 'gift_mode_modal.dart';
 import 'invite_modal_content.dart';
 
 class HomeView extends StatefulWidget {
-  const HomeView({super.key});
+  const HomeView({super.key, this.showInvalidCodeToast = false});
+
+  // 잘못된 코드로 접근별 toast 트리거 플래그
+  final bool showInvalidCodeToast;
 
   @override
   State<HomeView> createState() => _HomeViewState();
@@ -63,6 +67,25 @@ class _HomeViewState extends State<HomeView>
 
     // 스크롤 위치 변화 감지 -> FAB 표시 여부 결정
     _scrollController.addListener(_onScroll);
+
+    // 잘못된 링크로 진입한 경우 toast 표시 (build 완료 후 실행)
+    if (widget.showInvalidCodeToast) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        toastification.show(
+          context: context,
+          type: ToastificationType.error,
+          style: ToastificationStyle.flatColored,
+          title: const Text(
+            '잘못된 링크입니다.',
+            style:
+                TextStyle(fontFamily: 'WantedSans', fontWeight: FontWeight.w600),
+          ),
+          alignment: Alignment.topCenter,
+          autoCloseDuration: const Duration(seconds: 3),
+        );
+      });
+    }
   }
 
   @override
