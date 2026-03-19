@@ -169,7 +169,9 @@ class _GiftModeModalState extends State<GiftModeModal>
                 ? AppColors.neonPurple.withValues(alpha: 0.15)
                 : Colors.white.withValues(alpha: 0.03),
             border: Border.all(
-              color: _isAiHovered ? AppColors.neonPurple : AppColors.pixelPurple.withValues(alpha: 0.5),
+              color: _isAiHovered
+                  ? AppColors.neonPurple
+                  : AppColors.pixelPurple.withValues(alpha: 0.5),
               width: _isAiHovered ? 2 : 1,
             ),
             boxShadow: _isAiHovered
@@ -196,13 +198,17 @@ class _GiftModeModalState extends State<GiftModeModal>
                       : AppColors.pixelPurple.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: _isAiHovered ? AppColors.neonPurple : AppColors.pixelPurple,
+                    color: _isAiHovered
+                        ? AppColors.neonPurple
+                        : AppColors.pixelPurple,
                     width: 1.5,
                   ),
                 ),
                 child: Icon(
                   Icons.auto_awesome_rounded,
-                  color: _isAiHovered ? AppColors.neonPurple : AppColors.pixelPurple,
+                  color: _isAiHovered
+                      ? AppColors.neonPurple
+                      : AppColors.pixelPurple,
                   size: isMobile ? 28 : 36,
                 ),
               ),
@@ -220,7 +226,7 @@ class _GiftModeModalState extends State<GiftModeModal>
               SizedBox(height: isMobile ? 10 : 14),
               // 카드 설명
               Text(
-                '간단하게 몇 가지만 알려주시면\nAI가 추천해서 나머지 부분들을\n채워드립니다',
+                '간단하게 몇 가지만 알려주시면\nAI가 추천해서 나머지 부분들을\n채워드립니다.\n\n*포장 전까지 수정 가능',
                 textAlign: TextAlign.start,
                 style: TextStyle(
                   fontFamily: 'WantedSans',
@@ -281,7 +287,9 @@ class _GiftModeModalState extends State<GiftModeModal>
                 ? AppColors.neonBlue.withValues(alpha: 0.1)
                 : Colors.white.withValues(alpha: 0.03),
             border: Border.all(
-              color: _isManualHovered ? AppColors.neonBlue : AppColors.pixelPurple.withValues(alpha: 0.5),
+              color: _isManualHovered
+                  ? AppColors.neonBlue
+                  : AppColors.pixelPurple.withValues(alpha: 0.5),
               width: _isManualHovered ? 2 : 1,
             ),
             boxShadow: _isManualHovered
@@ -308,13 +316,17 @@ class _GiftModeModalState extends State<GiftModeModal>
                       : AppColors.pixelPurple.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: _isManualHovered ? AppColors.neonBlue : AppColors.pixelPurple,
+                    color: _isManualHovered
+                        ? AppColors.neonBlue
+                        : AppColors.pixelPurple,
                     width: 1.5,
                   ),
                 ),
                 child: Icon(
                   Icons.edit_rounded,
-                  color: _isManualHovered ? AppColors.neonBlue : AppColors.pixelPurple,
+                  color: _isManualHovered
+                      ? AppColors.neonBlue
+                      : AppColors.pixelPurple,
                   size: isMobile ? 28 : 36,
                 ),
               ),
@@ -332,7 +344,7 @@ class _GiftModeModalState extends State<GiftModeModal>
               SizedBox(height: isMobile ? 10 : 14),
               // 카드 설명
               Text(
-                '처음부터 끝까지\n직접 입력해서 커스텀이 가능합니다',
+                '다소 시간은 소요되지만,\n처음부터 끝까지 직접 입력합니다.',
                 textAlign: TextAlign.start,
                 style: TextStyle(
                   fontFamily: 'WantedSans',
