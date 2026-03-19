@@ -66,7 +66,10 @@ class _HomeViewState extends State<HomeView>
   }
 
   void _onScroll() {
-    final bool shouldShowFab = _scrollController.offset > 100;
+    // 6번째 섹션(인덱스 5, 푸터 포함)일 때는 FAB를 숨김
+    final bool isLastSection = _currentSection == 5;
+    final bool shouldShowFab = _scrollController.offset > 100 && !isLastSection;
+
     if (shouldShowFab != _showFab) {
       setState(() {
         _showFab = shouldShowFab;
@@ -185,7 +188,6 @@ class _HomeViewState extends State<HomeView>
       backgroundColor: AppColors.darkBg,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Padding(
-        // 우측 하단 기본 위치에서 좌로 10, 위로 10 오프셋
         padding: const EdgeInsets.only(right: 30, bottom: 30),
         child: AnimatedOpacity(
           opacity: _showFab ? 1.0 : 0.0,
@@ -409,7 +411,9 @@ class _HomeViewState extends State<HomeView>
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+                                    mainAxisSize: isMobile
+                                        ? MainAxisSize.max
+                                        : MainAxisSize.min,
                                     children: [
                                       Icon(
                                         Icons.redeem,
@@ -458,7 +462,9 @@ class _HomeViewState extends State<HomeView>
                                   ),
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+                                    mainAxisSize: isMobile
+                                        ? MainAxisSize.max
+                                        : MainAxisSize.min,
                                     children: [
                                       Icon(
                                         Icons.vpn_key_outlined,
@@ -602,9 +608,9 @@ class _HomeViewState extends State<HomeView>
                     title: '환영 및 추억 갤러리',
                     description:
                         '상대방의 이름과 함께했던 추억을 알려주시면\n'
-                        '멋진 초기 환영 화면과 추억 갤러리를 꾸며드립니다.\n\n'
-                        '당신만의 공간에서 소중한 기억들이\n'
-                        '픽셀 아트로 아름답게 펼쳐집니다.',
+                        '초기 환영 화면과 추억 갤러리를 제공해드립니다.\n\n'
+                        '또한, 언제든지 기억할 수 있게 손쉽게 저장할 수 있습니다.\n\n'
+                        '* 현재 이미지 저장만 지원합니다.',
                     imagePlaceholderLabel: 'Lobby Preview',
                     imagePaths: const [
                       'assets/images/example/surprise_ex.png',
@@ -619,12 +625,12 @@ class _HomeViewState extends State<HomeView>
                     isMobile: isMobile,
                     isTablet: isTablet,
                     tag: 'PLAY',
-                    title: '다양한 특별한 콘텐츠',
+                    title: '다양한 콘텐츠',
                     description:
                         '단순히 선물만 주면 너무 시시하잖아요?\n'
                         '캡슐 뽑기, 문제 맞추기, 바로 오픈 등\n'
                         '하나를 골라 상대방이 직접 즐길 수 있게 해보세요.\n\n'
-                        '(콘텐츠는 주기적으로 업데이트 됩니다.)\n\n'
+                        '(콘텐츠는 주기적으로 업데이트 됩니다)\n\n'
                         '당신이 준비한 콘텐츠를 통해 더 특별한 순간을 만드세요.',
                     imagePlaceholderLabel: 'Play Contents',
                     imagePaths: const [
@@ -659,91 +665,284 @@ class _HomeViewState extends State<HomeView>
                     key: _sectionKeys[5],
                     width: double.infinity,
                     height: sectionHeight,
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isMobile ? 20.0 : 24.0,
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '지금 바로 특별한 선물을 준비해보세요.',
-                          style: TextStyle(
-                            fontFamily: 'PFStardustS',
-                            fontSize: isMobile ? 11 : 40,
-                            fontWeight: FontWeight.w400,
-                            color: Colors.white,
+                    child: Stack(
+                      children: <Widget>[
+                        // 중앙 CTA 콘텐츠
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isMobile ? 20.0 : 24.0,
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: isMobile ? 10 : 16),
-                        Text(
-                          '몇 번의 클릭만으로 링크로 전달할 수 있습니다.',
-                          style: TextStyle(
-                            fontFamily: 'WantedSans',
-                            fontSize: isMobile ? 11 : 16,
-                            color: Colors.white54,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: isMobile ? 32 : 48),
-                        GestureDetector(
-                          onTap: () async {
-                            final Uri url = Uri.base.resolve('/addgift');
-                            if (await canLaunchUrl(url)) {
-                              await launchUrl(url, webOnlyWindowName: '_blank');
-                            } else if (context.mounted) {
-                              context.push('/');
-                            }
-                          },
-                          child: MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: isMobile ? 28 : 48,
-                                vertical: isMobile ? 14 : 22,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.neonPurple,
-                                border: Border.all(
-                                  color: Colors.white,
-                                  width: isMobile ? 2 : 4,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.neonPurple.withValues(
-                                      alpha: 0.5,
-                                    ),
-                                    offset: const Offset(6, 6),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.redeem,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  '지금 바로 특별한 선물을 준비해보세요.',
+                                  style: TextStyle(
+                                    fontFamily: 'PFStardustS',
+                                    fontSize: isMobile ? 11 : 40,
+                                    fontWeight: FontWeight.w400,
                                     color: Colors.white,
-                                    size: isMobile ? 14 : 22,
                                   ),
-                                  SizedBox(width: isMobile ? 10 : 16),
-                                  Text(
-                                    '선물 포장하기',
-                                    style: TextStyle(
-                                      fontFamily: 'PFStardustS',
-                                      color: Colors.white,
-                                      fontSize: isMobile ? 11 : 18,
+                                  textAlign: TextAlign.center,
+                                ),
+                                SizedBox(height: isMobile ? 10 : 16),
+                                Text(
+                                  '몇 번의 클릭만으로 링크로 전달할 수 있습니다.',
+                                  style: TextStyle(
+                                    fontFamily: 'WantedSans',
+                                    fontSize: isMobile ? 11 : 16,
+                                    color: Colors.white54,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                SizedBox(height: isMobile ? 32 : 48),
+                                // 버튼 그룹: 반응형 Wrap 사용 (isMobile이면 위아래, 아니면 좌우)
+                                Wrap(
+                                  alignment: WrapAlignment.center,
+                                  runAlignment: WrapAlignment.center,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  spacing: isMobile ? 0 : 20,
+                                  runSpacing: 16,
+                                  children: [
+                                    // 1. 선물 포장하기 버튼
+                                    GestureDetector(
+                                      onTap: () async {
+                                        final Uri url = Uri.base.resolve(
+                                          '/addgift',
+                                        );
+                                        if (await canLaunchUrl(url)) {
+                                          await launchUrl(
+                                            url,
+                                            webOnlyWindowName: '_blank',
+                                          );
+                                        } else if (context.mounted) {
+                                          context.push('/');
+                                        }
+                                      },
+                                      child: MouseRegion(
+                                        cursor: SystemMouseCursors.click,
+                                        child: Container(
+                                          width: isMobile ? 180 : null,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: isMobile ? 24 : 40,
+                                            vertical: isMobile ? 14 : 20,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.neonPurple,
+                                            border: Border.all(
+                                              color: Colors.white,
+                                              width: isMobile ? 2 : 4,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: AppColors.neonPurple
+                                                    .withValues(alpha: 0.5),
+                                                offset: const Offset(6, 6),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            mainAxisSize: isMobile
+                                                ? MainAxisSize.max
+                                                : MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.redeem,
+                                                color: Colors.white,
+                                                size: isMobile ? 14 : 22,
+                                              ),
+                                              SizedBox(
+                                                width: isMobile ? 10 : 16,
+                                              ),
+                                              Text(
+                                                '선물 포장하기',
+                                                style: TextStyle(
+                                                  fontFamily: 'PFStardustS',
+                                                  color: Colors.white,
+                                                  fontSize: isMobile ? 11 : 18,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
+                                    // 2. 맨 처음으로 버튼
+                                    GestureDetector(
+                                      onTap: () {
+                                        setState(() => _currentSection = 0);
+                                        _scrollToSection(0);
+                                      },
+                                      child: MouseRegion(
+                                        cursor: SystemMouseCursors.click,
+                                        child: Container(
+                                          width: isMobile ? 180 : null,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: isMobile ? 24 : 40,
+                                            vertical: isMobile ? 14 : 20,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.transparent,
+                                            border: Border.all(
+                                              color: AppColors.neonPurple,
+                                              width: isMobile ? 2 : 4,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: AppColors.neonPurple
+                                                    .withValues(alpha: 0.2),
+                                                offset: const Offset(4, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            mainAxisSize: isMobile
+                                                ? MainAxisSize.max
+                                                : MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.keyboard_arrow_up_rounded,
+                                                color:
+                                                    AppColors.neonPurpleLight,
+                                                size: isMobile ? 14 : 22,
+                                              ),
+                                              SizedBox(
+                                                width: isMobile ? 8 : 12,
+                                              ),
+                                              Text(
+                                                '맨 처음으로',
+                                                style: TextStyle(
+                                                  fontFamily: 'PFStardustS',
+                                                  color:
+                                                      AppColors.neonPurpleLight,
+                                                  fontSize: isMobile ? 11 : 18,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
+                        ),
+                        // 하단 푸터 고정
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: _buildFooter(),
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final bool isMobile = screenWidth < AppBreakpoints.mobile;
+    final bool isTablet = screenWidth < AppBreakpoints.tablet;
+
+    return Container(
+      key: const Key('footer'),
+      width: double.infinity,
+      color: Colors.black.withValues(alpha: 0.5),
+      padding: EdgeInsets.symmetric(
+        vertical: isMobile ? 20 : 30,
+        horizontal: isMobile ? 24 : (isTablet ? 40 : 80),
+      ),
+      child: Column(
+        children: [
+          const Divider(color: Colors.white10),
+          const SizedBox(height: 16),
+          // 반응형 레이아웃: 모바일에서는 Column, 데스크톱/태블릿에서는 Row (공간이 허용되면)
+          isMobile
+              ? Column(
+                  children: [
+                    _footerBranding(),
+                    const SizedBox(height: 20),
+                    _footerGitHubLink(),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [_footerBranding(), _footerGitHubLink()],
+                ),
+          const SizedBox(height: 24),
+          const Text(
+            '© 2026 GIFO. ALL RIGHTS RESERVED.',
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.white24,
+              letterSpacing: 2,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _footerBranding() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Image.asset(
+          'assets/images/icons/app_icon.png',
+          height: 24,
+          errorBuilder:
+              (BuildContext context, Object error, StackTrace? stackTrace) =>
+                  const Icon(Icons.palette, color: Colors.white, size: 24),
+        ),
+        const SizedBox(width: 12),
+        const Text(
+          'GIFO',
+          style: TextStyle(
+            fontFamily: 'PFStardustS',
+            fontSize: 20,
+            color: Colors.white,
+            letterSpacing: 1.2,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _footerGitHubLink() {
+    return InkWell(
+      onTap: () async {
+        final Uri url = Uri.parse('https://github.com/Team-gifo/gifo-front');
+        if (await canLaunchUrl(url)) {
+          await launchUrl(url);
+        }
+      },
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.code_rounded, color: Colors.white60, size: 16),
+          SizedBox(width: 8),
+          Text(
+            'GitHub',
+            style: TextStyle(
+              fontFamily: 'WantedSans',
+              fontSize: 14,
+              color: Colors.white60,
+              decoration: TextDecoration.underline,
+              decorationColor: Colors.white24,
             ),
           ),
         ],
