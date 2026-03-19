@@ -184,7 +184,8 @@ class _HomeViewState extends State<HomeView>
       screenHeight - 80.0 - topPadding,
     );
 
-    return Scaffold(
+    return SelectionArea(
+      child: Scaffold(
       backgroundColor: AppColors.darkBg,
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
       floatingActionButton: Padding(
@@ -849,6 +850,7 @@ class _HomeViewState extends State<HomeView>
             ),
           ),
         ],
+      ),
       ),
     );
   }
