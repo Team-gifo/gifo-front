@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/gestures.dart';
@@ -342,7 +343,8 @@ class _HomeViewState extends State<HomeView>
                         ),
                         SizedBox(height: isMobile ? 14 : 24),
                         Text(
-                          '기억에 남고 특별한 감동을 선물하고 싶다면\n오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요.',
+                          '기억에 남고 특별한 감동을 선물하고 싶다면\n오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요.\n\n'
+                          '* 현재 무료 서비스로 운영중',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontFamily: 'WantedSans',
@@ -567,7 +569,10 @@ class _HomeViewState extends State<HomeView>
                         '당신만의 공간에서 소중한 기억들이\n'
                         '픽셀 아트로 아름답게 펼쳐집니다.',
                     imagePlaceholderLabel: 'Lobby Preview',
-                    imagePath: 'assets/images/example/surprise_ex.png',
+                    imagePaths: const [
+                      'assets/images/example/surprise_ex.png',
+                      'assets/images/example/surprise_ex.png',
+                    ],
                   ),
 
                   // ---- 4. Play 섹션 ----
@@ -585,7 +590,10 @@ class _HomeViewState extends State<HomeView>
                         '(콘텐츠는 주기적으로 업데이트 됩니다.)\n\n'
                         '당신이 준비한 콘텐츠를 통해 더 특별한 순간을 만드세요.',
                     imagePlaceholderLabel: 'Play Contents',
-                    imagePath: 'assets/images/example/play_ex.png',
+                    imagePaths: const [
+                      'assets/images/example/play_ex.png',
+                      'assets/images/example/play_ex.png',
+                    ],
                     reversed: true, // 이미지 좌측, 텍스트 우측
                   ),
 
@@ -603,7 +611,10 @@ class _HomeViewState extends State<HomeView>
                         '특별한 날의 추억을 이미지로 간직하고,\n'
                         '소중한 사람에게 영원히 기억될 선물을 전하세요.',
                     imagePlaceholderLabel: 'Gift Coupon',
-                    imagePath: 'assets/images/example/gift_ex.png',
+                    imagePaths: const [
+                      'assets/images/example/gift_ex.png',
+                      'assets/images/example/gift_ex.png',
+                    ],
                   ),
 
                   // ---- 6. 하단 권유 섹션 ----
@@ -732,7 +743,7 @@ class _HomeViewState extends State<HomeView>
 // 공통 섹션 레이아웃 (좌-텍스트 / 우-이미지)
 // reversed=true 이면 좌-이미지 / 우-텍스트
 // ==========================================
-class _SectionLayout extends StatelessWidget {
+class _SectionLayout extends StatefulWidget {
   final GlobalKey sectionKey;
   final double height;
   final bool isMobile;
@@ -741,7 +752,7 @@ class _SectionLayout extends StatelessWidget {
   final String title;
   final String description;
   final String imagePlaceholderLabel;
-  final String? imagePath;
+  final List<String> imagePaths;
   final bool reversed;
 
   const _SectionLayout({
@@ -753,59 +764,145 @@ class _SectionLayout extends StatelessWidget {
     required this.title,
     required this.description,
     required this.imagePlaceholderLabel,
-    this.imagePath,
+    this.imagePaths = const [],
     this.reversed = false,
   });
 
   @override
+  State<_SectionLayout> createState() => _SectionLayoutState();
+}
+
+class _SectionLayoutState extends State<_SectionLayout> {
+  late PageController _pageController;
+  late int _currentPage;
+  Timer? _autoSlideTimer;
+
+  // 무한 스크롤을 위해 매우 큰 값 설정
+  static const int _loopCount = 10000;
+  int get _initialPage => widget.imagePaths.length * (_loopCount ~/ 2);
+
+  @override
+  void initState() {
+    super.initState();
+    _currentPage = _initialPage;
+    _pageController = PageController(initialPage: _initialPage);
+    _startAutoSlide();
+  }
+
+  void _startAutoSlide() {
+    _autoSlideTimer?.cancel();
+    _autoSlideTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+      if (!mounted || widget.imagePaths.length <= 1) return;
+      // 항상 오른쪽으로만 이동 (정방향 무한 루프)
+      _pageController.animateToPage(
+        _currentPage + 1,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _autoSlideTimer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _nextPage() {
+    if (widget.imagePaths.length <= 1) return;
+    _startAutoSlide();
+    _pageController.animateToPage(
+      _currentPage + 1,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _prevPage() {
+    if (widget.imagePaths.length <= 1) return;
+    _startAutoSlide();
+    _pageController.animateToPage(
+      _currentPage - 1,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
+  }
+
+  void _showFullScreenImage(BuildContext context, String path) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Stack(
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(context),
+              child: Container(color: Colors.black.withValues(alpha: 0.8)),
+            ),
+            Center(child: InteractiveViewer(child: Image.asset(path))),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 32),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // 데스크톱 양 끝 여백을 넓게 설정 (시각적 여유)
-    final double hPad = isMobile
+    // 데스크톱 양 끝 여백을 조정하여 콘텐츠 영역 확보
+    final double hPad = widget.isMobile
         ? 20.0
-        : isTablet
+        : widget.isTablet
         ? 48.0
-        : 120.0;
+        : 80.0;
 
     final Widget textBlock = _buildTextBlock();
     final Widget imageBlock = _buildImageBlock(context);
 
     return Container(
-      key: sectionKey,
+      key: widget.sectionKey,
       width: double.infinity,
-      height: height,
+      height: widget.height,
       padding: EdgeInsets.symmetric(horizontal: hPad),
-      child: (isMobile || isTablet)
+      child: (widget.isMobile || widget.isTablet)
           // 모바일 + 태블릿: 이미지(위) -> 텍스트(아래) 세로 배치, 전체 center 정렬
           ? Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 imageBlock,
-                SizedBox(height: isTablet ? 60 : 28),
+                SizedBox(height: widget.isTablet ? 60 : 28),
                 // 텍스트 블록은 내부적으로 start 정렬을 유지하되 전체는 center
                 ConstrainedBox(
                   constraints: BoxConstraints(
-                    maxWidth: isTablet ? 560 : double.infinity,
+                    maxWidth: widget.isTablet ? 560 : double.infinity,
                   ),
                   child: textBlock,
                 ),
               ],
             )
-          // 데스크톱: 가로 배치, 내부 gap은 reversed 무관하게 동일
+          // 데스크톱: 가로 배치가 기본이나, reversed 여부에 따라 순서 변경
           : Row(
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: reversed
+              children: widget.reversed
                   ? [
-                      // reversed: 이미지(좌) -> 텍스트(우)
-                      Expanded(flex: 5, child: Center(child: imageBlock)),
-                      const SizedBox(width: 60),
-                      Expanded(flex: 5, child: textBlock),
+                      // reversed: 이미지(좌) -> 텍스트(우) / 이미지 비중 확대 (6:4)
+                      Expanded(flex: 6, child: Center(child: imageBlock)),
+                      const SizedBox(width: 80),
+                      Expanded(flex: 4, child: textBlock),
                     ]
                   : [
-                      // normal: 텍스트(좌) -> 이미지(우)
-                      Expanded(flex: 5, child: textBlock),
-                      const SizedBox(width: 60),
-                      Expanded(flex: 5, child: Center(child: imageBlock)),
+                      // normal: 텍스트(좌) -> 이미지(우) / 이미지 비중 확대 (6:4)
+                      Expanded(flex: 4, child: textBlock),
+                      const SizedBox(width: 80),
+                      Expanded(flex: 6, child: Center(child: imageBlock)),
                     ],
             ),
     );
@@ -813,15 +910,15 @@ class _SectionLayout extends StatelessWidget {
 
   Widget _buildTextBlock() {
     // 모바일/태블릿: center 정렬, 데스크톱: reversed 여부에 따라 end / start 분기
-    final bool centerAlign = isMobile || isTablet;
+    final bool centerAlign = widget.isMobile || widget.isTablet;
     final CrossAxisAlignment crossAlign = centerAlign
         ? CrossAxisAlignment.center
-        : reversed
+        : widget.reversed
         ? CrossAxisAlignment.end
         : CrossAxisAlignment.start;
     final TextAlign textAlign = centerAlign
         ? TextAlign.center
-        : reversed
+        : widget.reversed
         ? TextAlign.end
         : TextAlign.start;
 
@@ -832,8 +929,8 @@ class _SectionLayout extends StatelessWidget {
         // 태그 뱃지 (모바일/태블릿에서 center로 자동 배치됨)
         Container(
           padding: EdgeInsets.symmetric(
-            horizontal: isMobile ? 10 : 16,
-            vertical: isMobile ? 4 : 6,
+            horizontal: widget.isMobile ? 10 : 16,
+            vertical: widget.isMobile ? 4 : 6,
           ),
           decoration: BoxDecoration(
             border: Border.all(color: AppColors.neonPurple, width: 2),
@@ -845,40 +942,40 @@ class _SectionLayout extends StatelessWidget {
             ],
           ),
           child: Text(
-            tag,
+            widget.tag,
             style: TextStyle(
               fontFamily: 'PFStardustS',
               color: AppColors.neonPurpleLight,
-              fontSize: isMobile ? 10 : 18,
+              fontSize: widget.isMobile ? 10 : 18,
             ),
           ),
         ),
-        SizedBox(height: isMobile ? 20 : 28),
+        SizedBox(height: widget.isMobile ? 20 : 28),
         // 큰 제목
         Text(
-          title,
+          widget.title,
           textAlign: textAlign,
           style: TextStyle(
             fontFamily: 'PFStardustS',
-            fontSize: isMobile
+            fontSize: widget.isMobile
                 ? 20
-                : isTablet
+                : widget.isTablet
                 ? 28
                 : 40,
             color: Colors.white,
             height: 1.3,
           ),
         ),
-        SizedBox(height: isMobile ? 16 : 24),
+        SizedBox(height: widget.isMobile ? 16 : 24),
         // 소개 문구
         Text(
-          description,
+          widget.description,
           textAlign: textAlign,
           style: TextStyle(
             fontFamily: 'WantedSans',
-            fontSize: isMobile
+            fontSize: widget.isMobile
                 ? 12
-                : isTablet
+                : widget.isTablet
                 ? 14
                 : 16,
             color: Colors.white70,
@@ -890,8 +987,15 @@ class _SectionLayout extends StatelessWidget {
   }
 
   Widget _buildImageBlock(BuildContext context) {
-    // 뷰포트 축소 시 이미지가 잘리지 않고 비율을 유지하며 줄어들도록 반경형 제약 적용
-    Widget contentContainer = Container(
+    if (widget.imagePaths.isEmpty) {
+      return _buildPlaceholder();
+    }
+
+    final int realIndex = _currentPage % widget.imagePaths.length;
+    final bool showArrows = !widget.isMobile && !widget.isTablet && widget.imagePaths.length > 1;
+
+    // 메인 이미지 컨테이너 (그림자 및 테두리 포함)
+    Widget imageArea = Container(
       decoration: BoxDecoration(
         color: AppColors.darkBg,
         border: Border.all(
@@ -905,97 +1009,135 @@ class _SectionLayout extends StatelessWidget {
           ),
         ],
       ),
-      child: imagePath != null
-          ? MouseRegion(
+      child: ClipRect(
+        child: PageView.builder(
+          controller: _pageController,
+          physics: const ClampingScrollPhysics(),
+          scrollBehavior: const MaterialScrollBehavior().copyWith(
+            dragDevices: {
+              PointerDeviceKind.mouse,
+              PointerDeviceKind.touch,
+              PointerDeviceKind.trackpad,
+            },
+          ),
+          onPageChanged: (index) {
+            setState(() {
+              _currentPage = index;
+            });
+          },
+          itemCount: widget.imagePaths.length * _loopCount,
+          itemBuilder: (context, index) {
+            final int rIdx = index % widget.imagePaths.length;
+            return MouseRegion(
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return Stack(
-                        children: [
-                          // Stack으로 회색 불투명 배경이 깔림
-                          GestureDetector(
-                            onTap: () => Navigator.pop(context),
-                            child: Container(
-                              color: Colors.black.withValues(alpha: 0.8),
-                            ),
-                          ),
-                          // 크게 확대되어서 볼 수 있게 처리
-                          Center(
-                            child: InteractiveViewer(
-                              child: Image.asset(imagePath!),
-                            ),
-                          ),
-                          // 닫기 버튼
-                          Positioned(
-                            top: 40,
-                            right: 20,
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 32,
-                              ),
-                              onPressed: () => Navigator.pop(context),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                },
-                child: ClipRect(
-                  child: Image.asset(
-                    imagePath!,
-                    fit: BoxFit.cover,
-                    alignment: Alignment.topCenter,
-                  ),
+                onTap: () => _showFullScreenImage(context, widget.imagePaths[rIdx]),
+                child: Image.asset(
+                  widget.imagePaths[rIdx],
+                  fit: BoxFit.cover,
+                  alignment: Alignment.topCenter,
                 ),
               ),
-            )
-          : Stack(
-              alignment: Alignment.center,
-              children: [
-                // 이미지 자리 표시자 (추후 실제 이미지로 교체)
-                Positioned.fill(child: CustomPaint(painter: _DotGridPainter())),
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.image_outlined,
-                      size: isMobile ? 40 : 56,
-                      color: Colors.white24,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      imagePlaceholderLabel,
-                      style: TextStyle(
-                        fontFamily: 'PFStardustS',
-                        fontSize: isMobile ? 10 : 13,
-                        color: Colors.white24,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+            );
+          },
+        ),
+      ),
     );
 
-    // 데스크톱에서는 꽉 차게 커지되, 너무 커지는 것을 방지(maxWidth: 800)
-    // 모바일/태블릿에서는 각각 maxWidth 320, 480 할당
-    final double maxW = isMobile
-        ? 320
-        : isTablet
-        ? 480
-        : 800;
+    // 전체 레이아웃: [좌화살표 - 이미지 - 우화살표] + 하단 인디케이터
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (showArrows)
+              _buildArrowButton(Icons.arrow_back_ios_new, _prevPage),
+            
+            Expanded(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: widget.isMobile ? 420 : widget.isTablet ? 640 : 1000,
+                ),
+                child: AspectRatio(
+                  aspectRatio: 1.6,
+                  child: imageArea,
+                ),
+              ),
+            ),
 
+            if (showArrows)
+              _buildArrowButton(Icons.arrow_forward_ios, _nextPage),
+          ],
+        ),
+        
+        // 하단 인디케이터 (영역 밖)
+        if (widget.imagePaths.length > 1) ...[
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              widget.imagePaths.length,
+              (index) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: Icon(
+                  index == realIndex ? Icons.circle : Icons.circle_outlined,
+                  size: 10,
+                  color: index == realIndex ? AppColors.neonPurple : Colors.white38,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildArrowButton(IconData icon, VoidCallback onPressed) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      child: IconButton(
+        icon: Icon(icon, color: Colors.white60, size: 28),
+        onPressed: onPressed,
+        hoverColor: AppColors.neonPurple.withValues(alpha: 0.1),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
     return ConstrainedBox(
-      constraints: BoxConstraints(maxWidth: maxW),
+      constraints: BoxConstraints(
+        maxWidth: widget.isMobile ? 420 : widget.isTablet ? 640 : 1000,
+      ),
       child: AspectRatio(
-        aspectRatio: 1.6, // 가로 대 세로 1.6:1 비율 (넓고 긴 이미지)
-        child: contentContainer,
+        aspectRatio: 1.6,
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppColors.darkBg,
+            border: Border.all(color: Colors.white12, width: 2),
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Positioned.fill(child: CustomPaint(painter: _DotGridPainter())),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.image_outlined, size: 48, color: Colors.white24),
+                  const SizedBox(height: 12),
+                  Text(
+                    widget.imagePlaceholderLabel,
+                    style: const TextStyle(
+                      fontFamily: 'PFStardustS',
+                      fontSize: 13,
+                      color: Colors.white24,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
