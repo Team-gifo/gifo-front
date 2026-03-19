@@ -149,10 +149,10 @@ class _HomeViewState extends State<HomeView>
       builder: (context) {
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Dialog(
+          child: const Dialog(
             backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 16),
-            child: const _InviteModalContent(),
+            insetPadding: EdgeInsets.symmetric(horizontal: 16),
+            child: _InviteModalContent(),
           ),
         );
       },
@@ -280,13 +280,24 @@ class _HomeViewState extends State<HomeView>
                             ),
                           ],
                         ),
-                        child: Text(
-                          '초대코드 입력',
-                          style: TextStyle(
-                            fontFamily: 'PFStardustS',
-                            color: AppColors.neonPurpleLight,
-                            fontSize: isMobile ? 11 : 18,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.vpn_key_outlined,
+                              color: AppColors.neonPurpleLight,
+                              size: isMobile ? 12 : 18,
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              '초대코드 입력',
+                              style: TextStyle(
+                                fontFamily: 'PFStardustS',
+                                color: AppColors.neonPurpleLight,
+                                fontSize: isMobile ? 11 : 18,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -359,9 +370,12 @@ class _HomeViewState extends State<HomeView>
                           ),
                         ),
                         SizedBox(height: isMobile ? 28 : 48),
-                        // 버튼 Row: 선물 포장하기 + 초대코드 입력
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        // 버튼 레이아웃: Wrap 위젯을 사용하여 너비 부족 시 자동으로 다음 줄로 넘어가도록 처리 (오버플로우 방지)
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 16,
+                          runSpacing: 16,
                           children: [
                             // 선물 포장하기 버튼
                             GestureDetector(
@@ -381,6 +395,7 @@ class _HomeViewState extends State<HomeView>
                               child: MouseRegion(
                                 cursor: SystemMouseCursors.click,
                                 child: Container(
+                                  width: isMobile ? 180 : null,
                                   padding: EdgeInsets.symmetric(
                                     horizontal: isMobile ? 24 : 40,
                                     vertical: isMobile ? 14 : 20,
@@ -392,26 +407,38 @@ class _HomeViewState extends State<HomeView>
                                       width: isMobile ? 2 : 4,
                                     ),
                                   ),
-                                  child: Text(
-                                    '선물 포장하기',
-                                    style: TextStyle(
-                                      fontFamily: 'PFStardustS',
-                                      color: Colors.white,
-                                      fontSize: isMobile ? 11 : 18,
-                                    ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.redeem,
+                                        color: Colors.white,
+                                        size: isMobile ? 14 : 22,
+                                      ),
+                                      SizedBox(width: isMobile ? 10 : 16),
+                                      Text(
+                                        '선물 포장하기',
+                                        style: TextStyle(
+                                          fontFamily: 'PFStardustS',
+                                          color: Colors.white,
+                                          fontSize: isMobile ? 11 : 18,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
                             ),
-                            SizedBox(width: isMobile ? 12 : 16),
-                            // 초대코드 입력 버튼
+                            // 초대코드 입력 버튼 (Wrap이므로 spacing 상수가 간격을 담당함)
                             GestureDetector(
                               onTap: () => _showInviteModal(context),
                               child: MouseRegion(
                                 cursor: SystemMouseCursors.click,
                                 child: Container(
+                                  width: isMobile ? 180 : null,
                                   padding: EdgeInsets.symmetric(
-                                    horizontal: isMobile ? 20 : 36,
+                                    horizontal: isMobile ? 24 : 40,
                                     vertical: isMobile ? 14 : 20,
                                   ),
                                   decoration: BoxDecoration(
@@ -429,13 +456,25 @@ class _HomeViewState extends State<HomeView>
                                       ),
                                     ],
                                   ),
-                                  child: Text(
-                                    '초대코드 입력',
-                                    style: TextStyle(
-                                      fontFamily: 'PFStardustS',
-                                      color: AppColors.neonPurpleLight,
-                                      fontSize: isMobile ? 11 : 18,
-                                    ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.vpn_key_outlined,
+                                        color: AppColors.neonPurpleLight,
+                                        size: isMobile ? 14 : 22,
+                                      ),
+                                      SizedBox(width: isMobile ? 10 : 16),
+                                      Text(
+                                        '초대코드 입력',
+                                        style: TextStyle(
+                                          fontFamily: 'PFStardustS',
+                                          color: AppColors.neonPurpleLight,
+                                          fontSize: isMobile ? 11 : 18,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -445,8 +484,6 @@ class _HomeViewState extends State<HomeView>
                       ],
                     ),
                   ),
-
-                  // ---- 2. WHAT IS GIFO? 소개 섹션 ----
                   Container(
                     key: _sectionKeys[1],
                     width: double.infinity,
@@ -680,13 +717,24 @@ class _HomeViewState extends State<HomeView>
                                   ),
                                 ],
                               ),
-                              child: Text(
-                                '선물 포장하기',
-                                style: TextStyle(
-                                  fontFamily: 'PFStardustS',
-                                  color: Colors.white,
-                                  fontSize: isMobile ? 11 : 18,
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.redeem,
+                                    color: Colors.white,
+                                    size: isMobile ? 14 : 22,
+                                  ),
+                                  SizedBox(width: isMobile ? 10 : 16),
+                                  Text(
+                                    '선물 포장하기',
+                                    style: TextStyle(
+                                      fontFamily: 'PFStardustS',
+                                      color: Colors.white,
+                                      fontSize: isMobile ? 11 : 18,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -992,7 +1040,8 @@ class _SectionLayoutState extends State<_SectionLayout> {
     }
 
     final int realIndex = _currentPage % widget.imagePaths.length;
-    final bool showArrows = !widget.isMobile && !widget.isTablet && widget.imagePaths.length > 1;
+    final bool showArrows =
+        !widget.isMobile && !widget.isTablet && widget.imagePaths.length > 1;
 
     // 메인 이미지 컨테이너 (그림자 및 테두리 포함)
     Widget imageArea = Container(
@@ -1031,7 +1080,8 @@ class _SectionLayoutState extends State<_SectionLayout> {
             return MouseRegion(
               cursor: SystemMouseCursors.click,
               child: GestureDetector(
-                onTap: () => _showFullScreenImage(context, widget.imagePaths[rIdx]),
+                onTap: () =>
+                    _showFullScreenImage(context, widget.imagePaths[rIdx]),
                 child: Image.asset(
                   widget.imagePaths[rIdx],
                   fit: BoxFit.cover,
@@ -1053,16 +1103,17 @@ class _SectionLayoutState extends State<_SectionLayout> {
           children: [
             if (showArrows)
               _buildArrowButton(Icons.arrow_back_ios_new, _prevPage),
-            
+
             Expanded(
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxWidth: widget.isMobile ? 420 : widget.isTablet ? 640 : 1000,
+                  maxWidth: widget.isMobile
+                      ? 420
+                      : widget.isTablet
+                      ? 640
+                      : 1000,
                 ),
-                child: AspectRatio(
-                  aspectRatio: 1.6,
-                  child: imageArea,
-                ),
+                child: AspectRatio(aspectRatio: 1.6, child: imageArea),
               ),
             ),
 
@@ -1070,7 +1121,7 @@ class _SectionLayoutState extends State<_SectionLayout> {
               _buildArrowButton(Icons.arrow_forward_ios, _nextPage),
           ],
         ),
-        
+
         // 하단 인디케이터 (영역 밖)
         if (widget.imagePaths.length > 1) ...[
           const SizedBox(height: 24),
@@ -1083,7 +1134,9 @@ class _SectionLayoutState extends State<_SectionLayout> {
                 child: Icon(
                   index == realIndex ? Icons.circle : Icons.circle_outlined,
                   size: 10,
-                  color: index == realIndex ? AppColors.neonPurple : Colors.white38,
+                  color: index == realIndex
+                      ? AppColors.neonPurple
+                      : Colors.white38,
                 ),
               ),
             ),
@@ -1107,7 +1160,11 @@ class _SectionLayoutState extends State<_SectionLayout> {
   Widget _buildPlaceholder() {
     return ConstrainedBox(
       constraints: BoxConstraints(
-        maxWidth: widget.isMobile ? 420 : widget.isTablet ? 640 : 1000,
+        maxWidth: widget.isMobile
+            ? 420
+            : widget.isTablet
+            ? 640
+            : 1000,
       ),
       child: AspectRatio(
         aspectRatio: 1.6,
@@ -1123,7 +1180,11 @@ class _SectionLayoutState extends State<_SectionLayout> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.image_outlined, size: 48, color: Colors.white24),
+                  const Icon(
+                    Icons.image_outlined,
+                    size: 48,
+                    color: Colors.white24,
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     widget.imagePlaceholderLabel,
