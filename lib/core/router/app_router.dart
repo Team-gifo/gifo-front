@@ -19,6 +19,7 @@ import '../../features/content/presentation/quiz/quiz_view.dart';
 import '../../features/content/presentation/result/result_view.dart';
 import '../../features/content/presentation/unboxing/unboxing_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
+import '../../features/lobby/application/lobby_bloc.dart';
 import '../../features/lobby/model/lobby_data.dart';
 import '../../features/lobby/presentation/views/lobby_view.dart';
 import '../../features/lobby/presentation/views/memory_gallery_view.dart';
@@ -43,16 +44,30 @@ final GoRouter appRouter = GoRouter(
       path: '/',
       builder: (BuildContext context, GoRouterState state) => const HomeView(),
     ),
-    // 콘텐츠 이용 전 로비 화면
+    // 콘텐츠 이용 전 로비 화면 (초대코드 직접 입력 후 내부 이동용, 레거시)
     GoRoute(
       path: '/lobby',
       builder: (BuildContext context, GoRouterState state) {
-        // 전달된 초대코드를 사용하여 데이터를 생성 (기본값: helloworld)
         final String code = state.extra as String? ?? 'helloworld';
         final lobbyData =
             LobbyData.getDummyByCode(code) ??
             LobbyData.getDummyByCode('helloworld')!;
         return LobbyView(data: lobbyData, code: code);
+      },
+    ),
+    // 초대 코드 기반 로비 화면 - URL 경로에 코드가 포함되는 공유 가능한 형태
+    // /gift/code/{code} 형식으로 접근하면 code를 파싱하여 LobbyView 진입
+    GoRoute(
+      path: '/gift/code/:code',
+      builder: (BuildContext context, GoRouterState state) {
+        final String code = state.pathParameters['code'] ?? '';
+        final lobbyData =
+            LobbyData.getDummyByCode(code) ??
+            LobbyData.getDummyByCode('helloworld')!;
+        return BlocProvider(
+          create: (_) => LobbyBloc(),
+          child: LobbyView(data: lobbyData, code: code),
+        );
       },
     ),
     // 수신자용 추억 갤러리 화면 (입장 후 화면)
