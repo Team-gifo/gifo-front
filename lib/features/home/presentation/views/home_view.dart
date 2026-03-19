@@ -3,13 +3,13 @@ import 'dart:math' as math;
 import 'dart:ui';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
+import 'gift_mode_modal.dart';
 import 'invite_modal_content.dart';
 
 class HomeView extends StatefulWidget {
@@ -156,6 +156,24 @@ class _HomeViewState extends State<HomeView>
             backgroundColor: Colors.transparent,
             insetPadding: const EdgeInsets.symmetric(horizontal: 16),
             child: InviteModalContent(),
+          ),
+        );
+      },
+    );
+  }
+
+  // 선물 포장하기 모드 선택 모달 표시
+  void _showGiftModeModal(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black87,
+      builder: (context) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: const Dialog(
+            backgroundColor: Colors.transparent,
+            insetPadding: EdgeInsets.symmetric(horizontal: 16),
+            child: GiftModeModal(),
           ),
         );
       },
@@ -425,19 +443,7 @@ class _HomeViewState extends State<HomeView>
                             children: [
                               // 선물 포장하기 버튼
                               GestureDetector(
-                                onTap: () async {
-                                  final Uri url = Uri.base.resolve('/addgift');
-                                  if (await canLaunchUrl(url)) {
-                                    await launchUrl(
-                                      url,
-                                      webOnlyWindowName: '_blank',
-                                    );
-                                  } else {
-                                    if (context.mounted) {
-                                      context.push('/');
-                                    }
-                                  }
-                                },
+                                onTap: () => _showGiftModeModal(context),
                                 child: MouseRegion(
                                   cursor: SystemMouseCursors.click,
                                   child: Container(
@@ -753,19 +759,7 @@ class _HomeViewState extends State<HomeView>
                                     children: [
                                       // 1. 선물 포장하기 버튼
                                       GestureDetector(
-                                        onTap: () async {
-                                          final Uri url = Uri.base.resolve(
-                                            '/addgift',
-                                          );
-                                          if (await canLaunchUrl(url)) {
-                                            await launchUrl(
-                                              url,
-                                              webOnlyWindowName: '_blank',
-                                            );
-                                          } else if (context.mounted) {
-                                            context.push('/');
-                                          }
-                                        },
+                                        onTap: () => _showGiftModeModal(context),
                                         child: MouseRegion(
                                           cursor: SystemMouseCursors.click,
                                           child: Container(
@@ -1664,7 +1658,7 @@ class _DotGridPainter extends CustomPainter {
 class _TitleAndSubtitleAnimation extends StatefulWidget {
   final double screenWidth;
 
-  const _TitleAndSubtitleAnimation({super.key, required this.screenWidth});
+  const _TitleAndSubtitleAnimation({required this.screenWidth});
 
   @override
   State<_TitleAndSubtitleAnimation> createState() =>
