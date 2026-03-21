@@ -170,7 +170,12 @@ final GoRouter appRouter = GoRouter(
         final String itemName = extra?['itemName'] as String? ?? '결과 없음';
         final String imageUrl =
             extra?['imageUrl'] as String? ?? 'assets/images/title_logo.png';
-        return ResultView(itemName: itemName, imageUrl: imageUrl);
+        final String userName = extra?['userName'] as String? ?? '';
+        return ResultView(
+          itemName: itemName,
+          imageUrl: imageUrl,
+          userName: userName,
+        );
       },
     ),
     // 선물 포장하기 전체 플로우 (ShellRoute로 묶어 GiftPackagingBloc 상태 유지)

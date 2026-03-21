@@ -264,8 +264,11 @@ class _HomeViewState extends State<HomeView>
       screenHeight - 80.0 - topPadding,
     );
 
-    return SelectionArea(
-      child: Scaffold(
+    return Title(
+      title: '나만의 선물 페이지, Gifo',
+      color: Colors.black,
+      child: SelectionArea(
+        child: Scaffold(
         backgroundColor: AppColors.darkBg,
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         floatingActionButton: Padding(
@@ -1039,7 +1042,7 @@ class _HomeViewState extends State<HomeView>
           ],
         ),
       ),
-    );
+    ));
   }
 
   // ---- [추가] AppBar 중앙 네비게이션 메뉴 ----

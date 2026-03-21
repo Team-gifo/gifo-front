@@ -36,20 +36,28 @@ class _UnboxingViewState extends State<UnboxingView> {
             extra: <String, dynamic>{
               'itemName': state.unboxingContent!.afterOpen.itemName,
               'imageUrl': state.unboxingContent!.afterOpen.imageUrl,
+              'userName': state.userName,
             },
           );
         }
       },
       builder: (context, state) {
         if (state.unboxingContent == null) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return Title(
+            title: 'Happy Birthday, ${state.userName} | Gifo',
+            color: Colors.black,
+            child: const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
           );
         }
 
-        return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: _buildAppBar(state, size),
+        return Title(
+          title: 'Happy Birthday, ${state.userName} | Gifo',
+          color: Colors.black,
+          child: Scaffold(
+            backgroundColor: Colors.white,
+            appBar: _buildAppBar(state, size),
           body: SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -104,7 +112,7 @@ class _UnboxingViewState extends State<UnboxingView> {
                     child: _buildReceiveButton(isDesktop: false),
                   ),
                 ),
-        );
+        ));
       },
     );
   }
