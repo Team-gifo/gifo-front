@@ -73,8 +73,9 @@ final GoRouter appRouter = GoRouter(
     // /gift/code/:code 진입 시 코드 유효성 사전 검증
     // 유효하지 않으면 errorBuilder 대신 redirect로 처리
     if (state.matchedLocation.startsWith('/gift/code/')) {
-      final String code =
-          state.matchedLocation.replaceFirst('/gift/code/', '').trim();
+      final String code = state.matchedLocation
+          .replaceFirst('/gift/code/', '')
+          .trim();
       if (code.isEmpty || LobbyData.getDummyByCode(code) == null) {
         _shouldShowInvalidCodeToast = true;
         return '/';
