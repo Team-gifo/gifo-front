@@ -828,9 +828,12 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
               final bool isLoading =
                   packagingState.submitStatus == SubmitStatus.loading;
 
-              return PopScope(
-                canPop: false,
-                onPopInvoked: (bool didPop) {
+              return Title(
+                title: '선물 포장하기 - Gifo',
+                color: Colors.black,
+                child: PopScope(
+                  canPop: false,
+                  onPopInvoked: (bool didPop) {
                   if (didPop) return;
                   // 로딩 중에는 뒤로가기 차단
                   if (isLoading) return;
@@ -928,7 +931,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                     if (isLoading) _buildLoadingOverlay(),
                   ],
                 ),
-              );
+              ));
             },
           );
         },

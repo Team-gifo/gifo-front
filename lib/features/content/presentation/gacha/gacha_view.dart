@@ -34,20 +34,28 @@ class _GachaViewState extends State<GachaView> {
             extra: {
               'itemName': state.lastDrawnItem!.itemName,
               'imageUrl': state.lastDrawnItem!.imageUrl,
+              'userName': state.userName,
             },
           );
         }
       },
       builder: (context, state) {
         if (state.gachaContent == null) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return Title(
+            title: 'Happy Birthday, ${state.userName} | Gifo',
+            color: Colors.black,
+            child: const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
           );
         }
 
-        return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: _buildAppBar(state, isDesktop),
+        return Title(
+          title: 'Happy Birthday, ${state.userName} | Gifo',
+          color: Colors.black,
+          child: Scaffold(
+            backgroundColor: Colors.white,
+            appBar: _buildAppBar(state, isDesktop),
           body: SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -67,7 +75,7 @@ class _GachaViewState extends State<GachaView> {
                     child: _buildDrawButton(state, isMobile: true),
                   ),
                 ),
-        );
+        ));
       },
     );
   }

@@ -15,9 +15,12 @@ class PackageCompleteView extends StatefulWidget {
 class _PackageCompleteViewState extends State<PackageCompleteView> {
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (bool didPop, dynamic result) {
+    return Title(
+      title: '선물 포장하기 - Gifo',
+      color: Colors.black,
+      child: PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (bool didPop, dynamic result) {
         if (didPop) return;
         context.go('/');
       },
@@ -131,6 +134,6 @@ class _PackageCompleteViewState extends State<PackageCompleteView> {
           ),
         ),
       ),
-    );
+    ));
   }
 }

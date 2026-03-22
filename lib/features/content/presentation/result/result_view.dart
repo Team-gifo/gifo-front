@@ -6,17 +6,26 @@ import '../../../../core/widgets/shared_confetti_widget.dart';
 class ResultView extends StatelessWidget {
   final String itemName;
   final String imageUrl;
+  final String userName;
 
-  const ResultView({super.key, required this.itemName, required this.imageUrl});
+  const ResultView({
+    super.key,
+    required this.itemName,
+    required this.imageUrl,
+    this.userName = '',
+  });
 
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
     final bool isDesktop = size.width > 900;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
+    return Title(
+      title: 'Happy Birthday, $userName | Gifo',
+      color: Colors.black,
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
         automaticallyImplyLeading: false, // 뒤로 가기 버튼 제거
         backgroundColor: Colors.white,
         elevation: 0,
@@ -96,7 +105,7 @@ class ResultView extends StatelessWidget {
                 child: _buildActionButtons(context),
               ),
             ),
-    );
+    ));
   }
 
   Widget _buildActionButtons(BuildContext context) {
