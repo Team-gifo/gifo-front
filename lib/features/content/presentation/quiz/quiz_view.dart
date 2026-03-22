@@ -45,9 +45,10 @@ class _QuizViewState extends State<QuizView> {
 
           context.go(
             '/content/result',
-            extra: <String, String>{
+            extra: <String, dynamic>{
               'itemName': reward.itemName,
               'imageUrl': reward.imageUrl,
+              'userName': state.userName,
             },
           );
         }
@@ -67,23 +68,34 @@ class _QuizViewState extends State<QuizView> {
       },
       builder: (context, state) {
         if (state.quizContent == null) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return Title(
+            title: 'Happy Birthday, ${state.userName} | Gifo',
+            color: Colors.black,
+            child: const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
           );
         }
 
         if (state.currentQuizIndex >= state.quizContent!.list.length) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return Title(
+            title: 'Happy Birthday, ${state.userName} | Gifo',
+            color: Colors.black,
+            child: const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            ),
           );
         }
 
         final QuizItem currentQuiz =
             state.quizContent!.list[state.currentQuizIndex];
 
-        return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: _buildAppBar(state, size, isDesktop),
+        return Title(
+          title: 'Happy Birthday, ${state.userName} | Gifo',
+          color: Colors.black,
+          child: Scaffold(
+            backgroundColor: Colors.white,
+            appBar: _buildAppBar(state, size, isDesktop),
           body: SafeArea(
             child: _buildBody(context, isDesktop, currentQuiz, state),
           ),
@@ -98,7 +110,7 @@ class _QuizViewState extends State<QuizView> {
                     child: _buildInputArea(currentQuiz, isMobile: true),
                   ),
                 ),
-        );
+        ));
       },
     );
   }

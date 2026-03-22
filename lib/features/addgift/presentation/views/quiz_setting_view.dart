@@ -267,9 +267,12 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   Widget build(BuildContext context) {
     final bool isMobile = MediaQuery.sizeOf(context).width < 800;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
+    return Title(
+      title: '선물 포장하기 - Gifo',
+      color: Colors.black,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        appBar: AppBar(
         toolbarHeight: 68,
         backgroundColor: const Color(0xFFF8F9FA),
         surfaceTintColor: Colors.transparent,
@@ -329,7 +332,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
               ),
       ),
       bottomNavigationBar: isMobile ? _buildMobileBottomBar() : null,
-    );
+    ));
   }
 
   Widget _buildStepIndicator() {

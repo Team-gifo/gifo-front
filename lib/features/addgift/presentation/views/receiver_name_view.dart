@@ -29,9 +29,12 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
+    return Title(
+      title: '선물 포장하기 - Gifo',
+      color: Colors.black,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        appBar: AppBar(
         toolbarHeight: 68,
         backgroundColor: const Color(0xFFF8F9FA),
         surfaceTintColor: Colors.transparent,
@@ -163,7 +166,7 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
           ),
         ),
       ),
-    );
+    ));
   }
 
   Widget _buildStepIndicator() {
