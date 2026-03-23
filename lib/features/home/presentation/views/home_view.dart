@@ -56,7 +56,11 @@ class _HomeViewState extends State<HomeView>
     try {
       web.document.title = 'Gifo - 세상에 단 하나뿐인 특별한 선물 포장';
 
-      void injectOrUpdateMeta(String attrName, String attrValue, String content) {
+      void injectOrUpdateMeta(
+        String attrName,
+        String attrValue,
+        String content,
+      ) {
         var meta = web.document.querySelector('meta[$attrName="$attrValue"]');
         if (meta == null) {
           meta = web.document.createElement('meta');
@@ -66,16 +70,29 @@ class _HomeViewState extends State<HomeView>
         meta.setAttribute('content', content);
       }
 
-      injectOrUpdateMeta('name', 'description',
-          '기억에 남고 특별한 감동을 선물하고 싶다면 오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요. Gifo에서 지금 무료로 만들어보세요.');
-      injectOrUpdateMeta('name', 'keywords', 'Gifo, 기포, 선물, 생일, 이벤트, 포장, 특별한 선물, 웹사이트 선물, 모바일 교환권 대신');
+      injectOrUpdateMeta(
+        'name',
+        'description',
+        '기억에 남고 특별한 감동을 선물하고 싶다면 오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요. Gifo에서 지금 무료로 만들어보세요.',
+      );
+      injectOrUpdateMeta(
+        'name',
+        'keywords',
+        'Gifo, 기포, 선물, 생일, 이벤트, 포장, 특별한 선물, 웹사이트 선물, 모바일 교환권 대신',
+      );
       injectOrUpdateMeta('property', 'og:title', 'Gifo - 세상에 단 하나뿐인 특별한 선물 포장');
-      injectOrUpdateMeta('property', 'og:description',
-          '특별한 날, 당신만의 마음을 꾹꾹 눌러 담아 오직 한 사람만을 위한 특별한 웹 공간을 만들고 전달해보세요.');
+      injectOrUpdateMeta(
+        'property',
+        'og:description',
+        '특별한 날, 당신만의 마음을 꾹꾹 눌러 담아 오직 한 사람만을 위한 특별한 웹 공간을 만들고 전달해보세요.',
+      );
       injectOrUpdateMeta('property', 'og:type', 'website');
       injectOrUpdateMeta('property', 'og:url', web.window.location.href);
-      injectOrUpdateMeta('property', 'og:image',
-          'https://gifo.co.kr/assets/images/title_logo.png');
+      injectOrUpdateMeta(
+        'property',
+        'og:image',
+        'https://gifo.co.kr/assets/images/title_logo.png',
+      );
     } catch (_) {}
   }
 
@@ -846,9 +863,9 @@ class _HomeViewState extends State<HomeView>
                               '또한, 언제든지 기억할 수 있게 손쉽게 저장할 수 있습니다.\n\n'
                               '* 현재 이미지 저장만 지원합니다.',
                           imagePlaceholderLabel: 'Lobby Preview',
-                          imagePaths: const [
-                            'assets/images/example/surprise_ex.png',
-                            'assets/images/example/surprise_ex.png',
+                          imagePaths: const <String>[
+                            'assets/images/example/surprise_ex_1.png',
+                            'assets/images/example/surprise_ex_2.png',
                           ],
                         ),
 
