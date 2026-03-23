@@ -112,83 +112,97 @@ final GoRouter appRouter = GoRouter(
     // 콘텐츠 이용 전 로비 화면 (초대코드 직접 입력 후 내부 이동용, 레거시)
     GoRoute(
       path: '/lobby',
-      builder: (BuildContext context, GoRouterState state) {
+      pageBuilder: (BuildContext context, GoRouterState state) {
         final String code = state.extra as String? ?? 'helloworld';
         final lobbyData =
             LobbyData.getDummyByCode(code) ??
             LobbyData.getDummyByCode('helloworld')!;
-        return LobbyView(data: lobbyData, code: code);
+        return NoTransitionPage(
+          child: LobbyView(data: lobbyData, code: code),
+        );
       },
     ),
     // 초대 코드 기반 로비 화면 - URL 경로에 코드가 포함되는 공유 가능한 형태
     // redirect에서 유효성 검증을 이미 통과한 코드만 진입
     GoRoute(
       path: '/gift/code/:code',
-      builder: (BuildContext context, GoRouterState state) {
+      pageBuilder: (BuildContext context, GoRouterState state) {
         final String code = state.pathParameters['code'] ?? '';
         // redirect에서 유효성 검증 완료: null-fallback 불필요
         final LobbyData lobbyData = LobbyData.getDummyByCode(code)!;
-        return BlocProvider(
-          create: (_) => LobbyBloc(),
-          child: LobbyView(data: lobbyData, code: code),
+        return NoTransitionPage(
+          child: BlocProvider(
+            create: (_) => LobbyBloc(),
+            child: LobbyView(data: lobbyData, code: code),
+          ),
         );
       },
     ),
     // 수신자용 추억 갤러리 화면 (입장 후 화면)
     GoRoute(
       path: '/memory-gallery',
-      builder: (BuildContext context, GoRouterState state) {
+      pageBuilder: (BuildContext context, GoRouterState state) {
         final String code = state.extra as String? ?? 'helloworld';
-        return MemoryGalleryView(code: code);
+        return NoTransitionPage(
+          child: MemoryGalleryView(code: code),
+        );
       },
     ),
     // 콘텐츠 진행 - 캡슐 뽑기 화면
     GoRoute(
       path: '/content/gacha',
-      builder: (BuildContext context, GoRouterState state) {
+      pageBuilder: (BuildContext context, GoRouterState state) {
         final code = state.extra as String? ?? 'helloworld';
-        return BlocProvider<GachaBloc>(
-          create: (context) => GachaBloc(),
-          child: GachaView(code: code),
+        return NoTransitionPage(
+          child: BlocProvider<GachaBloc>(
+            create: (context) => GachaBloc(),
+            child: GachaView(code: code),
+          ),
         );
       },
     ),
     // 콘텐츠 진행 - 퀴즈 맞추기 화면
     GoRoute(
       path: '/content/quiz',
-      builder: (BuildContext context, GoRouterState state) {
+      pageBuilder: (BuildContext context, GoRouterState state) {
         final code = state.extra as String? ?? 'quiz123';
-        return BlocProvider<QuizBloc>(
-          create: (context) => QuizBloc(),
-          child: QuizView(code: code),
+        return NoTransitionPage(
+          child: BlocProvider<QuizBloc>(
+            create: (context) => QuizBloc(),
+            child: QuizView(code: code),
+          ),
         );
       },
     ),
     // 콘텐츠 진행 - 바로 오픈 화면
     GoRoute(
       path: '/content/unboxing',
-      builder: (BuildContext context, GoRouterState state) {
+      pageBuilder: (BuildContext context, GoRouterState state) {
         final String code = state.extra as String? ?? 'open123';
-        return BlocProvider<UnboxingBloc>(
-          create: (context) => UnboxingBloc(),
-          child: UnboxingView(code: code),
+        return NoTransitionPage(
+          child: BlocProvider<UnboxingBloc>(
+            create: (context) => UnboxingBloc(),
+            child: UnboxingView(code: code),
+          ),
         );
       },
     ),
     // 콘텐츠 진행 - 공용 결과창 화면
     GoRoute(
       path: '/content/result',
-      builder: (BuildContext context, GoRouterState state) {
+      pageBuilder: (BuildContext context, GoRouterState state) {
         final Map<String, dynamic>? extra =
             state.extra as Map<String, dynamic>?;
         final String itemName = extra?['itemName'] as String? ?? '결과 없음';
         final String imageUrl =
             extra?['imageUrl'] as String? ?? 'assets/images/title_logo.png';
         final String userName = extra?['userName'] as String? ?? '';
-        return ResultView(
-          itemName: itemName,
-          imageUrl: imageUrl,
-          userName: userName,
+        return NoTransitionPage(
+          child: ResultView(
+            itemName: itemName,
+            imageUrl: imageUrl,
+            userName: userName,
+          ),
         );
       },
     ),
