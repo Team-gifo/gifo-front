@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
 
   late LobbyData lobbyData;
   late List<GalleryItem> _galleryItems;
+  late List<int> _likeCounts;
 
   @override
   void initState() {
@@ -37,6 +39,13 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
     if (_galleryItems.length <= 1) {
       _isLastPageReached = true;
     }
+
+    final random = math.Random();
+    // 1 ~ 99999 사이 랜덤 숫자 생성
+    _likeCounts = List.generate(
+      _galleryItems.length,
+      (_) => random.nextInt(99999) + 1,
+    );
   }
 
   @override
@@ -92,10 +101,9 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
               Positioned.fill(
                 child: CustomPaint(painter: GridBackgroundPainter()),
               ),
-
               // 2. 상단 타이틀 로고 배치 (모바일은 중앙, 데스크톱은 좌측)
               Positioned(
-                top: 24,
+                top: 12,
                 left: isMobileOrSmall ? 0 : paddingHorizontal,
                 right: isMobileOrSmall ? 0 : null,
                 child: Align(
@@ -115,7 +123,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                       },
                       child: Image.asset(
                         'assets/images/title_logo.png',
-                        height: isMobileOrSmall ? 40 : 80,
+                        height: isMobileOrSmall ? 60 : 80,
                         color: Colors.white, // 통일감 있는 색상 유지
                       ),
                     ),
@@ -290,7 +298,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   Widget _buildActionRow() {
     return const Row(
       children: [
-        Icon(Icons.favorite_border, color: Colors.white, size: 28),
+        Icon(Icons.favorite, color: Colors.red, size: 28),
         SizedBox(width: 16),
         Icon(Icons.mode_comment_outlined, color: Colors.white, size: 28),
         SizedBox(width: 16),
@@ -314,8 +322,8 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
           height: 6.0,
           decoration: BoxDecoration(
             color: _currentPage == index
-                ? Colors.blue
-                : Colors.blue.withValues(alpha: 0.3),
+                ? AppColors.neonPurple
+                : AppColors.neonPurple.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(2.0),
           ),
         ),
@@ -325,7 +333,16 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
 
   // --- 본문 콘텐츠 (좋아요, 텍스트) ---
   Widget _buildLikesAndContent(double titleFontSize, double descFontSize) {
+    final size = MediaQuery.of(context).size;
+    final double screenWidth = size.width;
+
     final item = _galleryItems[_currentPage];
+    final bool isMobileOrSmall = screenWidth < AppBreakpoints.tablet;
+
+    // 좋아요 숫자 3자리마다 콤마 찍기
+    final String formattedLikes = _likeCounts[_currentPage]
+        .toString()
+        .replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => ',');
 
     // 최소 높이를 보장하여 텍스트가 적을 때도 하단 버튼 등이 위로 튀어오르는 현상 방지
     return Container(
@@ -334,7 +351,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SelectableText(
-            '좋아요 42개',
+            '좋아요 $formattedLikes개',
             style: TextStyle(
               fontFamily: 'WantedSans', // 가독성 폰트
               fontWeight: FontWeight.bold,
@@ -342,7 +359,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: isMobileOrSmall ? 8 : 20),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
             layoutBuilder: (currentChild, previousChildren) {
