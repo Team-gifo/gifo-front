@@ -207,7 +207,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
         ),
 
         // 이전/다음 화살표 (데스크톱/태블릿 환경에서만 표시)
-        if (isDesktop)
+        if (isDesktop && _currentPage > 0)
           Positioned(
             left: -24.0, // 바깥으로 빼서 거리를 넓게 유지
             top: 0,
@@ -229,7 +229,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
               ),
             ),
           ),
-        if (isDesktop)
+        if (isDesktop && _currentPage < _galleryItems.length - 1)
           Positioned(
             right: -24.0, // 바깥으로 밀어내기
             top: 0,
@@ -333,7 +333,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          SelectableText(
             '좋아요 42개',
             style: TextStyle(
               fontFamily: 'WantedSans', // 가독성 폰트
@@ -358,7 +358,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
               key: ValueKey<int>(_currentPage),
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                SelectableText(
                   item.title,
                   style: TextStyle(
                     fontFamily: 'PFStardust', // 메인 폰트
@@ -368,7 +368,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Text(
+                SelectableText(
                   item.description,
                   style: TextStyle(
                     fontFamily: 'WantedSans', // 가독성 폰트
