@@ -97,6 +97,26 @@ class _HomeViewState extends State<HomeView>
   }
 
   void _onScroll() {
+    // 스크롤 시 화면에 보이는 섹션 추적하여 활성화 탭 동기화
+    if (!_isScrolling) {
+      int newSection = 0;
+      for (int i = 0; i < _sectionKeys.length; i++) {
+        final context = _sectionKeys[i].currentContext;
+        if (context != null) {
+          final box = context.findRenderObject() as RenderBox?;
+          if (box != null) {
+            final dy = box.localToGlobal(Offset.zero, ancestor: null).dy;
+            if (dy < 400) {
+              newSection = i;
+            }
+          }
+        }
+      }
+      if (newSection != _currentSection) {
+        setState(() => _currentSection = newSection);
+      }
+    }
+
     // 6번째 섹션(인덱스 5, 푸터 포함)일 때는 FAB를 숨김
     final bool isLastSection = _currentSection == 5;
     final bool shouldShowFab = _scrollController.offset > 100 && !isLastSection;
@@ -153,53 +173,7 @@ class _HomeViewState extends State<HomeView>
     );
   }
 
-  // 마우스 휠 이벤트: 섹션 단위 이동 (데스크톱)
-  void _handlePointerSignal(PointerSignalEvent event) {
-    if (event is! PointerScrollEvent) return;
-    if (_isScrolling) return;
 
-    final double dy = event.scrollDelta.dy;
-    if (dy > 0) {
-      // 아래로
-      final next = math.min(_currentSection + 1, _sectionKeys.length - 1);
-      if (next != _currentSection) {
-        setState(() => _currentSection = next);
-        _scrollToSection(next);
-      }
-    } else if (dy < 0) {
-      // 위로
-      final prev = math.max(_currentSection - 1, 0);
-      if (prev != _currentSection) {
-        setState(() => _currentSection = prev);
-        _scrollToSection(prev);
-      }
-    }
-  }
-
-  // 터치 스와이프 종료: 속도 기반으로 수직 방향 판단 후 섹션 이동 (모바일 웹)
-  void _handleTouchEnd(DragEndDetails details) {
-    if (_isScrolling) return;
-    // primaryVelocity: 위로 스와이프 시 음수, 아래로 스와이프 시 양수
-    final double? velocity = details.primaryVelocity;
-    if (velocity == null) return;
-
-    // 충분한 속도(300)가 있을 때만 섹션 이동 (오작동 방지)
-    if (velocity < -300) {
-      // 위로 스와이프 -> 다음 섹션
-      final next = math.min(_currentSection + 1, _sectionKeys.length - 1);
-      if (next != _currentSection) {
-        setState(() => _currentSection = next);
-        _scrollToSection(next);
-      }
-    } else if (velocity > 300) {
-      // 아래로 스와이프 -> 이전 섹션
-      final prev = math.max(_currentSection - 1, 0);
-      if (prev != _currentSection) {
-        setState(() => _currentSection = prev);
-        _scrollToSection(prev);
-      }
-    }
-  }
 
   void _showInviteModal(BuildContext context) {
     showDialog(
@@ -272,7 +246,9 @@ class _HomeViewState extends State<HomeView>
         backgroundColor: AppColors.darkBg,
         floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
         floatingActionButton: Padding(
-          padding: const EdgeInsets.only(right: 30, bottom: 30),
+          padding: isMobile
+              ? EdgeInsets.zero
+              : const EdgeInsets.only(right: 30, bottom: 30),
           child: AnimatedOpacity(
             opacity: _showFab ? 1.0 : 0.0,
             duration: const Duration(milliseconds: 300),
@@ -298,144 +274,6 @@ class _HomeViewState extends State<HomeView>
             ),
           ),
         ),
-        appBar: AppBar(
-          toolbarHeight: 80.0,
-          backgroundColor: Colors.black.withValues(alpha: 0.8),
-          surfaceTintColor: Colors.transparent,
-          elevation: 0,
-          automaticallyImplyLeading: false,
-          actions: const [],
-          flexibleSpace: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-              child: Container(
-                decoration: const BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(color: Colors.white, width: 4),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          title: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: isMobile
-                  ? 8.0
-                  : isTablet
-                  ? 16.0
-                  : 60.0,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                // Logo
-                Row(
-                  children: <Widget>[
-                    Image.asset(
-                      'assets/images/title_logo.png',
-                      width: isMobile ? 72 : 100,
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
-
-                // ---- [추가] 중앙 네비게이션 메뉴 (데스크톱 전용) ----
-                if (!isMobile && !isTablet)
-                  Expanded(child: Center(child: _buildNavMenu())),
-
-                // Action 버튼 (데스크톱에서는 바로 노출, 모바일/태블릿은 햄버거 버튼)
-                if (!isMobile && !isTablet)
-                  AnimatedOpacity(
-                    opacity: _showAppBarAction ? 1.0 : 0.0,
-                    duration: const Duration(milliseconds: 300),
-                    child: IgnorePointer(
-                      ignoring: !_showAppBarAction,
-                      child: GestureDetector(
-                        onTap: () => _showInviteModal(context),
-                        child: MouseRegion(
-                          cursor: SystemMouseCursors.click,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                              vertical: 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              border: Border.all(
-                                color: AppColors.neonPurple,
-                                width: 2,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.neonPurple.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                  offset: const Offset(2, 2),
-                                ),
-                              ],
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.vpn_key_outlined,
-                                  color: AppColors.neonPurpleLight,
-                                  size: 18,
-                                ),
-                                SizedBox(width: 8),
-                                // appbar 기준
-                                Text(
-                                  '초대코드 입력',
-                                  style: TextStyle(
-                                    fontFamily: 'PFStardustS',
-                                    color: AppColors.neonPurpleLight,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                else
-                  // 모바일/태블릿용 버튼 구성
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // 초대코드 입력 아이콘 (스크롤 시 노출)
-                      AnimatedOpacity(
-                        opacity: _showAppBarAction ? 1.0 : 0.0,
-                        duration: const Duration(milliseconds: 300),
-                        child: IgnorePointer(
-                          ignoring: !_showAppBarAction,
-                          child: IconButton(
-                            onPressed: () => _showInviteModal(context),
-                            icon: const Icon(
-                              Icons.vpn_key_outlined,
-                              color: AppColors.neonPurpleLight,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8), // 아이콘 간 간격 확보
-                      // 햄버거 메뉴 버튼
-                      IconButton(
-                        onPressed: () => _showMobileMenu(context),
-                        icon: const Icon(
-                          Icons.menu_rounded,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-        ),
         body: Stack(
           children: [
             // 그리드 배경
@@ -443,17 +281,156 @@ class _HomeViewState extends State<HomeView>
               child: CustomPaint(painter: GridBackgroundPainter()),
             ),
 
-            // 마우스 휠(데스크톱) 및 터치 스와이프(모바일 웹) 이벤트 감지
-            GestureDetector(
-              onVerticalDragEnd: _handleTouchEnd,
-              child: Listener(
-                onPointerSignal: _handlePointerSignal,
-                child: SingleChildScrollView(
-                  controller: _scrollController,
-                  // 기본 스크롤을 막고 섹션 단위 이동만 허용
-                  physics: const NeverScrollableScrollPhysics(),
+            CustomScrollView(
+              controller: _scrollController,
+              // 기본 스크롤 방식 적용 (기존 NeverScrollableScrollPhysics 제거)
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverAppBar(
+                  pinned: !isMobile, // 데스크톱/태블릿은 상단 고정, 모바일은 스크롤 시 위로 숨김
+                  floating: isMobile, // 스크롤 시 위로 숨김 모션 (모바일만)
+                  snap: isMobile,
+                  toolbarHeight: 80.0,
+                  backgroundColor: Colors.black.withValues(alpha: 0.8),
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  automaticallyImplyLeading: false,
+                  actions: const [],
+                  flexibleSpace: ClipRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(color: Colors.white, width: 4),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  title: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isMobile
+                          ? 8.0
+                          : isTablet
+                          ? 16.0
+                          : 60.0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: <Widget>[
+                        // Logo
+                        Row(
+                          children: <Widget>[
+                            Image.asset(
+                              'assets/images/title_logo.png',
+                              width: isMobile ? 72 : 100,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+
+                        // ---- [추가] 중앙 네비게이션 메뉴 (데스크톱 전용) ----
+                        if (!isMobile && !isTablet)
+                          Expanded(child: Center(child: _buildNavMenu())),
+
+                        // Action 버튼 (데스크톱에서는 바로 노출, 모바일/태블릿은 햄버거 버튼)
+                        if (!isMobile && !isTablet)
+                          AnimatedOpacity(
+                            opacity: _showAppBarAction ? 1.0 : 0.0,
+                            duration: const Duration(milliseconds: 300),
+                            child: IgnorePointer(
+                              ignoring: !_showAppBarAction,
+                              child: GestureDetector(
+                                onTap: () => _showInviteModal(context),
+                                child: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
+                                      vertical: 12,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black,
+                                      border: Border.all(
+                                        color: AppColors.neonPurple,
+                                        width: 2,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AppColors.neonPurple.withValues(
+                                            alpha: 0.3,
+                                          ),
+                                          offset: const Offset(2, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          Icons.vpn_key_outlined,
+                                          color: AppColors.neonPurpleLight,
+                                          size: 18,
+                                        ),
+                                        SizedBox(width: 8),
+                                        // appbar 기준
+                                        Text(
+                                          '초대코드 입력',
+                                          style: TextStyle(
+                                            fontFamily: 'PFStardustS',
+                                            color: AppColors.neonPurpleLight,
+                                            fontSize: 18,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          )
+                        else
+                          // 모바일/태블릿용 버튼 구성
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // 초대코드 입력 아이콘 (스크롤 시 노출)
+                              AnimatedOpacity(
+                                opacity: _showAppBarAction ? 1.0 : 0.0,
+                                duration: const Duration(milliseconds: 300),
+                                child: IgnorePointer(
+                                  ignoring: !_showAppBarAction,
+                                  child: IconButton(
+                                    onPressed: () => _showInviteModal(context),
+                                    icon: const Icon(
+                                      Icons.vpn_key_outlined,
+                                      color: AppColors.neonPurpleLight,
+                                      size: 24,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8), // 아이콘 간 간격 확보
+                              // 햄버거 메뉴 버튼
+                              IconButton(
+                                onPressed: () => _showMobileMenu(context),
+                                icon: const Icon(
+                                  Icons.menu_rounded,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
                   child: Column(
                   children: [
+
                     // ---- 1. 메인 히어로 섹션 ----
                     Container(
                       key: _sectionKeys[0],
@@ -1037,7 +1014,7 @@ class _HomeViewState extends State<HomeView>
                   ],
                 ),
               ),
-            ),
+            ],
           ),
           ],
         ),
