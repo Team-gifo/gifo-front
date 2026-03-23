@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:universal_web/web.dart' as web;
 import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -47,9 +49,38 @@ class _HomeViewState extends State<HomeView>
   // AppBar 초대코드 버튼 표시 여부 (두 번째 섹션부터 노출)
   bool _showAppBarAction = false;
 
+  // SEO용 메타 태그 삽입
+  void _injectSEO() {
+    if (!kIsWeb) return;
+
+    try {
+      web.document.title = 'Gifo - 세상에 단 하나뿐인 특별한 선물 포장';
+
+      void injectOrUpdateMeta(String attrName, String attrValue, String content) {
+        var meta = web.document.querySelector('meta[$attrName="$attrValue"]');
+        if (meta == null) {
+          meta = web.document.createElement('meta');
+          meta.setAttribute(attrName, attrValue);
+          web.document.head?.append(meta);
+        }
+        meta.setAttribute('content', content);
+      }
+
+      injectOrUpdateMeta('name', 'description',
+          '기억에 남고 특별한 감동을 선물하고 싶다면 오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요. Gifo에서 지금 무료로 만들어보세요.');
+      injectOrUpdateMeta('name', 'keywords', 'Gifo, 선물, 생일, 이벤트, 포장, 특별한 선물, 웹사이트 선물');
+      injectOrUpdateMeta('property', 'og:title', 'Gifo - 당신만의 특별한 선물 포장');
+      injectOrUpdateMeta('property', 'og:description',
+          '특별한 날, 당신만의 마음을 꾹꾹 눌러 담아 세상에 단 하나뿐인 포장 공간을 만들고 전달하는 서비스입니다.');
+      injectOrUpdateMeta('property', 'og:type', 'website');
+      injectOrUpdateMeta('property', 'og:url', web.window.location.href);
+    } catch (_) {}
+  }
+
   @override
   void initState() {
     super.initState();
+    _injectSEO();
 
     _animationController = AnimationController(
       vsync: this,

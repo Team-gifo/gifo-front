@@ -18,6 +18,7 @@
 
 - 앱의 진입 화면. Gifo 브랜드 UI와 두 가지 CTA 버튼 제공
 - `showInvalidCodeToast` 파라미터: 잘못된 초대 코드 진입 시 토스트 표시 (전역 플래그에서 전달)
+- **SEO 및 검색 엔진 최적화**: `jaspr` 생태계의 `universal_web`을 사용하여 렌더링 초기 단계(`initState`)에 동적 메타 태그(`title`, `description`, `keywords`, `og:tags` 등) 주입을 통해 Google 등 웹 크롤러가 사이트 정보를 읽을 수 있도록 지원
 
 **두 가지 진입 경로:**
 
