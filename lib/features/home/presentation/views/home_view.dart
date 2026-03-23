@@ -68,12 +68,14 @@ class _HomeViewState extends State<HomeView>
 
       injectOrUpdateMeta('name', 'description',
           '기억에 남고 특별한 감동을 선물하고 싶다면 오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요. Gifo에서 지금 무료로 만들어보세요.');
-      injectOrUpdateMeta('name', 'keywords', 'Gifo, 선물, 생일, 이벤트, 포장, 특별한 선물, 웹사이트 선물');
-      injectOrUpdateMeta('property', 'og:title', 'Gifo - 당신만의 특별한 선물 포장');
+      injectOrUpdateMeta('name', 'keywords', 'Gifo, 기포, 선물, 생일, 이벤트, 포장, 특별한 선물, 웹사이트 선물, 모바일 교환권 대신');
+      injectOrUpdateMeta('property', 'og:title', 'Gifo - 세상에 단 하나뿐인 특별한 선물 포장');
       injectOrUpdateMeta('property', 'og:description',
-          '특별한 날, 당신만의 마음을 꾹꾹 눌러 담아 세상에 단 하나뿐인 포장 공간을 만들고 전달하는 서비스입니다.');
+          '특별한 날, 당신만의 마음을 꾹꾹 눌러 담아 오직 한 사람만을 위한 특별한 웹 공간을 만들고 전달해보세요.');
       injectOrUpdateMeta('property', 'og:type', 'website');
       injectOrUpdateMeta('property', 'og:url', web.window.location.href);
+      injectOrUpdateMeta('property', 'og:image',
+          'https://gifo.co.kr/assets/images/title_logo.png');
     } catch (_) {}
   }
 

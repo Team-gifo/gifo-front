@@ -7,7 +7,7 @@ import 'core/router/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  usePathUrlStrategy();
+  usePathUrlStrategy(); // 해시 제거 함수 호출 (http://localhost:5000/#/addgift → http://localhost:5000/addgift)
 
   // .env 파일 로드
   await dotenv.load(fileName: '.env');
