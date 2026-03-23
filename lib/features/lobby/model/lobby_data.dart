@@ -22,9 +22,10 @@ class LobbyData {
         bgm: 'track_sweet_01',
         gallery: <GalleryItem>[
           GalleryItem(
-            title: '우리의 첫 만남',
+            title: '다같이 만난 소중한 기억',
             imageUrl: 'assets/images/gallery_1.jpeg',
-            description: '벌써 시간이 이렇게 흘렀네. 함께했던 즐거운 시간들!',
+            description:
+                '우리가 만난지 벌써 8년이 지났어.\n그동안 함께 웃고 울었던 시간들이 엊그제 같은데\n벌써 이렇게 시간이 흘렀네. 앞으로도 잘 부탁해\n항상 고맙고 사랑해.',
           ),
           GalleryItem(
             title: '잊지 못할 추억',
