@@ -861,7 +861,7 @@ class _HomeViewState extends State<HomeView>
                               '상대방의 이름과 함께했던 추억을 알려주시면\n'
                               '초기 환영 화면과 추억 갤러리를 제공해드립니다.\n\n'
                               '또한, 언제든지 기억할 수 있게 손쉽게 저장할 수 있습니다.\n\n'
-                              '* 현재 이미지 저장만 지원합니다.',
+                              '* 일괄 저장 (.zip) 및 gifo style로 저장 가능',
                           imagePlaceholderLabel: 'Lobby Preview',
                           imagePaths: const <String>[
                             'assets/images/example/surprise_ex_1.png',
@@ -1612,13 +1612,15 @@ class _SectionLayoutState extends State<_SectionLayout> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: widget.reversed
                   ? [
-                      // reversed: 이미지(좌) -> 텍스트(우) / 이미지 비중 확대 (6:4)
+                      // reversed: 이미지(좌) -> 텍스트(우) / 이미지 비중 확대 (5.5:4.5)
                       Expanded(flex: 6, child: Center(child: imageBlock)),
                       const SizedBox(width: 80),
                       Expanded(flex: 4, child: textBlock),
+                      const SizedBox(width: 60), // 추가: 텍스트 우측 쏠림 방지
                     ]
                   : [
-                      // normal: 텍스트(좌) -> 이미지(우) / 이미지 비중 확대 (6:4)
+                      // normal: 텍스트(좌) -> 이미지(우) / 이미지 비중 확대 (5.5:4.5)
+                      const SizedBox(width: 60), // 추가: 텍스트 좌측 쏠림 방지
                       Expanded(flex: 4, child: textBlock),
                       const SizedBox(width: 80),
                       Expanded(flex: 6, child: Center(child: imageBlock)),
