@@ -62,22 +62,22 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
     final size = MediaQuery.of(context).size;
     final double screenWidth = size.width;
 
-    // AppBreakpoints 기반 해상도 분기
-    final bool isMobile = screenWidth < AppBreakpoints.mobile;
+    // 모바일 환경으로 간주할 최대 넓이를 태블릿 기준(768px 미만)까지 상향 (가로 폭이 좁은 모든 환경 대응)
+    final bool isMobileOrSmall = screenWidth < AppBreakpoints.tablet;
     final bool isTablet =
-        screenWidth >= AppBreakpoints.mobile &&
-        screenWidth < AppBreakpoints.desktop; // 1024px 미만을 태블릿으로 간주
+        screenWidth >= AppBreakpoints.tablet &&
+        screenWidth < AppBreakpoints.desktop; // 768px ~ 1024px 미만을 태블릿으로 간주
     final bool isDesktop =
         screenWidth >= AppBreakpoints.desktop; // 1024px 이상부터 데스크톱 가로 배율 적용
 
-    // 모바일/태블릿 등 가로 폭이 좁은 구간에서는 상하(Column) 배치 적용
-    final bool isColumnLayout = isMobile || isTablet;
+    // 모바일/세로형 구조는 상하(Column), 데스크톱과 태블릿은 좌우(Row) 배치 적용
+    final bool isColumnLayout = isMobileOrSmall;
 
     final double titleFontSize = isDesktop ? 36 : (isTablet ? 32 : 26);
     final double descFontSize = isDesktop ? 20 : (isTablet ? 18 : 16);
     final double paddingHorizontal = isDesktop
         ? 64.0
-        : (isTablet ? 48.0 : 24.0);
+        : (isTablet ? 48.0 : 16.0); // 모바일은 여백을 줄여 피드 이미지 확보
 
     return Title(
       title: 'Happy Birthday, ${lobbyData.user} | Gifo',
@@ -93,25 +93,31 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                 child: CustomPaint(painter: GridBackgroundPainter()),
               ),
 
-              // 2. 상단 좌측 로고 배치 (AppBar를 대체)
+              // 2. 상단 타이틀 로고 배치 (모바일은 중앙, 데스크톱은 좌측)
               Positioned(
                 top: 24,
-                left: paddingHorizontal,
-                child: MouseRegion(
-                  cursor: SystemMouseCursors.click,
-                  child: GestureDetector(
-                    onTap: () async {
-                      final Uri homeUri = Uri.base.resolve('/');
-                      if (await canLaunchUrl(homeUri)) {
-                        await launchUrl(homeUri, webOnlyWindowName: '_blank');
-                      } else {
-                        if (context.mounted) context.go('/');
-                      }
-                    },
-                    child: Image.asset(
-                      'assets/images/title_logo.png',
-                      height: isMobile ? 40 : 80,
-                      color: Colors.white, // 통일감 있는 색상 유지
+                left: isMobileOrSmall ? 0 : paddingHorizontal,
+                right: isMobileOrSmall ? 0 : null,
+                child: Align(
+                  alignment: isMobileOrSmall
+                      ? Alignment.center
+                      : Alignment.centerLeft,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () async {
+                        final Uri homeUri = Uri.base.resolve('/');
+                        if (await canLaunchUrl(homeUri)) {
+                          await launchUrl(homeUri, webOnlyWindowName: '_blank');
+                        } else {
+                          if (context.mounted) context.go('/');
+                        }
+                      },
+                      child: Image.asset(
+                        'assets/images/title_logo.png',
+                        height: isMobileOrSmall ? 40 : 80,
+                        color: Colors.white, // 통일감 있는 색상 유지
+                      ),
                     ),
                   ),
                 ),
@@ -119,12 +125,14 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
 
               // 3. 메인 콘텐츠 (이미지부 / 텍스트·버튼부 분리 배치)
               Positioned.fill(
-                top: isMobile ? 80 : 100, // 패딩(상단 로고 높이 + 여백 확보)
-                bottom: isMobile ? 80 : 100,
+                top: isMobileOrSmall ? 80 : 100, // 패딩(상단 로고 높이 + 여백 확보)
+                bottom: 0, // 하단은 padding으로만 조절하도록 변경. 하단까지 스크롤 자연스럽게 가기 위함.
                 child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: paddingHorizontal,
-                    vertical: 24.0,
+                  padding: EdgeInsets.fromLTRB(
+                    paddingHorizontal,
+                    24.0,
+                    paddingHorizontal,
+                    isMobileOrSmall ? 0 : 24.0, // 데스크톱은 하단 여백 부여
                   ),
                   child: isColumnLayout
                       ? _buildColumnLayout(titleFontSize, descFontSize)
@@ -198,182 +206,287 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
           },
         ),
 
-        // 이전/다음 화살표 (모바일/데스크톱 모두 표시, 이미지 엣지 기준 오버레이)
-        Positioned(
-          left: isDesktop ? -24.0 : 8.0, // 데스크톱은 바깥으로 빼서 거리를 넓게 유지
-          top: 0,
-          bottom: 0,
-          child: Center(
-            child: IconButton(
-              iconSize: isDesktop ? 48 : 36,
-              color: Colors.white70,
-              hoverColor: Colors.white12,
-              icon: const Icon(Icons.arrow_back_ios_new),
-              onPressed: () {
-                if (_currentPage > 0) {
-                  _pageController.previousPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              },
+        // 이전/다음 화살표 (데스크톱/태블릿 환경에서만 표시)
+        if (isDesktop)
+          Positioned(
+            left: -24.0, // 바깥으로 빼서 거리를 넓게 유지
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: IconButton(
+                iconSize: 48,
+                color: Colors.white70,
+                hoverColor: Colors.white12,
+                icon: const Icon(Icons.arrow_back_ios_new),
+                onPressed: () {
+                  if (_currentPage > 0) {
+                    _pageController.previousPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                },
+              ),
             ),
           ),
-        ),
-        Positioned(
-          right: isDesktop ? -24.0 : 8.0, // 우측 화면도 외곽으로 버튼 밀어내기
-          top: 0,
-          bottom: 0,
-          child: Center(
-            child: IconButton(
-              iconSize: isDesktop ? 48 : 36,
-              color: Colors.white70,
-              hoverColor: Colors.white12,
-              icon: const Icon(Icons.arrow_forward_ios),
-              onPressed: () {
-                if (_currentPage < _galleryItems.length - 1) {
-                  _pageController.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                }
-              },
+        if (isDesktop)
+          Positioned(
+            right: -24.0, // 바깥으로 밀어내기
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: IconButton(
+                iconSize: 48,
+                color: Colors.white70,
+                hoverColor: Colors.white12,
+                icon: const Icon(Icons.arrow_forward_ios),
+                onPressed: () {
+                  if (_currentPage < _galleryItems.length - 1) {
+                    _pageController.nextPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                },
+              ),
             ),
           ),
-        ),
       ],
     );
   }
 
-  // --- 위젯 분리: 텍스트 및 조작 버튼 영역 (지정된 순서로 배치) ---
-  Widget _buildTextAndControlSection(
-    double titleFontSize,
-    double descFontSize,
-  ) {
+  // --- 인스타그램 헤더 영역 ---
+  Widget _buildInstagramHeader(double titleFontSize) {
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white24, width: 1),
+            image: const DecorationImage(
+              image: AssetImage('assets/images/icons/app_icon.png'),
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          lobbyData.user,
+          style: TextStyle(
+            fontFamily: 'PFStardust',
+            fontSize: titleFontSize * 0.7, // 약간 작게 조절
+            color: Colors.white,
+          ),
+        ),
+        const Spacer(),
+        const Icon(Icons.more_horiz, color: Colors.white),
+      ],
+    );
+  }
+
+  // --- 인스타그램 액션 버튼 아이콘 ---
+  Widget _buildActionRow() {
+    return const Row(
+      children: [
+        Icon(Icons.favorite_border, color: Colors.white, size: 28),
+        SizedBox(width: 16),
+        Icon(Icons.mode_comment_outlined, color: Colors.white, size: 28),
+        SizedBox(width: 16),
+        Icon(Icons.send_outlined, color: Colors.white, size: 28),
+        Spacer(),
+        Icon(Icons.bookmark_border, color: Colors.white, size: 28),
+      ],
+    );
+  }
+
+  // --- 기존 인디케이터 (직사각형, 파란색) ---
+  Widget _buildIndicators() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        _galleryItems.length,
+        (index) => Container(
+          margin: const EdgeInsets.symmetric(horizontal: 3.0),
+          width: 16.0,
+          height: 6.0,
+          decoration: BoxDecoration(
+            color: _currentPage == index
+                ? Colors.blue
+                : Colors.blue.withValues(alpha: 0.3),
+            borderRadius: BorderRadius.circular(2.0),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- 본문 콘텐츠 (좋아요, 텍스트) ---
+  Widget _buildLikesAndContent(double titleFontSize, double descFontSize) {
     final item = _galleryItems[_currentPage];
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start, // 전체를 좌측(start) 정렬로 변경
-      mainAxisSize: MainAxisSize.min, // 텍스트 영역 길이에 맞춰 최소 높이만 사용
+    // 최소 높이를 보장하여 텍스트가 적을 때도 하단 버튼 등이 위로 튀어오르는 현상 방지
+    return Container(
+      constraints: const BoxConstraints(minHeight: 200.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '좋아요 42개',
+            style: TextStyle(
+              fontFamily: 'WantedSans', // 가독성 폰트
+              fontWeight: FontWeight.bold,
+              fontSize: descFontSize * 0.9,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 8),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            layoutBuilder: (currentChild, previousChildren) {
+              return Stack(
+                alignment: Alignment.topLeft,
+                children: <Widget>[
+                  ...previousChildren,
+                  if (currentChild != null) currentChild,
+                ],
+              );
+            },
+            child: Column(
+              key: ValueKey<int>(_currentPage),
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.title,
+                  style: TextStyle(
+                    fontFamily: 'PFStardust', // 메인 폰트
+                    fontSize: titleFontSize * 0.8,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  item.description,
+                  style: TextStyle(
+                    fontFamily: 'WantedSans', // 가독성 폰트
+                    fontSize: descFontSize,
+                    color: Colors.white70,
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --- 선물 확인하기 버튼 ---
+  Widget _buildEnterButton() {
+    return SizedBox(
+      width: double.infinity, // 버튼 넓이 확장
+      child: ElevatedButton(
+        onPressed: _isLastPageReached ? _onEnterPressed : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.neonPurple,
+          disabledBackgroundColor: Colors.white12,
+          foregroundColor: Colors.white,
+          disabledForegroundColor: Colors.white38,
+          padding: const EdgeInsets.symmetric(vertical: 18.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            side: BorderSide(
+              color: _isLastPageReached ? Colors.white : Colors.transparent,
+              width: 2,
+            ),
+          ),
+          elevation: 0,
+        ),
+        child: const Text(
+          '선물 확인하기',
+          style: TextStyle(
+            fontFamily: 'PFStardust',
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 모바일: 위에서 아래로 인스타그램 디자인 피드 배치
+  Widget _buildColumnLayout(double titleFontSize, double descFontSize) {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildInstagramHeader(titleFontSize),
+          const SizedBox(height: 16),
+          // Expanded 대신 정사각형(1:1) 비율 부여로 스크롤 가능한 이미지 크기 확보
+          AspectRatio(aspectRatio: 1.0, child: _buildImageSection(false)),
+          const SizedBox(height: 16),
+          // 액션 로우 버튼 및 가운데 인디케이터
+          Stack(
+            alignment: Alignment.center,
+            children: [_buildActionRow(), _buildIndicators()],
+          ),
+          const SizedBox(height: 12),
+          _buildLikesAndContent(titleFontSize, descFontSize),
+          const SizedBox(height: 24),
+          _buildEnterButton(),
+          const SizedBox(height: 48), // 모바일 환경 스크롤 최하단 여유 공간 확보
+        ],
+      ),
+    );
+  }
+
+  // 데스크톱 / 태블릿: 좌측 이미지, 우측 피드 정보 배치
+  Widget _buildRowLayout(double titleFontSize, double descFontSize) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. 텍스트 요소 (크로스페이드 애니메이션 부여)
-        AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
+        // 좌측: 슬라이딩되는 이미지 위젯 및 하단 인디케이터
+        Expanded(
+          flex: 5,
           child: Column(
-            key: ValueKey<int>(_currentPage),
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 좌측 정렬
             children: [
-              Text(
-                item.title,
-                style: TextStyle(
-                  fontSize: titleFontSize,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.start,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                item.description,
-                style: TextStyle(
-                  fontSize: descFontSize,
-                  color: Colors.white70,
-                  height: 1.5,
-                ),
-                textAlign: TextAlign.start,
-              ),
+              Expanded(child: _buildImageSection(true)),
+              const SizedBox(height: 16),
+              _buildIndicators(),
             ],
           ),
         ),
-
-        // 텍스트 시각적 그룹과 조작부 인디케이터+버튼 시각적 그룹을 띄우기 위한 넓은 여백 확보
-        const SizedBox(height: 80),
-
-        // 2. 컨트롤 요소 (텍스트 밑에 진행 상황 인디케이터와 확인 버튼 고정)
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start, // 조작부 요소들도 좌측 정렬
-          children: [
-            // 페이지 인디케이터 구성 (작은 직사각형, 파란색)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: List.generate(
-                _galleryItems.length,
-                (index) => Container(
-                  margin: const EdgeInsets.only(right: 6.0),
-                  width: 16.0,
-                  height: 6.0, // 직사각형 
-                  decoration: BoxDecoration(
-                    color: _currentPage == index
-                        ? Colors.blue
-                        : Colors.blue.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(2.0),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10), // indicator와 button 사이는 10px로 밀착
-            // 선물 확인하기 버튼 (마지막 슬라이드에 다다르기 전까지 비활성화 처리됨)
-            ElevatedButton(
-              onPressed: _isLastPageReached ? _onEnterPressed : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.neonPurple,
-                disabledBackgroundColor: Colors.white12, // 비활성화시 칙칙한 배경색 적용
-                foregroundColor: Colors.white,
-                disabledForegroundColor: Colors.white38, // 텍스트도 흐리게 처리
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 48.0,
-                  vertical: 18.0,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.0),
-                  side: BorderSide(
-                    color: _isLastPageReached
-                        ? Colors.white
-                        : Colors.transparent,
-                    width: 2,
-                  ),
-                ),
-                elevation: 0,
-              ),
-              child: const Text(
-                '선물 확인하기',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(height: 24),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // 모바일/태블릿: 상하단 분리형 세로 배치
-  Widget _buildColumnLayout(double titleFontSize, double descFontSize) {
-    return Column(
-      children: [
-        // 상단: 남는 공간을 이미지 위젯이 모두 차지하도록 유동적으로 조절
-        Expanded(child: _buildImageSection(false)),
-        const SizedBox(height: 32),
-        // 하단: 텍스트 영역 길이에 맞춰 세로 공간 사용 (text가 길어지면 이미지가 줄어듦)
-        _buildTextAndControlSection(titleFontSize, descFontSize),
-      ],
-    );
-  }
-
-  // 데스크톱: 좌우 대칭형 가로 배치
-  Widget _buildRowLayout(double titleFontSize, double descFontSize) {
-    return Row(
-      children: [
-        // 좌측: 슬라이딩되는 이미지 위젯
-        Expanded(flex: 5, child: _buildImageSection(true)),
         const SizedBox(width: 48),
-        // 우측: 텍스트 및 조작 버튼부 위젯
+        // 우측: 인스타그램 피드 형태의 텍스트 및 조작 버튼
         Expanded(
           flex: 4,
-          child: _buildTextAndControlSection(titleFontSize, descFontSize),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInstagramHeader(titleFontSize),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Divider(color: Colors.white24, height: 1),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: _buildLikesAndContent(titleFontSize, descFontSize),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Divider(color: Colors.white24, height: 1),
+              ),
+              _buildActionRow(),
+              const SizedBox(height: 24),
+              _buildEnterButton(),
+            ],
+          ),
         ),
       ],
     );
