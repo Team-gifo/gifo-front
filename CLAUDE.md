@@ -27,6 +27,7 @@
 |------|------|
 | [environment/setup.md](docs/environment/setup.md) | 개발환경 설정, .env 파일, build_runner 실행 방법 |
 | [environment/dependencies.md](docs/environment/dependencies.md) | pubspec.yaml 주요 의존성 목록 및 사용 목적 |
+| [environment/seo.md](docs/environment/seo.md) | 검색 엔진 최적화(SEO), sitemap 및 robots.txt 설정 정보 |
 
 ---
 
