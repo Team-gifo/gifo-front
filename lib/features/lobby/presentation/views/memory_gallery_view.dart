@@ -452,82 +452,113 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
           return StatefulBuilder(
             builder: (BuildContext context, StateSetter setModalState) {
               return Container(
-                padding: const EdgeInsets.all(24.0),
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.85, // 높이 상향
+                ),
+                padding: const EdgeInsets.all(28.0),
                 decoration: const BoxDecoration(
                   color: AppColors.darkBg,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(24.0),
-                    topRight: Radius.circular(24.0),
+                    topLeft: Radius.circular(32.0),
+                    topRight: Radius.circular(32.0),
                   ),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 24),
-                      decoration: BoxDecoration(
-                        color: Colors.white24,
-                        borderRadius: BorderRadius.circular(2),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 50,
+                        height: 5,
+                        margin: const EdgeInsets.only(bottom: 32),
+                        decoration: BoxDecoration(
+                          color: Colors.white24,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
-                    ),
-                    const Text(
-                      '이미지 다운로드',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'PFStardust',
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    _buildModalContent(setModalState),
-                    const SizedBox(height: 32),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextButton(
-                            onPressed: () => Navigator.pop(ctx),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                            ),
-                            child: const Text(
-                              '취소',
-                              style: TextStyle(color: Colors.white70),
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.download_for_offline,
+                            color: AppColors.neonPurple,
+                            size: 28,
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            '이미지 다운로드',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'PFStardust',
+                              fontSize: 24, // 20 -> 24 상향
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.neonPurple,
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      _buildModalContent(setModalState),
+                      const SizedBox(height: 40),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 20,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
                               ),
-                            ),
-                            onPressed:
-                                (!_dlOriginal && !_dlDesktop && !_dlMobile)
-                                ? null
-                                : () {
-                                    Navigator.pop(ctx);
-                                    _executeDownload();
-                                  },
-                            child: const Text(
-                              '다운로드',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                              child: const Text(
+                                '취소',
+                                style: TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 16,
+                                  fontFamily: 'WantedSans',
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                  ],
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.neonPurple,
+                                disabledBackgroundColor: Colors.white12,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 20,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              onPressed:
+                                  (!_dlOriginal && !_dlDesktop && !_dlMobile)
+                                  ? null
+                                  : () {
+                                      Navigator.pop(ctx);
+                                      _executeDownload();
+                                    },
+                              child: const Text(
+                                '다운로드 시작',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  fontFamily: 'WantedSans',
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               );
             },
@@ -542,34 +573,52 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
             builder: (BuildContext context, StateSetter setModalState) {
               return AlertDialog(
                 backgroundColor: AppColors.darkBg,
+                surfaceTintColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(24),
                 ),
-                title: const Text(
-                  '다운로드 옵션',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'PFStardust',
-                  ),
+                titlePadding: const EdgeInsets.fromLTRB(32, 32, 32, 0),
+                contentPadding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
+                title: const Row(
+                  children: [
+                    Icon(
+                      Icons.download_outlined,
+                      color: AppColors.neonPurple,
+                      size: 28,
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      '다운로드 옵션',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: 'PFStardust',
+                        fontSize: 24,
+                      ),
+                    ),
+                  ],
                 ),
                 content: SizedBox(
-                  width: 450,
+                  width: 550, // 450 -> 550 상향
                   child: SingleChildScrollView(
                     child: _buildModalContent(setModalState),
                   ),
                 ),
+                actionsPadding: const EdgeInsets.fromLTRB(0, 0, 32, 32),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(ctx),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
+                        horizontal: 24,
+                        vertical: 20,
                       ),
                     ),
                     child: const Text(
                       '취소',
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(
+                        color: Colors.white70,
+                        fontFamily: 'WantedSans',
+                      ),
                     ),
                   ),
                   ElevatedButton(
@@ -594,6 +643,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
+                        fontFamily: 'WantedSans',
                       ),
                     ),
                   ),
@@ -611,97 +661,217 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '다운로드 대상 선택',
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-          ),
+        // 그룹 1: 다운로드 대상
+        _buildOptionGroup(
+          title: '다운로드 범위',
+          icon: Icons.filter_center_focus_outlined,
+          children: [
+            RadioListTile<bool>(
+              title: const Text(
+                '현재 페이지만',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontFamily: 'WantedSans',
+                ),
+              ),
+              value: false,
+              groupValue: _dlAllPages,
+              onChanged: (bool? val) => setModalState(() => _dlAllPages = val!),
+              activeColor: AppColors.neonPurple,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              dense: false,
+            ),
+            const Divider(
+              color: Colors.white10,
+              height: 1,
+              indent: 12,
+              endIndent: 12,
+            ),
+            RadioListTile<bool>(
+              title: Text(
+                '전체 페이지 (${_galleryItems.length}개 일괄 다운로드)',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontFamily: 'WantedSans',
+                ),
+              ),
+              value: true,
+              groupValue: _dlAllPages,
+              onChanged: (bool? val) => setModalState(() => _dlAllPages = val!),
+              activeColor: AppColors.neonPurple,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+              dense: false,
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        RadioListTile<bool>(
-          title: const Text('현재 페이지만', style: TextStyle(color: Colors.white)),
-          value: false,
-          groupValue: _dlAllPages,
-          onChanged: (bool? val) => setModalState(() => _dlAllPages = val!),
-          activeColor: AppColors.neonPurple,
-          contentPadding: EdgeInsets.zero,
-          dense: true,
-        ),
-        RadioListTile<bool>(
-          title: Text(
-            '전체 페이지 (${_galleryItems.length}개)',
-            style: const TextStyle(color: Colors.white),
-          ),
-          value: true,
-          groupValue: _dlAllPages,
-          onChanged: (bool? val) => setModalState(() => _dlAllPages = val!),
-          activeColor: AppColors.neonPurple,
-          contentPadding: EdgeInsets.zero,
-          dense: true,
-        ),
-        const Divider(color: Colors.white12, height: 32),
-        const Text(
-          '포함할 항목 선택',
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        CheckboxListTile(
-          title: const Text('원본 이미지', style: TextStyle(color: Colors.white)),
-          value: _dlOriginal,
-          onChanged: (bool? val) =>
-              setModalState(() => _dlOriginal = val ?? false),
-          activeColor: AppColors.neonPurple,
-          contentPadding: EdgeInsets.zero,
-          dense: true,
-        ),
-        const Divider(color: Colors.white10, height: 1),
-        CheckboxListTile(
-          title: const Text(
-            '데스크톱 프레임 캡처 (1920x1080)',
-            style: TextStyle(color: Colors.white, fontSize: 13),
-          ),
-          value: _dlDesktop,
-          onChanged: (bool? val) =>
-              setModalState(() => _dlDesktop = val ?? false),
-          activeColor: AppColors.neonPurple,
-          contentPadding: EdgeInsets.zero,
-          dense: true,
-        ),
-        CheckboxListTile(
-          title: const Text(
-            '모바일 프레임 캡처',
-            style: TextStyle(color: Colors.white, fontSize: 13),
-          ),
-          value: _dlMobile,
-          onChanged: (bool? val) =>
-              setModalState(() => _dlMobile = val ?? false),
-          activeColor: AppColors.neonPurple,
-          contentPadding: EdgeInsets.zero,
-          dense: true,
+        const SizedBox(height: 24),
+        // 그룹 2: 포함할 포맷
+        _buildOptionGroup(
+          title: '이미지 포맷 선택',
+          icon: Icons.collections_outlined,
+          children: [
+            CheckboxListTile(
+              title: const Text(
+                '원본 이미지',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontFamily: 'WantedSans',
+                ),
+              ),
+              subtitle: const Text(
+                '업로드된 원본 해상도 그대로 저장',
+                style: TextStyle(
+                  color: Colors.white38,
+                  fontSize: 12,
+                  fontFamily: 'WantedSans',
+                ),
+              ),
+              value: _dlOriginal,
+              onChanged: (bool? val) =>
+                  setModalState(() => _dlOriginal = val ?? false),
+              activeColor: AppColors.neonPurple,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+            const Divider(
+              color: Colors.white10,
+              height: 1,
+              indent: 12,
+              endIndent: 12,
+            ),
+            CheckboxListTile(
+              title: const Text(
+                '데스크톱 Ver. 프레임 캡처 (1920x1080)',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontFamily: 'WantedSans',
+                ),
+              ),
+              subtitle: const Text(
+                '데스크톱 웹 가로 배율 프레임 적용',
+                style: TextStyle(
+                  color: Colors.white38,
+                  fontSize: 12,
+                  fontFamily: 'WantedSans',
+                ),
+              ),
+              value: _dlDesktop,
+              onChanged: (bool? val) =>
+                  setModalState(() => _dlDesktop = val ?? false),
+              activeColor: AppColors.neonPurple,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+            const Divider(
+              color: Colors.white10,
+              height: 1,
+              indent: 12,
+              endIndent: 12,
+            ),
+            CheckboxListTile(
+              title: const Text(
+                '모바일 Ver. 프레임 캡처',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontFamily: 'WantedSans',
+                ),
+              ),
+              subtitle: const Text(
+                '모바일 웹 해상도 프레임 적용',
+                style: TextStyle(
+                  color: Colors.white38,
+                  fontSize: 12,
+                  fontFamily: 'WantedSans',
+                ),
+              ),
+              value: _dlMobile,
+              onChanged: (bool? val) =>
+                  setModalState(() => _dlMobile = val ?? false),
+              activeColor: AppColors.neonPurple,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+          ],
         ),
         if ([_dlOriginal, _dlDesktop, _dlMobile].where((bool e) => e).length >=
                 2 ||
             _dlAllPages)
           Padding(
-            padding: const EdgeInsets.only(top: 12),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                '.zip 으로 압축되어 제공됩니다',
-                style: TextStyle(
-                  color: Colors.white.withOpacity(0.5),
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
+            padding: const EdgeInsets.only(top: 20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: AppColors.neonPurple.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.neonPurple.withValues(alpha: 0.2),
                 ),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: AppColors.neonPurple,
+                    size: 18,
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '이미지가 2개 이상 선택되어 .zip 파일로 압축되어 제공됩니다.',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        fontFamily: 'WantedSans',
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
+      ],
+    );
+  }
+
+  // --- 옵션 그룹화를 위한 헬퍼 위젯 ---
+  Widget _buildOptionGroup({
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 12),
+          child: Row(
+            children: [
+              Icon(icon, color: Colors.white54, size: 18),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.5,
+                  fontFamily: 'WantedSans',
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white10),
+          ),
+          child: Column(children: children),
+        ),
       ],
     );
   }
