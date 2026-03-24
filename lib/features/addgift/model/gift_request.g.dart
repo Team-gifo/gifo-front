@@ -14,7 +14,7 @@ _GiftRequest _$GiftRequestFromJson(Map<String, dynamic> json) => _GiftRequest(
       (json['gallery'] as List<dynamic>?)
           ?.map((e) => GalleryItem.fromJson(e as Map<String, dynamic>))
           .toList() ??
-      const [],
+      const <GalleryItem>[],
   content: GiftContent.fromJson(json['content'] as Map<String, dynamic>),
 );
 

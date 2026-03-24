@@ -1,13 +1,19 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
+import '../../application/memory_gallery_action/memory_gallery_action_bloc.dart';
 import '../../model/lobby_data.dart';
 
 class MemoryGalleryView extends StatefulWidget {
@@ -21,8 +27,13 @@ class MemoryGalleryView extends StatefulWidget {
 
 class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   final PageController _pageController = PageController();
+  final ScreenshotController _screenshotController = ScreenshotController();
   int _currentPage = 0;
   bool _isLastPageReached = false;
+
+  bool _dlOriginal = true;
+  bool _dlDesktop = false;
+  bool _dlMobile = false;
 
   late LobbyData lobbyData;
   late List<GalleryItem> _galleryItems;
@@ -95,60 +106,129 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
         backgroundColor: AppColors.darkBg,
         // 기존 AppBar를 제거하고 본문에 직관적으로 배치
         body: SafeArea(
-          child: Stack(
-            children: <Widget>[
-              // 1. 배경 그리드 패턴 추가
-              Positioned.fill(
-                child: CustomPaint(painter: GridBackgroundPainter()),
-              ),
-              // 2. 상단 타이틀 로고 배치 (모바일은 중앙, 데스크톱은 좌측)
-              Positioned(
-                top: 12,
-                left: isMobileOrSmall ? 0 : paddingHorizontal,
-                right: isMobileOrSmall ? 0 : null,
-                child: Align(
-                  alignment: isMobileOrSmall
-                      ? Alignment.center
-                      : Alignment.centerLeft,
-                  child: MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: () async {
-                        final Uri homeUri = Uri.base.resolve('/');
-                        if (await canLaunchUrl(homeUri)) {
-                          await launchUrl(homeUri, webOnlyWindowName: '_blank');
-                        } else {
-                          if (context.mounted) context.go('/');
-                        }
-                      },
-                      child: Image.asset(
-                        'assets/images/title_logo.png',
-                        height: isMobileOrSmall ? 60 : 80,
-                        color: Colors.white, // 통일감 있는 색상 유지
+          child:
+              BlocListener<MemoryGalleryActionBloc, MemoryGalleryActionState>(
+                listener: (context, state) {
+                  if (state.status == ActionStatus.success) {
+                    toastification.show(
+                      context: context,
+                      title: const Text('다운로드 완료!'),
+                      type: ToastificationType.success,
+                      autoCloseDuration: const Duration(seconds: 3),
+                    );
+                  } else if (state.status == ActionStatus.failure) {
+                    toastification.show(
+                      context: context,
+                      title: const Text('다운로드 중 오류가 발생했습니다.'),
+                      description: Text(state.errorMessage ?? ''),
+                      type: ToastificationType.error,
+                      autoCloseDuration: const Duration(seconds: 3),
+                    );
+                  }
+                },
+                child: Stack(
+                  children: <Widget>[
+                    // 1. 배경 그리드 패턴 추가
+                    Positioned.fill(
+                      child: CustomPaint(painter: GridBackgroundPainter()),
+                    ),
+                    // 2. 상단 타이틀 로고 배치 (모바일은 중앙, 데스크톱은 좌측)
+                    Positioned(
+                      top: 12,
+                      left: isMobileOrSmall ? 0 : paddingHorizontal,
+                      right: isMobileOrSmall ? 0 : null,
+                      child: Align(
+                        alignment: isMobileOrSmall
+                            ? Alignment.center
+                            : Alignment.centerLeft,
+                        child: MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTap: () async {
+                              final Uri homeUri = Uri.base.resolve('/');
+                              if (await canLaunchUrl(homeUri)) {
+                                await launchUrl(
+                                  homeUri,
+                                  webOnlyWindowName: '_blank',
+                                );
+                              } else {
+                                if (context.mounted) context.go('/');
+                              }
+                            },
+                            child: Image.asset(
+                              'assets/images/title_logo.png',
+                              height: isMobileOrSmall ? 60 : 80,
+                              color: Colors.white, // 통일감 있는 색상 유지
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ),
 
-              // 3. 메인 콘텐츠 (이미지부 / 텍스트·버튼부 분리 배치)
-              Positioned.fill(
-                top: isMobileOrSmall ? 80 : 100, // 패딩(상단 로고 높이 + 여백 확보)
-                bottom: 0, // 하단은 padding으로만 조절하도록 변경. 하단까지 스크롤 자연스럽게 가기 위함.
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    paddingHorizontal,
-                    24.0,
-                    paddingHorizontal,
-                    isMobileOrSmall ? 0 : 24.0, // 데스크톱은 하단 여백 부여
-                  ),
-                  child: isColumnLayout
-                      ? _buildColumnLayout(titleFontSize, descFontSize)
-                      : _buildRowLayout(titleFontSize, descFontSize),
+                    // 3. 메인 콘텐츠 (이미지부 / 텍스트·버튼부 분리 배치)
+                    Positioned.fill(
+                      top: isMobileOrSmall ? 80 : 100, // 패딩(상단 로고 높이 + 여백 확보)
+                      bottom:
+                          0, // 하단은 padding으로만 조절하도록 변경. 하단까지 스크롤 자연스럽게 가기 위함.
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          paddingHorizontal,
+                          24.0,
+                          paddingHorizontal,
+                          isMobileOrSmall ? 0 : 24.0, // 데스크톱은 하단 여백 부여
+                        ),
+                        child: isColumnLayout
+                            ? _buildColumnLayout(
+                                titleFontSize,
+                                descFontSize,
+                                true,
+                              )
+                            : _buildRowLayout(
+                                titleFontSize,
+                                descFontSize,
+                                false,
+                              ),
+                      ),
+                    ),
+
+                    // 4. 처리 중일 경우 오버레이 (다이얼로그 외의 전체 컴포넌트 커버)
+                    Positioned.fill(
+                      child: BlocBuilder<
+                        MemoryGalleryActionBloc,
+                        MemoryGalleryActionState
+                      >(
+                        builder: (context, state) {
+                          if (state.status == ActionStatus.loading) {
+                            return Container(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              child: const Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CircularProgressIndicator(
+                                      color: AppColors.neonPurple,
+                                    ),
+                                    SizedBox(height: 16),
+                                    Text(
+                                      '다운로드 처리 중...',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontFamily: 'PFStardust',
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
         ),
       ),
     );
@@ -296,16 +376,249 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
 
   // --- 인스타그램 액션 버튼 아이콘 ---
   Widget _buildActionRow() {
-    return const Row(
+    return Row(
       children: <Widget>[
-        Icon(Icons.favorite, color: Colors.red, size: 28),
-        SizedBox(width: 16),
-        Icon(Icons.mode_comment_outlined, color: Colors.white, size: 28),
-        SizedBox(width: 16),
-        Icon(Icons.send_outlined, color: Colors.white, size: 28),
-        Spacer(),
-        Icon(Icons.bookmark_border, color: Colors.white, size: 28),
+        const Icon(Icons.favorite, color: Colors.red, size: 28),
+        const SizedBox(width: 16),
+        const Icon(Icons.mode_comment_outlined, color: Colors.white, size: 28),
+        const SizedBox(width: 16),
+        const Icon(Icons.send_outlined, color: Colors.white, size: 28),
+        const Spacer(),
+        IconButton(
+          onPressed: _showDownloadModal,
+          icon: const Icon(
+            Icons.bookmark_border,
+            color: Colors.white,
+            size: 28,
+          ),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
       ],
+    );
+  }
+
+  void _showDownloadModal() {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return AlertDialog(
+              backgroundColor: AppColors.darkBg,
+              title: const Text(
+                '다운로드 옵션',
+                style: TextStyle(color: Colors.white, fontFamily: 'PFStardust'),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CheckboxListTile(
+                    title: const Text(
+                      '원본 이미지',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    value: _dlOriginal,
+                    onChanged: (bool? val) =>
+                        setModalState(() => _dlOriginal = val ?? false),
+                    activeColor: AppColors.neonPurple,
+                  ),
+                  CheckboxListTile(
+                    title: const Text(
+                      '웹사이트 프레임 캡처 (1920x1080)',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    value: _dlDesktop,
+                    onChanged: (bool? val) =>
+                        setModalState(() => _dlDesktop = val ?? false),
+                    activeColor: AppColors.neonPurple,
+                  ),
+                  CheckboxListTile(
+                    title: const Text(
+                      '모바일 프레임 캡처 (393x852)',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    value: _dlMobile,
+                    onChanged: (bool? val) =>
+                        setModalState(() => _dlMobile = val ?? false),
+                    activeColor: AppColors.neonPurple,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text(
+                    '취소',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.neonPurple,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _executeDownload();
+                  },
+                  child: const Text(
+                    '다운로드',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _executeDownload() async {
+    final MemoryGalleryActionBloc bloc = context
+        .read<MemoryGalleryActionBloc>();
+    final GalleryItem item = _galleryItems[_currentPage];
+    final List<Map<String, dynamic>> filesInfo = [];
+
+    if (!_dlOriginal && !_dlDesktop && !_dlMobile) {
+      toastification.show(
+        context: context,
+        title: const Text('선택된 항목이 없습니다.'),
+        type: ToastificationType.warning,
+        autoCloseDuration: const Duration(seconds: 3),
+      );
+      return;
+    }
+
+    // 로딩 시작 (BLoC에만 보내면 실제 처리를 View가 하므로 직접 Loading 상태를 emit하려면
+    // BLoC에서 캡처 처리를 해야하지만, 캡처는 위젯과 직결되므로 여기서 캡처 중이라도 사용자가 알 수 있게 UI를 막아둘 필요가 있음.
+    // 캡처 전에 BLoC 상태를 임의로 바꿀 수 있게 Event를 주입하거나, UI 스레드에서 캡처하므로 잠시 프리징되는 것을 대기합니다.)
+    // 가장 안전한 방법은 여기서 바로 BLoC Download 처리 이벤트를 보내되, 캡처는 미리 수행하는 것입니다.
+    // 캡처하는 동안 살짝 프리징 될 수 있으므로, 캡처 전에 모달을 닫고 짧은 딜레이를 주어 닫히는 애니메이션을 보장합니다.
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!context.mounted) return;
+
+    // 이 작업은 시간이 다소 소요되나 Progress Overlay 렌더링 시작을 위해
+    // 임시로 ActionStatus.loading을 직접 Emit 하거나 View 단에서 캡처가 돌아가는걸 감안해야합니다.
+    // 여기서는 BLoC 이벤트 실행 전에 미리 처리합니다.
+
+    // 1. 원본 이미지
+    if (_dlOriginal) {
+      final ByteData data = await rootBundle.load(item.imageUrl);
+      filesInfo.add({
+        'name': 'Original_${item.title}.png',
+        'bytes': data.buffer.asUint8List(),
+      });
+    }
+
+    // 2. 데스크톱 캡처 (1920x1080 고정 해상도)
+    if (_dlDesktop) {
+      try {
+        final Uint8List? desktopBytes = await _screenshotController
+            .captureFromWidget(
+              _buildCaptureFrame(isDesktop: true),
+              delay: const Duration(milliseconds: 500),
+              context: context,
+              targetSize: const Size(1920, 1080),
+              pixelRatio: 1.0,
+            );
+        if (desktopBytes != null) {
+          filesInfo.add({
+            'name': 'Desktop_${item.title}.png',
+            'bytes': desktopBytes,
+          });
+        }
+      } catch (e) {
+        debugPrint('Desktop capture error: $e');
+      }
+    }
+
+    // 3. 모바일 캡처 (아이폰 15 프로 기준 393x852 픽셀 배율, 스크린샷은 3x인 1179x2556 해상도 혹은 1배수.
+    // 여기서는 너무 커지는 것을 방지하여 393x852 레이아웃 & pixelRatio: 3.0 으로 1179x2556 원본 해상도 지정)
+    if (_dlMobile) {
+      try {
+        final Uint8List? mobileBytes = await _screenshotController
+            .captureFromWidget(
+              _buildCaptureFrame(isDesktop: false),
+              delay: const Duration(milliseconds: 500),
+              context: context,
+              targetSize: const Size(393, 852),
+              pixelRatio: 3.0,
+            );
+        if (mobileBytes != null) {
+          filesInfo.add({
+            'name': 'Mobile_${item.title}.png',
+            'bytes': mobileBytes,
+          });
+        }
+      } catch (e) {
+        debugPrint('Mobile capture error: $e');
+      }
+    }
+
+    if (filesInfo.isNotEmpty) {
+      bloc.add(ProcessDownloadEvent(filesInfo: filesInfo));
+    }
+  }
+
+  Widget _buildCaptureFrame({required bool isDesktop}) {
+    final double titleFontSize = isDesktop ? 36 : 26;
+    final double descFontSize = isDesktop ? 20 : 16;
+    final double width = isDesktop ? 1920 : 393;
+    final double height = isDesktop ? 1080 : 852;
+
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: MediaQuery(
+        data: MediaQueryData(size: Size(width, height)),
+        child: Scaffold(
+          backgroundColor: AppColors.darkBg,
+          body: SizedBox(
+            width: width,
+            height: height,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: CustomPaint(painter: GridBackgroundPainter()),
+                ),
+                Positioned(
+                  top: 12,
+                  left: isDesktop ? 64.0 : 0,
+                  right: isDesktop ? null : 0,
+                  child: Align(
+                    alignment: isDesktop
+                        ? Alignment.centerLeft
+                        : Alignment.center,
+                    child: Image.asset(
+                      'assets/images/title_logo.png',
+                      height: isDesktop ? 80 : 60,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Positioned.fill(
+                  top: isDesktop ? 100 : 80,
+                  bottom: 0,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      isDesktop ? 64.0 : 16.0,
+                      24.0,
+                      isDesktop ? 64.0 : 16.0,
+                      isDesktop ? 24.0 : 0,
+                    ),
+                    child: isDesktop
+                        ? _buildRowLayout(titleFontSize, descFontSize, false)
+                        : _buildColumnLayout(titleFontSize, descFontSize, true),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -332,17 +645,20 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   }
 
   // --- 본문 콘텐츠 (좋아요, 텍스트) ---
-  Widget _buildLikesAndContent(double titleFontSize, double descFontSize) {
-    final Size size = MediaQuery.of(context).size;
-    final double screenWidth = size.width;
-
+  Widget _buildLikesAndContent(
+    double titleFontSize,
+    double descFontSize,
+    bool isMobileOrSmall,
+  ) {
     final GalleryItem item = _galleryItems[_currentPage];
-    final bool isMobileOrSmall = screenWidth < AppBreakpoints.tablet;
 
     // 좋아요 숫자 3자리마다 콤마 찍기
     final String formattedLikes = _likeCounts[_currentPage]
         .toString()
-        .replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (Match match) => ',');
+        .replaceAllMapped(
+          RegExp(r'\B(?=(\d{3})+(?!\d))'),
+          (Match match) => ',',
+        );
 
     // 최소 높이를 보장하여 텍스트가 적을 때도 하단 버튼 등이 위로 튀어오르는 현상 방지
     return Container(
@@ -362,15 +678,13 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
           SizedBox(height: isMobileOrSmall ? 8 : 20),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-            layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
-              return Stack(
-                alignment: Alignment.topLeft,
-                children: <Widget>[
-                  ...previousChildren,
-                  ?currentChild,
-                ],
-              );
-            },
+            layoutBuilder:
+                (Widget? currentChild, List<Widget> previousChildren) {
+                  return Stack(
+                    alignment: Alignment.topLeft,
+                    children: <Widget>[...previousChildren, ?currentChild],
+                  );
+                },
             child: Column(
               key: ValueKey<int>(_currentPage),
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -436,7 +750,11 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   }
 
   // 모바일: 위에서 아래로 인스타그램 디자인 피드 배치
-  Widget _buildColumnLayout(double titleFontSize, double descFontSize) {
+  Widget _buildColumnLayout(
+    double titleFontSize,
+    double descFontSize,
+    bool isMobileOrSmall,
+  ) {
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
@@ -453,7 +771,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
             children: <Widget>[_buildActionRow(), _buildIndicators()],
           ),
           const SizedBox(height: 12),
-          _buildLikesAndContent(titleFontSize, descFontSize),
+          _buildLikesAndContent(titleFontSize, descFontSize, isMobileOrSmall),
           const SizedBox(height: 24),
           _buildEnterButton(),
           const SizedBox(height: 48), // 모바일 환경 스크롤 최하단 여유 공간 확보
@@ -463,7 +781,11 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   }
 
   // 데스크톱 / 태블릿: 좌측 이미지, 우측 피드 정보 배치
-  Widget _buildRowLayout(double titleFontSize, double descFontSize) {
+  Widget _buildRowLayout(
+    double titleFontSize,
+    double descFontSize,
+    bool isMobileOrSmall,
+  ) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -492,7 +814,11 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
               ),
               Expanded(
                 child: SingleChildScrollView(
-                  child: _buildLikesAndContent(titleFontSize, descFontSize),
+                  child: _buildLikesAndContent(
+                    titleFontSize,
+                    descFontSize,
+                    isMobileOrSmall,
+                  ),
                 ),
               ),
               const Padding(

@@ -19,6 +19,7 @@ import '../../features/content/presentation/result/result_view.dart';
 import '../../features/content/presentation/unboxing/unboxing_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
 import '../../features/lobby/application/lobby_bloc.dart';
+import '../../features/lobby/application/memory_gallery_action/memory_gallery_action_bloc.dart';
 import '../../features/lobby/model/lobby_data.dart';
 import '../../features/lobby/presentation/views/lobby_view.dart';
 import '../../features/lobby/presentation/views/memory_gallery_view.dart';
@@ -144,7 +145,10 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (BuildContext context, GoRouterState state) {
         final String code = state.extra as String? ?? 'helloworld';
         return NoTransitionPage(
-          child: MemoryGalleryView(code: code),
+          child: BlocProvider(
+            create: (_) => MemoryGalleryActionBloc(),
+            child: MemoryGalleryView(code: code),
+          ),
         );
       },
     ),

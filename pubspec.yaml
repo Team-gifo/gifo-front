@@ -33,6 +33,8 @@ dependencies:
   visibility_detector: ^0.4.0+2
   flutter_launcher_icons: ^0.14.4
   jaspr: ^0.22.4
+  screenshot: ^3.0.0
+  archive: ^4.0.9
 
 dev_dependencies:
   flutter_test:
