@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -77,7 +76,7 @@ class _GiftModeModalState extends State<GiftModeModal>
 
     return AnimatedBuilder(
       animation: _glowController,
-      builder: (context, child) {
+      builder: (BuildContext context, Widget? child) {
         return Container(
           width: double.infinity,
           // 데스크톱은 최대 너비 제한, 모바일은 full
@@ -93,7 +92,7 @@ class _GiftModeModalState extends State<GiftModeModal>
               color: _borderColorAnim.value ?? AppColors.pixelPurple,
               width: 4,
             ),
-            boxShadow: [
+            boxShadow: <BoxShadow>[
               BoxShadow(
                 color:
                     _borderColorAnim.value?.withValues(alpha: 0.4) ??
@@ -106,7 +105,7 @@ class _GiftModeModalState extends State<GiftModeModal>
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
+              children: <Widget>[
                 // 타이틀 영역
                 Text(
                   '선물 포장하기',
@@ -135,7 +134,7 @@ class _GiftModeModalState extends State<GiftModeModal>
                 if (!isDesktop)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
+                    children: <Widget>[
                       _buildAiCard(context, isMobile),
                       SizedBox(height: isMobile ? 10 : 14),
                       _buildManualCard(context, isMobile),
@@ -145,7 +144,7 @@ class _GiftModeModalState extends State<GiftModeModal>
                   IntrinsicHeight(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
+                      children: <Widget>[
                         Expanded(child: _buildAiCard(context, isMobile)),
                         const SizedBox(width: 20),
                         Expanded(child: _buildManualCard(context, isMobile)),
@@ -186,18 +185,18 @@ class _GiftModeModalState extends State<GiftModeModal>
               width: _isAiHovered ? 2 : 1,
             ),
             boxShadow: _isAiHovered
-                ? [
+                ? <BoxShadow>[
                     BoxShadow(
                       color: AppColors.neonPurple.withValues(alpha: 0.25),
                       blurRadius: 16,
                     ),
                   ]
-                : [],
+                : <BoxShadow>[],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               // AI 아이콘
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -254,7 +253,7 @@ class _GiftModeModalState extends State<GiftModeModal>
                 duration: const Duration(milliseconds: 200),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Text(
                       'AI로 시작하기',
                       style: TextStyle(
@@ -305,18 +304,18 @@ class _GiftModeModalState extends State<GiftModeModal>
               width: _isManualHovered ? 2 : 1,
             ),
             boxShadow: _isManualHovered
-                ? [
+                ? <BoxShadow>[
                     BoxShadow(
                       color: AppColors.neonBlue.withValues(alpha: 0.2),
                       blurRadius: 16,
                     ),
                   ]
-                : [],
+                : <BoxShadow>[],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               // 직접 입력 아이콘 (연필)
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -372,7 +371,7 @@ class _GiftModeModalState extends State<GiftModeModal>
                 duration: const Duration(milliseconds: 200),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Text(
                       '직접 시작하기',
                       style: TextStyle(

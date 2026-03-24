@@ -9,7 +9,7 @@ part 'gacha_content.g.dart';
 abstract class GachaContent with _$GachaContent {
   const factory GachaContent({
     @JsonKey(name: 'play_count') @Default(3) int playCount,
-    @Default([]) List<GachaItem> list,
+    @Default(<dynamic>[]) List<GachaItem> list,
   }) = _GachaContent;
 
   factory GachaContent.fromJson(Map<String, dynamic> json) =>

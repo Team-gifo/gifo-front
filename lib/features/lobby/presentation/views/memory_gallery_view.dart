@@ -40,7 +40,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
       _isLastPageReached = true;
     }
 
-    final random = math.Random();
+    final math.Random random = math.Random();
     // 1 ~ 99999 사이 랜덤 숫자 생성
     _likeCounts = List.generate(
       _galleryItems.length,
@@ -68,7 +68,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final Size size = MediaQuery.of(context).size;
     final double screenWidth = size.width;
 
     // 모바일 환경으로 간주할 최대 넓이를 태블릿 기준(768px 미만)까지 상향 (가로 폭이 좁은 모든 환경 대응)
@@ -96,7 +96,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
         // 기존 AppBar를 제거하고 본문에 직관적으로 배치
         body: SafeArea(
           child: Stack(
-            children: [
+            children: <Widget>[
               // 1. 배경 그리드 패턴 추가
               Positioned.fill(
                 child: CustomPaint(painter: GridBackgroundPainter()),
@@ -158,11 +158,11 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   Widget _buildImageSection(bool isDesktop) {
     return Stack(
       clipBehavior: Clip.none, // 이미지 영역 밖으로 화살표 버튼이 배치될 수 있도록 허용
-      children: [
+      children: <Widget>[
         PageView.builder(
           controller: _pageController,
           scrollBehavior: const MaterialScrollBehavior().copyWith(
-            dragDevices: {
+            dragDevices: <PointerDeviceKind>{
               PointerDeviceKind.mouse,
               PointerDeviceKind.touch,
               PointerDeviceKind.trackpad,
@@ -178,8 +178,8 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
             });
           },
           itemCount: _galleryItems.length,
-          itemBuilder: (context, index) {
-            final item = _galleryItems[index];
+          itemBuilder: (BuildContext context, int index) {
+            final GalleryItem item = _galleryItems[index];
             return Padding(
               // 데스크톱 환경에서는 좌우 화살표 공간 확보를 위해 패딩 추가
               padding: EdgeInsets.symmetric(horizontal: isDesktop ? 64.0 : 0.0),
@@ -266,7 +266,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   // --- 인스타그램 헤더 영역 ---
   Widget _buildInstagramHeader(double titleFontSize) {
     return Row(
-      children: [
+      children: <Widget>[
         Container(
           width: 36,
           height: 36,
@@ -297,7 +297,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   // --- 인스타그램 액션 버튼 아이콘 ---
   Widget _buildActionRow() {
     return const Row(
-      children: [
+      children: <Widget>[
         Icon(Icons.favorite, color: Colors.red, size: 28),
         SizedBox(width: 16),
         Icon(Icons.mode_comment_outlined, color: Colors.white, size: 28),
@@ -316,7 +316,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
         _galleryItems.length,
-        (index) => Container(
+        (int index) => Container(
           margin: const EdgeInsets.symmetric(horizontal: 3.0),
           width: 16.0,
           height: 6.0,
@@ -333,23 +333,23 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
 
   // --- 본문 콘텐츠 (좋아요, 텍스트) ---
   Widget _buildLikesAndContent(double titleFontSize, double descFontSize) {
-    final size = MediaQuery.of(context).size;
+    final Size size = MediaQuery.of(context).size;
     final double screenWidth = size.width;
 
-    final item = _galleryItems[_currentPage];
+    final GalleryItem item = _galleryItems[_currentPage];
     final bool isMobileOrSmall = screenWidth < AppBreakpoints.tablet;
 
     // 좋아요 숫자 3자리마다 콤마 찍기
     final String formattedLikes = _likeCounts[_currentPage]
         .toString()
-        .replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => ',');
+        .replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (Match match) => ',');
 
     // 최소 높이를 보장하여 텍스트가 적을 때도 하단 버튼 등이 위로 튀어오르는 현상 방지
     return Container(
       constraints: const BoxConstraints(minHeight: 200.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           SelectableText(
             '좋아요 $formattedLikes개',
             style: TextStyle(
@@ -362,19 +362,19 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
           SizedBox(height: isMobileOrSmall ? 8 : 20),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 300),
-            layoutBuilder: (currentChild, previousChildren) {
+            layoutBuilder: (Widget? currentChild, List<Widget> previousChildren) {
               return Stack(
                 alignment: Alignment.topLeft,
                 children: <Widget>[
                   ...previousChildren,
-                  if (currentChild != null) currentChild,
+                  ?currentChild,
                 ],
               );
             },
             child: Column(
               key: ValueKey<int>(_currentPage),
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 SelectableText(
                   item.title,
                   style: TextStyle(
@@ -441,7 +441,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        children: <Widget>[
           _buildInstagramHeader(titleFontSize),
           const SizedBox(height: 16),
           // Expanded 대신 정사각형(1:1) 비율 부여로 스크롤 가능한 이미지 크기 확보
@@ -450,7 +450,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
           // 액션 로우 버튼 및 가운데 인디케이터
           Stack(
             alignment: Alignment.center,
-            children: [_buildActionRow(), _buildIndicators()],
+            children: <Widget>[_buildActionRow(), _buildIndicators()],
           ),
           const SizedBox(height: 12),
           _buildLikesAndContent(titleFontSize, descFontSize),
@@ -466,12 +466,12 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   Widget _buildRowLayout(double titleFontSize, double descFontSize) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         // 좌측: 슬라이딩되는 이미지 위젯 및 하단 인디케이터
         Expanded(
           flex: 5,
           child: Column(
-            children: [
+            children: <Widget>[
               Expanded(child: _buildImageSection(true)),
               const SizedBox(height: 16),
               _buildIndicators(),
@@ -484,7 +484,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
           flex: 4,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+            children: <Widget>[
               _buildInstagramHeader(titleFontSize),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
@@ -520,7 +520,7 @@ class PixelCornerClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    final path = Path();
+    final Path path = Path();
     final double p = pixelSize;
     final double w = size.width;
     final double h = size.height;
@@ -574,9 +574,9 @@ class PixelShadowPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color;
+    final Paint paint = Paint()..color = color;
     // 위에 작성한 Clipper와 동일한 Path를 활용하여 클리핑 모양의 그림자 생성
-    final path = PixelCornerClipper(pixelSize: pixelSize).getClip(size);
+    final Path path = PixelCornerClipper(pixelSize: pixelSize).getClip(size);
     canvas.save();
     canvas.translate(offset.dx, offset.dy);
     canvas.drawPath(path, paint);

@@ -38,7 +38,7 @@ class MemoryGalleryItemData extends Equatable {
   }
 
   @override
-  List<Object?> get props => [id, imageFile?.path, title, description];
+  List<Object?> get props => <Object?>[id, imageFile?.path, title, description];
 }
 
 // MemoryGallerySettingBloc의 로컬 상태
@@ -59,7 +59,7 @@ class MemoryGallerySettingState extends Equatable {
   final bool isAscending;
 
   const MemoryGallerySettingState({
-    this.uiItems = const [],
+    this.uiItems = const <MemoryGalleryItemData>[],
     this.nextId = 1,
     this.selectedItemId,
     this.hoveredItemId,
@@ -110,7 +110,7 @@ class MemoryGallerySettingState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
+  List<Object?> get props => <Object?>[
         uiItems,
         nextId,
         selectedItemId,

@@ -112,19 +112,19 @@ class _InviteModalBodyState extends State<_InviteModalBody>
   Widget build(BuildContext context) {
     return BlocConsumer<LobbyBloc, LobbyState>(
       // 상태 변화에 따른 사이드 이펙트 처리
-      listener: (context, state) {
+      listener: (BuildContext context, LobbyState state) {
         if (state.status == LobbyCodeStatus.valid &&
             state.validatedCode != null) {
           _openGiftPage(context, state.validatedCode!);
         }
       },
-      builder: (context, state) {
+      builder: (BuildContext context, LobbyState state) {
         final bool isLoading = state.status == LobbyCodeStatus.loading;
         final bool hasError = state.status == LobbyCodeStatus.invalid;
 
         return AnimatedBuilder(
           animation: _glowController,
-          builder: (context, child) {
+          builder: (BuildContext context, Widget? child) {
             return Container(
               width: double.infinity,
               constraints: const BoxConstraints(maxWidth: 400),
@@ -135,7 +135,7 @@ class _InviteModalBodyState extends State<_InviteModalBody>
                   color: _borderColorAnim.value ?? AppColors.pixelPurple,
                   width: 4,
                 ),
-                boxShadow: [
+                boxShadow: <BoxShadow>[
                   BoxShadow(
                     color:
                         _borderColorAnim.value?.withValues(alpha: 0.5) ??
@@ -146,7 +146,7 @@ class _InviteModalBodyState extends State<_InviteModalBody>
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: [
+                children: <Widget>[
                   const Text(
                     '초대 코드 입력',
                     textAlign: TextAlign.center,
@@ -266,7 +266,7 @@ class _InviteModalBodyState extends State<_InviteModalBody>
                               : (hasError
                                     ? Colors.redAccent.withValues(alpha: 0.3)
                                     : AppColors.pixelPurple),
-                          boxShadow: [
+                          boxShadow: <BoxShadow>[
                             if (!_isInputEmpty && !hasError && !isLoading)
                               BoxShadow(
                                 color: AppColors.neonPurpleLight.withValues(

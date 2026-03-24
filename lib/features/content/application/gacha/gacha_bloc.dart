@@ -17,16 +17,16 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
 
   // 더미 데이터 기반 초기화 (추후 서버 데이터로 교체 예정)
   void _onInitGacha(InitGacha event, Emitter<GachaState> emit) {
-    final lobbyData = LobbyData.getDummyByCode(event.code);
+    final LobbyData? lobbyData = LobbyData.getDummyByCode(event.code);
     if (lobbyData == null || lobbyData.content?.gacha == null) return;
 
-    final gacha = lobbyData.content!.gacha!;
+    final GachaContent gacha = lobbyData.content!.gacha!;
     emit(
       state.copyWith(
         userName: lobbyData.user,
         gachaContent: gacha,
         remainingCount: gacha.playCount,
-        history: const [],
+        history: const <Map<String, String>>[],
         lastDrawnItem: null,
       ),
     );
@@ -36,12 +36,12 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
   void _onDrawGacha(DrawGacha event, Emitter<GachaState> emit) {
     if (state.remainingCount <= 0 || state.gachaContent == null) return;
 
-    final items = state.gachaContent!.list;
-    final randomItem = items[Random().nextInt(items.length)];
-    final timeStr = _formatTime(DateTime.now());
+    final List<GachaItem> items = state.gachaContent!.list;
+    final GachaItem randomItem = items[Random().nextInt(items.length)];
+    final String timeStr = _formatTime(DateTime.now());
 
-    final newHistory = [
-      {'time': timeStr, 'item': randomItem.itemName},
+    final List<Map<String, String>> newHistory = <Map<String, String>>[
+      <String, String>{'time': timeStr, 'item': randomItem.itemName},
       ...state.history,
     ];
 
@@ -59,12 +59,12 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
   }
 
   String _formatTime(DateTime time) {
-    final month = time.month;
-    final day = time.day;
-    final hour = time.hour;
-    final minute = time.minute.toString().padLeft(2, '0');
-    final ampm = hour < 12 ? '오전' : '오후';
-    final hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+    final int month = time.month;
+    final int day = time.day;
+    final int hour = time.hour;
+    final String minute = time.minute.toString().padLeft(2, '0');
+    final String ampm = hour < 12 ? '오전' : '오후';
+    final int hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
     return '$month월 $day일 $ampm $hour12시 $minute분';
   }
 }

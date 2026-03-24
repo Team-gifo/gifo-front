@@ -23,15 +23,15 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   final List<QuizItemData> _items = <QuizItemData>[];
 
   // 보상 관련 상태
-  QuizRewardData _successReward = QuizRewardData(requiredCount: 1);
-  QuizRewardData _failReward = QuizRewardData();
+  final QuizRewardData _successReward = QuizRewardData(requiredCount: 1);
+  final QuizRewardData _failReward = QuizRewardData();
 
   String _selectedBgm = '신나는 생일';
 
   @override
   void initState() {
     super.initState();
-    final blocState = context.read<GiftPackagingBloc>().state;
+    final GiftPackagingState blocState = context.read<GiftPackagingBloc>().state;
     // BLoC에 기존 입력된 받는 분 정보가 있다면 불러오기
     if (blocState.receiverName.isNotEmpty) {
       _userNameController.text = blocState.receiverName;
@@ -948,7 +948,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   }
 
   void _completePackage() {
-    final bloc = context.read<GiftPackagingBloc>();
+    final GiftPackagingBloc bloc = context.read<GiftPackagingBloc>();
 
     // 서브타이틀, BGM 저장
     bloc.add(SetSubTitle(_subTitleController.text.trim()));

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class GridBackgroundPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
+    final Paint paint = Paint()
       ..color = Colors.white.withValues(alpha: 0.05)
       ..strokeWidth = 1.0;
 

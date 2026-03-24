@@ -11,7 +11,7 @@ class GachaState {
     this.userName = '',
     this.gachaContent,
     this.remainingCount = 0,
-    this.history = const [],
+    this.history = const <Map<String, String>>[],
     this.lastDrawnItem,
   });
 

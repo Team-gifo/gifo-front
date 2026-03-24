@@ -4,7 +4,7 @@ abstract class GachaSettingEvent extends Equatable {
   const GachaSettingEvent();
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => <Object?>[];
 }
 
 // 화면 진입 시 초기화: GiftPackagingBloc의 기존 gachaContent를 바탕으로 UI 아이템 목록을 구성합니다.

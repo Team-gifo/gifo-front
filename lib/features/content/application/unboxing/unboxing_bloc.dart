@@ -14,10 +14,10 @@ class UnboxingBloc extends Bloc<UnboxingEvent, UnboxingState> {
   }
 
   void _onInitUnboxing(InitUnboxing event, Emitter<UnboxingState> emit) {
-    final lobbyData = LobbyData.getDummyByCode(event.code);
+    final LobbyData? lobbyData = LobbyData.getDummyByCode(event.code);
     if (lobbyData == null || lobbyData.content?.unboxing == null) return;
 
-    final unboxing = lobbyData.content!.unboxing!;
+    final UnboxingContent unboxing = lobbyData.content!.unboxing!;
     emit(
       state.copyWith(
         userName: lobbyData.user,

@@ -33,9 +33,9 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
   // GiftPackagingBloc의 현재 gachaContent에서 playCount를 유지하면서
   // uiItems를 GachaItem 목록으로 변환하여 GiftPackagingBloc에 저장합니다.
   void _pushToPackagingBloc(List<DefaultGachaItemData> uiItems) {
-    final currentPlayCount = _packagingBloc.state.gachaContent?.playCount ?? 3;
+    final int currentPlayCount = _packagingBloc.state.gachaContent?.playCount ?? 3;
 
-    final List<GachaItem> gachaItems = uiItems.map((item) {
+    final List<GachaItem> gachaItems = uiItems.map((DefaultGachaItemData item) {
       return GachaItem(
         itemName: item.itemName,
         imageUrl: item.imageFile?.path ?? '',
@@ -64,13 +64,13 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
 
   // 새 캡슐 아이템 추가: 로컬 uiItems에 추가 후 GiftPackagingBloc에 동기화
   void _onAddItem(AddGachaItem event, Emitter<GachaSettingState> emit) {
-    final newItem = DefaultGachaItemData(
+    final DefaultGachaItemData newItem = DefaultGachaItemData(
       id: state.nextId,
       color: event.color,
       itemName: '',
       percentStr: '0.0',
     );
-    final newUiItems = List<DefaultGachaItemData>.from(state.uiItems)
+    final List<DefaultGachaItemData> newUiItems = List<DefaultGachaItemData>.from(state.uiItems)
       ..add(newItem);
     emit(state.copyWith(uiItems: newUiItems, nextId: state.nextId + 1));
     _pushToPackagingBloc(newUiItems);
@@ -78,8 +78,8 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
 
   // 특정 캡슐 아이템 삭제: 로컬 uiItems에서 제거 후 GiftPackagingBloc에 동기화
   void _onRemoveItem(RemoveGachaItem event, Emitter<GachaSettingState> emit) {
-    final newUiItems = state.uiItems
-        .where((item) => item.id != event.id)
+    final List<DefaultGachaItemData> newUiItems = state.uiItems
+        .where((DefaultGachaItemData item) => item.id != event.id)
         .toList();
     emit(state.copyWith(uiItems: newUiItems));
     _pushToPackagingBloc(newUiItems);
@@ -90,8 +90,8 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
     RemoveAllGachaItems event,
     Emitter<GachaSettingState> emit,
   ) {
-    emit(state.copyWith(uiItems: []));
-    _pushToPackagingBloc([]);
+    emit(state.copyWith(uiItems: <DefaultGachaItemData>[]));
+    _pushToPackagingBloc(<DefaultGachaItemData>[]);
   }
 
   // 아이템 이름 변경: 로컬 uiItems 업데이트 후 GiftPackagingBloc에 동기화
@@ -99,7 +99,7 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
     UpdateGachaItemName event,
     Emitter<GachaSettingState> emit,
   ) {
-    final newUiItems = state.uiItems.map((item) {
+    final List<DefaultGachaItemData> newUiItems = state.uiItems.map((DefaultGachaItemData item) {
       if (item.id == event.id) return item.copyWith(itemName: event.name);
       return item;
     }).toList();
@@ -112,9 +112,10 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
     UpdateGachaItemPercent event,
     Emitter<GachaSettingState> emit,
   ) {
-    final newUiItems = state.uiItems.map((item) {
-      if (item.id == event.id)
+    final List<DefaultGachaItemData> newUiItems = state.uiItems.map((DefaultGachaItemData item) {
+      if (item.id == event.id) {
         return item.copyWith(percentStr: event.percentStr);
+      }
       return item;
     }).toList();
     emit(state.copyWith(uiItems: newUiItems));
@@ -126,7 +127,7 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
     UpdateGachaItemPercentOpen event,
     Emitter<GachaSettingState> emit,
   ) {
-    final newUiItems = state.uiItems.map((item) {
+    final List<DefaultGachaItemData> newUiItems = state.uiItems.map((DefaultGachaItemData item) {
       if (item.id == event.id) return item.copyWith(percentOpen: event.isOpen);
       return item;
     }).toList();
@@ -139,7 +140,7 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
     UpdateGachaItemImage event,
     Emitter<GachaSettingState> emit,
   ) {
-    final newUiItems = state.uiItems.map((item) {
+    final List<DefaultGachaItemData> newUiItems = state.uiItems.map((DefaultGachaItemData item) {
       if (item.id == event.id) return item.copyWith(imageFile: event.image);
       return item;
     }).toList();
@@ -152,7 +153,7 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
     RemoveGachaItemImage event,
     Emitter<GachaSettingState> emit,
   ) {
-    final newUiItems = state.uiItems.map((item) {
+    final List<DefaultGachaItemData> newUiItems = state.uiItems.map((DefaultGachaItemData item) {
       if (item.id == event.id) {
         // copyWith는 imageFile을 null로 처리할 수 없으므로 직접 생성
         return DefaultGachaItemData(
@@ -176,7 +177,7 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
     Emitter<GachaSettingState> emit,
   ) {
     final int playCount = int.tryParse(event.countStr) ?? 3;
-    final currentItems = _packagingBloc.state.gachaContent?.list ?? [];
+    final List<GachaItem> currentItems = _packagingBloc.state.gachaContent?.list ?? <GachaItem>[];
     _packagingBloc.add(
       SetGachaContent(GachaContent(playCount: playCount, list: currentItems)),
     );
@@ -192,7 +193,7 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
     SubmitGachaSetting event,
     Emitter<GachaSettingState> emit,
   ) {
-    final gachaContent =
+    final GachaContent gachaContent =
         _packagingBloc.state.gachaContent ?? const GachaContent();
 
     _packagingBloc.add(

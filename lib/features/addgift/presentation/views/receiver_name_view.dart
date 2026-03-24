@@ -135,10 +135,10 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
                           ),
                           elevation: 0,
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: const <Widget>[
+                          children: <Widget>[
                             Text(
                               '다음',
                               style: TextStyle(

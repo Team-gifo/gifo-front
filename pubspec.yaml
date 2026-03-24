@@ -1,5 +1,5 @@
 name: gifo
-description: "A new Flutter project."
+description: "오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요."
 publish_to: 'none'
 
 version: 1.0.3+1

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gifo/features/addgift/model/gacha_content.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -16,7 +17,7 @@ class GachaSettingView extends StatelessWidget {
   Widget build(BuildContext context) {
     // GiftPackagingBloc을 주입해서 GachaSettingBloc이 내부에서 직접 SubmitPackage를 dispatch할 수 있도록 합니다.
     return BlocProvider(
-      create: (context) => GachaSettingBloc(context.read<GiftPackagingBloc>()),
+      create: (BuildContext context) => GachaSettingBloc(context.read<GiftPackagingBloc>()),
       child: const _GachaSettingContent(),
     );
   }
@@ -47,7 +48,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
   @override
   void initState() {
     super.initState();
-    final packagingState = context.read<GiftPackagingBloc>().state;
+    final GiftPackagingState packagingState = context.read<GiftPackagingBloc>().state;
 
     // 이름/서브타이틀 복원
     if (packagingState.receiverName.isNotEmpty) {
@@ -58,8 +59,8 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     }
 
     // GiftPackagingBloc의 gachaContent에서 UI 아이템 목록과 뽑기 횟수 복원
-    final savedGacha = packagingState.gachaContent;
-    List<DefaultGachaItemData> initUiItems = [];
+    final GachaContent? savedGacha = packagingState.gachaContent;
+    List<DefaultGachaItemData> initUiItems = <DefaultGachaItemData>[];
     int nextId = 1;
 
     Color getRandomColor() {
@@ -73,7 +74,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     }
 
     if (savedGacha != null && savedGacha.list.isNotEmpty) {
-      for (final item in savedGacha.list) {
+      for (final GachaItem item in savedGacha.list) {
         initUiItems.add(
           DefaultGachaItemData(
             id: nextId++,
@@ -88,7 +89,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
       _playCountController.text = savedGacha.playCount.toString();
     }
 
-    final initialBgm = packagingState.bgm.isNotEmpty
+    final String initialBgm = packagingState.bgm.isNotEmpty
         ? packagingState.bgm
         : '신나는 생일';
 
@@ -130,7 +131,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
   // BLoC 내부에서 데이터를 조합한 뒤 GiftPackagingBloc.SubmitPackage -> _onSubmitPackage -> API 전송 순서로 실행됩니다.
   // 화면 전환은 GiftPackagingBloc의 success 상태를 BlocListener에서 감지해 처리합니다.
   void _completePackage() {
-    final packagingState = context.read<GiftPackagingBloc>().state;
+    final GiftPackagingState packagingState = context.read<GiftPackagingBloc>().state;
 
     context.read<GachaSettingBloc>().add(
       SubmitGachaSetting(
@@ -172,7 +173,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
 
   void _showEditModal(BuildContext context, DefaultGachaItemData itemData) {
     final bool isMobile = MediaQuery.sizeOf(context).width < 600;
-    final gachaBloc = context.read<GachaSettingBloc>();
+    final GachaSettingBloc gachaBloc = context.read<GachaSettingBloc>();
 
     setState(() {
       _selectedItemId = itemData.id;
@@ -278,10 +279,10 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
       builder: (BuildContext context, StateSetter setModalState) {
         // Bloc 상태를 구독하여 모달 내부를 자동 리빌드하기 위함
         return BlocBuilder<GachaSettingBloc, GachaSettingState>(
-          builder: (context, state) {
+          builder: (BuildContext context, GachaSettingState state) {
             // 현재 아이템 데이터를 uiItems에서 찾아옵니다.
-            final currentItemData = state.uiItems.firstWhere(
-              (item) => item.id == itemData.id,
+            final DefaultGachaItemData currentItemData = state.uiItems.firstWhere(
+              (DefaultGachaItemData item) => item.id == itemData.id,
               orElse: () => itemData,
             );
 
@@ -301,7 +302,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                 percentValue <= 100.0;
 
             double sumWithoutCurrent = 0.0;
-            for (final item in state.uiItems) {
+            for (final DefaultGachaItemData item in state.uiItems) {
               if (item.id != currentItemData.id) {
                 sumWithoutCurrent += item.percent;
               }
@@ -486,7 +487,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                           else
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
+                              children: <Widget>[
                                 Container(
                                   constraints: const BoxConstraints(
                                     maxHeight: 500,
@@ -510,7 +511,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                 const SizedBox(height: 12),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
+                                  children: <Widget>[
                                     OutlinedButton.icon(
                                       onPressed: () => _pickImage(
                                         currentItemData,
@@ -634,7 +635,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
-                            children: [
+                            children: <Widget>[
                               buildQuickPercentBtn(
                                 remainingStr,
                                 '(남은 확률) $remainingStr%',
@@ -768,22 +769,22 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
 
   // GiftPackagingBloc의 gachaContent를 기반으로 완료 가능 여부를 판단합니다.
   bool _canComplete() {
-    final packagingState = context.read<GiftPackagingBloc>().state;
-    final gachaContent = packagingState.gachaContent;
+    final GiftPackagingState packagingState = context.read<GiftPackagingBloc>().state;
+    final GachaContent? gachaContent = packagingState.gachaContent;
 
     if (gachaContent == null || gachaContent.list.isEmpty) return false;
     if (_userNameController.text.trim().isEmpty) return false;
     if (_subTitleController.text.trim().isEmpty) return false;
     if (gachaContent.playCount < 1) return false;
 
-    for (final item in gachaContent.list) {
+    for (final GachaItem item in gachaContent.list) {
       if (item.itemName.trim().isEmpty) return false;
       if (item.percent < 0.01 || item.percent > 100.0) return false;
     }
 
     final double total = gachaContent.list.fold(
       0.0,
-      (sum, item) => sum + item.percent,
+      (double sum, GachaItem item) => sum + item.percent,
     );
     if (total < 99.99 || total > 100.01) return false;
 
@@ -793,8 +794,8 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<GiftPackagingBloc, GiftPackagingState>(
-      listenWhen: (prev, curr) => prev.submitStatus != curr.submitStatus,
-      listener: (context, packagingState) {
+      listenWhen: (GiftPackagingState prev, GiftPackagingState curr) => prev.submitStatus != curr.submitStatus,
+      listener: (BuildContext context, GiftPackagingState packagingState) {
         if (packagingState.submitStatus == SubmitStatus.success) {
           // API 전송 성공: 포장 완료 화면으로 이동
           isPackageComplete = true;
@@ -812,16 +813,16 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
       // GiftPackagingBloc과 GachaSettingBloc을 모두 구독하여
       // 어느 한 쪽이라도 변경되면 전체 UI를 리빌드합니다.
       child: BlocBuilder<GiftPackagingBloc, GiftPackagingState>(
-        builder: (context, packagingState) {
+        builder: (BuildContext context, GiftPackagingState packagingState) {
           return BlocBuilder<GachaSettingBloc, GachaSettingState>(
-            builder: (context, gachaState) {
+            builder: (BuildContext context, GachaSettingState gachaState) {
               final bool isMobile = MediaQuery.sizeOf(context).width < 800;
 
               // 확률 계산 기준: GiftPackagingBloc의 gachaContent
-              final gachaItems = packagingState.gachaContent?.list ?? [];
+              final List<GachaItem> gachaItems = packagingState.gachaContent?.list ?? <GachaItem>[];
               final double totalPercent = gachaItems.fold(
                 0.0,
-                (sum, item) => sum + item.percent,
+                (double sum, GachaItem item) => sum + item.percent,
               );
               final double remainPercent = 100.0 - totalPercent;
 
@@ -1086,7 +1087,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     double remainPercent,
     bool isMobile,
   ) {
-    final uiItems = context.read<GachaSettingBloc>().state.uiItems;
+    final List<DefaultGachaItemData> uiItems = context.read<GachaSettingBloc>().state.uiItems;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -1134,7 +1135,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                       fontFamily: 'PFStardust',
                       color: Colors.black,
                     ),
-                    children: [
+                    children: <InlineSpan>[
                       const TextSpan(text: '전체 확률 : '),
                       TextSpan(
                         text: '${totalPercent.toStringAsFixed(2)}%',
@@ -1210,7 +1211,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
   }
 
   Widget _buildCapsuleListContainer({required bool isMobile}) {
-    final uiItems = context.read<GachaSettingBloc>().state.uiItems;
+    final List<DefaultGachaItemData> uiItems = context.read<GachaSettingBloc>().state.uiItems;
     return Container(
       width: double.infinity, // 부모 너비 가득
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -1823,7 +1824,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
 
   // 모바일 전용 우측 옵션 모달 (톱니바퀴 클릭시)
   void _showMobileSettingsModal(BuildContext context) {
-    final gachaBloc = context.read<GachaSettingBloc>();
+    final GachaSettingBloc gachaBloc = context.read<GachaSettingBloc>();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,

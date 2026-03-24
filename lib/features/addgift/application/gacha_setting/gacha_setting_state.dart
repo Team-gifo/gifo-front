@@ -40,7 +40,7 @@ class DefaultGachaItemData extends Equatable {
   }
 
   @override
-  List<Object?> get props => [
+  List<Object?> get props => <Object?>[
     id,
     color,
     imageFile,
@@ -62,7 +62,7 @@ class GachaSettingState extends Equatable {
   final String selectedBgm;
 
   const GachaSettingState({
-    this.uiItems = const [],
+    this.uiItems = const <DefaultGachaItemData>[],
     this.nextId = 1,
     this.selectedBgm = '신나는 생일',
   });
@@ -80,5 +80,5 @@ class GachaSettingState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [uiItems, nextId, selectedBgm];
+  List<Object?> get props => <Object?>[uiItems, nextId, selectedBgm];
 }

@@ -143,11 +143,11 @@ class GiftDeliveryMethodView extends StatelessWidget {
   }
 
   Future<void> _handleOptionTap(BuildContext context, String title) async {
-    final bloc = context.read<GiftPackagingBloc>();
-    final state = bloc.state;
+    final GiftPackagingBloc bloc = context.read<GiftPackagingBloc>();
+    final GiftPackagingState state = bloc.state;
 
     // 현재 각 콘텐츠별 데이터 유무 확인
-    final savedGacha = state.gachaContent;
+    final GachaContent? savedGacha = state.gachaContent;
     final bool hasGachaData = savedGacha != null && savedGacha.list.isNotEmpty;
 
     ContentType selectedType = ContentType.gacha;
@@ -167,7 +167,7 @@ class GiftDeliveryMethodView extends StatelessWidget {
     if (hasGachaData && selectedType != ContentType.gacha) {
       final bool? confirm = await showDialog<bool>(
         context: context,
-        builder: (dialogContext) => AlertDialog(
+        builder: (BuildContext dialogContext) => AlertDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),

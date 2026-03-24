@@ -25,7 +25,7 @@ class QuizState {
   // 성공 기준 충족 여부 판별
   bool get isSuccess {
     if (quizContent == null) return false;
-    final requiredCount = quizContent!.successReward.requiredCount ?? 0;
+    final int requiredCount = quizContent!.successReward.requiredCount ?? 0;
     return correctCount >= requiredCount;
   }
 

@@ -1,8 +1,8 @@
 import 'dart:ui';
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gifo/features/addgift/model/gallery_item.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
@@ -51,14 +51,14 @@ class _MemoryGallerySettingViewState
 
   // GiftPackagingBloc의 기존 gallery 데이터를 토대로 MemoryGallerySettingBloc을 초기화합니다.
   void _initBlocFromPackagingState() {
-    final packagingState = context.read<GiftPackagingBloc>().state;
+    final GiftPackagingState packagingState = context.read<GiftPackagingBloc>().state;
     if (packagingState.gallery.isEmpty) return;
 
     final List<MemoryGalleryItemData> initialItems =
         List<MemoryGalleryItemData>.generate(packagingState.gallery.length, (
           int i,
         ) {
-          final item = packagingState.gallery[i];
+          final GalleryItem item = packagingState.gallery[i];
           return MemoryGalleryItemData(
             id: i + 1,
             title: item.title,
@@ -91,7 +91,7 @@ class _MemoryGallerySettingViewState
   // 모바일: BottomSheet / 데스크톱: 우측 슬라이드 패널
   void _showEditModal(BuildContext context, MemoryGalleryItemData itemData) {
     final bool isMobile = MediaQuery.sizeOf(context).width < 600;
-    final memoryBloc = context.read<MemoryGallerySettingBloc>();
+    final MemoryGallerySettingBloc memoryBloc = context.read<MemoryGallerySettingBloc>();
 
     memoryBloc.add(SelectMemoryItem(itemData.id));
 
@@ -176,7 +176,7 @@ class _MemoryGallerySettingViewState
   // 모든 아이템이 완전한 데이터를 갖고 있는지 검증합니다.
   bool _canSave(List<MemoryGalleryItemData> items) {
     if (items.isEmpty) return false;
-    for (final item in items) {
+    for (final MemoryGalleryItemData item in items) {
       if (item.title.trim().isEmpty) return false;
       if (item.description.trim().isEmpty) return false;
       if (item.imageFile == null) return false;
@@ -1172,7 +1172,7 @@ class _MemoryEditForm extends StatelessWidget {
     return BlocBuilder<MemoryGallerySettingBloc, MemoryGallerySettingState>(
       builder: (BuildContext context, MemoryGallerySettingState state) {
         final MemoryGalleryItemData? itemData = state.uiItems
-            .where((item) => item.id == itemId)
+            .where((MemoryGalleryItemData item) => item.id == itemId)
             .firstOrNull;
 
         if (itemData == null) return const SizedBox.shrink();

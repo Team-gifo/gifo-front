@@ -10,7 +10,7 @@ abstract class QuizContent with _$QuizContent {
   const factory QuizContent({
     @JsonKey(name: 'success_reward') required QuizSuccessReward successReward,
     @JsonKey(name: 'fail_reward') required QuizFailReward failReward,
-    @Default([]) List<QuizItemModel> list,
+    @Default(<dynamic>[]) List<QuizItemModel> list,
   }) = _QuizContent;
 
   factory QuizContent.fromJson(Map<String, dynamic> json) =>
@@ -52,8 +52,8 @@ abstract class QuizItemModel with _$QuizItemModel {
     @JsonKey(name: 'image_url') String? imageUrl,
     String? description,
     String? hint,
-    @Default([]) List<String> options,
-    @Default([]) List<String> answer,
+    @Default(<dynamic>[]) List<String> options,
+    @Default(<dynamic>[]) List<String> answer,
     @JsonKey(name: 'play_limit') @Default(1) int playLimit,
   }) = _QuizItemModel;
 

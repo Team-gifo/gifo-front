@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
 
-import '../model/gift_request.dart';
 
 part 'addgift_api.g.dart';
 
