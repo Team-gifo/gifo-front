@@ -62,3 +62,8 @@
 - [x] 선물 포장하기 시작 모달
 - [x] 초대 코드 입력 모달
 - [x] 메인 화면 애니메이션 이미지
+- [x] 검색 엔진 최적화 (SEO) 시스템 구축
+  - [x] `robots.txt` & `sitemap.xml` (Domain: `gifo.co.kr`)
+  - [x] HTML Meta Tags (Description, Keywords, OG Tags, Canonical)
+  - [x] `SeoText` & `SeoImage` DOM 주입 위젯 구현 및 적용
+- [x] 데스크톱 레이아웃 디테일 개선 (Section 여백 조정)
