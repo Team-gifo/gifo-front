@@ -4,7 +4,7 @@ abstract class MemoryGallerySettingEvent extends Equatable {
   const MemoryGallerySettingEvent();
 
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => <Object?>[];
 }
 
 // 화면 진입 시 초기화: GiftPackagingBloc의 기존 gallery 데이터를 바탕으로 uiItems를 구성합니다.
@@ -93,5 +93,5 @@ class SortMemoryItems extends MemoryGallerySettingEvent {
   const SortMemoryItems(this.sortType);
 
   @override
-  List<Object?> get props => [sortType];
+  List<Object?> get props => <Object?>[sortType];
 }

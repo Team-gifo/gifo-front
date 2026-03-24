@@ -34,8 +34,25 @@ Google 등 메인 검색엔진에 어떤 페이지들을 긁어가야 하는지(
 - **웹 오픈 그래프 (`og:`) 태그**: 소셜 미디어(카카오톡 썸네일, 페이스북, X 등) 공유 시 보이는 제목, 이미지, 설명을 삽입.
   - `og:image`는 대표 이미지인 `assets/images/title_logo.png`로 지정했습니다.
 - **`title`**: 브라우저 탭 및 검색 엔진 기본 이름.
+- **`canonical`**: 대표 URL 지정 (`https://gifo.co.kr/`).
 
-## 3. 동적 SEO 태그 적용 로직 (`lib/features/home/presentation/views/home_view.dart`)
+## 3. SEO 전용 컴포넌트 (`lib/core/widgets/`)
 
-`universal_web/web.dart` 등을 통해서 `HomeView`의 `initState` 상에서 자바스크립트 DOM을 컨트롤하여 SEO 태그들을 다시 상태에 맞게 업데이트하는 코드가 들어가 있습니다. 
-최신 구글 크롤러는 자바스크립트를 해석하여 렌더링된 메타 태그를 읽을 수 있으므로, 웹 환경 런타임에서도 태그를 갱신/지속하게 됩니다.
+Flutter Web의 CanvasKit 렌더링 한계를 극복하기 위해, 런타임에 실제 HTML DOM 요소를 보이지 않게 주입하는 전용 위젯을 사용합니다.
+
+### SeoText (`seo_text.dart`)
+- **역할**: Flutter `Text` 위젯과 동일하게 화면에 그리면서, 상응하는 HTML 태그(`h1`, `h2`, `p`, `span` 등)를 생성해 브라우저 DOM 트리에 주입합니다.
+- **사용 예시**: 
+  ```dart
+  SeoText('제목입니다', tag: 'h1', style: ...)
+  ```
+
+### SeoImage (`seo_image.dart`)
+- **역할**: `Image.asset` 기능을 수행함과 동시에, 크롤러가 읽을 수 있는 `<img>` 태그와 `alt` 속성을 DOM에 주입합니다.
+- **특징**: `alignment`, `color`, `fit` 등 기존 이미지 프로퍼티를 지원합니다.
+
+## 4. 메타 태그 중앙 관리
+
+기존에 `HomeView`의 `initState`에서 자바스크립트로 직접 컨트롤하던 방식에서, **`web/index.html` 정적 파일 관리 방식**으로 통일했습니다. 
+- 중복 태그 생성을 방지하고 일관된 검색 엔진 정보를 제공합니다.
+- 정적인 정보(제목, 설명, 키워드, OG 태그)는 `index.html`에서 관리하고, 본문의 구체적인 내용은 `SeoText`/`SeoImage`가 보완합니다.

@@ -13,7 +13,7 @@ abstract class GiftRequest with _$GiftRequest {
     @Default('') String user,
     @JsonKey(name: 'sub_title') @Default('') String subTitle,
     @Default('') String bgm,
-    @Default([]) List<GalleryItem> gallery,
+    @Default(<dynamic>[]) List<GalleryItem> gallery,
     required GiftContent content,
   }) = _GiftRequest;
 

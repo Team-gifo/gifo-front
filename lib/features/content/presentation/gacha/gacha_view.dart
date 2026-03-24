@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gifo/features/lobby/model/lobby_data.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../application/gacha/gacha_bloc.dart';
@@ -22,16 +23,16 @@ class _GachaViewState extends State<GachaView> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isDesktop = size.width > 900;
+    final Size size = MediaQuery.of(context).size;
+    final bool isDesktop = size.width > 900;
 
     return BlocConsumer<GachaBloc, GachaState>(
       // 뽑기 결과가 나오면 결과 화면으로 이동
-      listener: (context, state) {
+      listener: (BuildContext context, GachaState state) {
         if (state.lastDrawnItem != null) {
           context.push(
             '/content/result',
-            extra: {
+            extra: <String, String>{
               'itemName': state.lastDrawnItem!.itemName,
               'imageUrl': state.lastDrawnItem!.imageUrl,
               'userName': state.userName,
@@ -39,7 +40,7 @@ class _GachaViewState extends State<GachaView> {
           );
         }
       },
-      builder: (context, state) {
+      builder: (BuildContext context, GachaState state) {
         if (state.gachaContent == null) {
           return Title(
             title: 'Happy Birthday, ${state.userName} | Gifo',
@@ -88,7 +89,7 @@ class _GachaViewState extends State<GachaView> {
       title: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
-          children: [
+          children: <Widget>[
             Image.asset('assets/images/title_logo.png', height: 50),
             const SizedBox(width: 16),
             RichText(
@@ -98,7 +99,7 @@ class _GachaViewState extends State<GachaView> {
                   color: Colors.black,
                   fontWeight: FontWeight.bold,
                 ),
-                children: [
+                children: <InlineSpan>[
                   TextSpan(
                     text: state.userName,
                     style: const TextStyle(color: Colors.blue),
@@ -117,19 +118,19 @@ class _GachaViewState extends State<GachaView> {
       ),
       actions: isDesktop
           ? null
-          : [
+          : <Widget>[
               IconButton(
                 icon: const Icon(Icons.history, color: Colors.black),
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => AlertDialog(
+                    builder: (BuildContext context) => AlertDialog(
                       title: const Text('히스토리'),
                       content: SizedBox(
                         width: double.maxFinite,
                         child: _buildHistoryBoard(state),
                       ),
-                      actions: [
+                      actions: <Widget>[
                         TextButton(
                           onPressed: () => context.pop(),
                           child: const Text('닫기'),
@@ -147,12 +148,12 @@ class _GachaViewState extends State<GachaView> {
   Widget _buildDesktopLayout(GachaState state) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Expanded(
           flex: 4,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+            children: <Widget>[
               const SizedBox(height: 32),
               Text(
                 '남은 기회 : ${state.remainingCount}회',
@@ -174,11 +175,11 @@ class _GachaViewState extends State<GachaView> {
         Expanded(
           flex: 6,
           child: Column(
-            children: [
+            children: <Widget>[
               Expanded(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: <Widget>[
                     Expanded(child: _buildPrizeListBoard(state)),
                     const SizedBox(width: 24),
                     Expanded(child: _buildHistoryBoard(state)),
@@ -197,7 +198,7 @@ class _GachaViewState extends State<GachaView> {
   Widget _buildMobileLayout(GachaState state) {
     return SingleChildScrollView(
       child: Column(
-        children: [
+        children: <Widget>[
           const SizedBox(height: 16),
           Text(
             '남은 기회 : ${state.remainingCount}회',
@@ -219,7 +220,7 @@ class _GachaViewState extends State<GachaView> {
 
   Widget _buildPrizeListBoard(GachaState state) {
     return Column(
-      children: [
+      children: <Widget>[
         const Text(
           '경품 목록',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -234,12 +235,12 @@ class _GachaViewState extends State<GachaView> {
           child: ListView.separated(
             padding: const EdgeInsets.all(16.0),
             itemCount: state.gachaContent!.list.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-            itemBuilder: (context, index) {
-              final item = state.gachaContent!.list[index];
+            separatorBuilder: (BuildContext context, int index) => const SizedBox(height: 16),
+            itemBuilder: (BuildContext context, int index) {
+              final GachaItem item = state.gachaContent!.list[index];
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
+                children: <Widget>[
                   Text(item.itemName, style: const TextStyle(fontSize: 16)),
                   Text(
                     item.percentOpen
@@ -258,7 +259,7 @@ class _GachaViewState extends State<GachaView> {
 
   Widget _buildHistoryBoard(GachaState state) {
     return Column(
-      children: [
+      children: <Widget>[
         const Text(
           '히스토리',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -280,13 +281,13 @@ class _GachaViewState extends State<GachaView> {
               : ListView.separated(
                   padding: const EdgeInsets.all(16.0),
                   itemCount: state.history.length,
-                  separatorBuilder: (context, index) =>
+                  separatorBuilder: (BuildContext context, int index) =>
                       const SizedBox(height: 16),
-                  itemBuilder: (context, index) {
-                    final h = state.history[index];
+                  itemBuilder: (BuildContext context, int index) {
+                    final Map<String, String> h = state.history[index];
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                      children: <Widget>[
                         Text(
                           h['time']!,
                           style: const TextStyle(
@@ -301,7 +302,7 @@ class _GachaViewState extends State<GachaView> {
                               fontSize: 14,
                               color: Colors.black,
                             ),
-                            children: [
+                            children: <InlineSpan>[
                               TextSpan(
                                 text: '"${h['item']}"',
                                 style: const TextStyle(

@@ -33,7 +33,7 @@ class MemoryGallerySettingBloc
 
   // uiItems를 GalleryItem 목록으로 변환하여 GiftPackagingBloc에 동기화합니다.
   void _pushToPackagingBloc(List<MemoryGalleryItemData> uiItems) {
-    final List<GalleryItem> galleryItems = uiItems.map((item) {
+    final List<GalleryItem> galleryItems = uiItems.map((MemoryGalleryItemData item) {
       return GalleryItem(
         title: item.title,
         imageUrl: item.imageFile?.path ?? '',
@@ -62,8 +62,8 @@ class MemoryGallerySettingBloc
     AddMemoryItem event,
     Emitter<MemoryGallerySettingState> emit,
   ) {
-    final newItem = MemoryGalleryItemData(id: state.nextId);
-    final newUiItems = List<MemoryGalleryItemData>.from(state.uiItems)
+    final MemoryGalleryItemData newItem = MemoryGalleryItemData(id: state.nextId);
+    final List<MemoryGalleryItemData> newUiItems = List<MemoryGalleryItemData>.from(state.uiItems)
       ..add(newItem);
     emit(state.copyWith(uiItems: newUiItems, nextId: state.nextId + 1));
     _pushToPackagingBloc(newUiItems);
@@ -74,8 +74,8 @@ class MemoryGallerySettingBloc
     RemoveMemoryItem event,
     Emitter<MemoryGallerySettingState> emit,
   ) {
-    final newUiItems = state.uiItems
-        .where((item) => item.id != event.id)
+    final List<MemoryGalleryItemData> newUiItems = state.uiItems
+        .where((MemoryGalleryItemData item) => item.id != event.id)
         .toList();
     emit(state.copyWith(uiItems: newUiItems));
     _pushToPackagingBloc(newUiItems);
@@ -86,8 +86,8 @@ class MemoryGallerySettingBloc
     RemoveAllMemoryItems event,
     Emitter<MemoryGallerySettingState> emit,
   ) {
-    emit(state.copyWith(uiItems: [], nextId: 1, selectedItemId: null));
-    _pushToPackagingBloc([]);
+    emit(state.copyWith(uiItems: <MemoryGalleryItemData>[], nextId: 1, selectedItemId: null));
+    _pushToPackagingBloc(<MemoryGalleryItemData>[]);
   }
 
   // 드래그를 통한 아이템 순서 변경 후 GiftPackagingBloc에 동기화
@@ -115,7 +115,7 @@ class MemoryGallerySettingBloc
     UpdateMemoryItemTitle event,
     Emitter<MemoryGallerySettingState> emit,
   ) {
-    final newUiItems = state.uiItems.map((item) {
+    final List<MemoryGalleryItemData> newUiItems = state.uiItems.map((MemoryGalleryItemData item) {
       if (item.id == event.id) return item.copyWith(title: event.title);
       return item;
     }).toList();
@@ -128,7 +128,7 @@ class MemoryGallerySettingBloc
     UpdateMemoryItemDescription event,
     Emitter<MemoryGallerySettingState> emit,
   ) {
-    final newUiItems = state.uiItems.map((item) {
+    final List<MemoryGalleryItemData> newUiItems = state.uiItems.map((MemoryGalleryItemData item) {
       if (item.id == event.id) {
         return item.copyWith(description: event.description);
       }
@@ -143,7 +143,7 @@ class MemoryGallerySettingBloc
     UpdateMemoryItemImage event,
     Emitter<MemoryGallerySettingState> emit,
   ) {
-    final newUiItems = state.uiItems.map((item) {
+    final List<MemoryGalleryItemData> newUiItems = state.uiItems.map((MemoryGalleryItemData item) {
       if (item.id == event.id) return item.copyWith(imageFile: event.image);
       return item;
     }).toList();
@@ -156,7 +156,7 @@ class MemoryGallerySettingBloc
     RemoveMemoryItemImage event,
     Emitter<MemoryGallerySettingState> emit,
   ) {
-    final newUiItems = state.uiItems.map((item) {
+    final List<MemoryGalleryItemData> newUiItems = state.uiItems.map((MemoryGalleryItemData item) {
       if (item.id == event.id) {
         // copyWith는 imageFile을 null로 처리할 수 없으므로 직접 생성
         return MemoryGalleryItemData(
@@ -265,7 +265,7 @@ class MemoryGallerySettingBloc
     final List<MemoryGalleryItemData> sortedItems =
         List<MemoryGalleryItemData>.from(state.uiItems);
 
-    sortedItems.sort((a, b) {
+    sortedItems.sort((MemoryGalleryItemData a, MemoryGalleryItemData b) {
       int comparison = 0;
       switch (event.sortType) {
         case MemorySortType.createdAt:

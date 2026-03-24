@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gifo/features/addgift/model/gallery_item.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../application/gift_packaging_bloc.dart';
@@ -57,7 +58,7 @@ class MemoryDecisionView extends StatelessWidget {
             } else {
               // 모바일 및 아이패드 환경: 스크롤 가능하되 내용물이 적으면 버튼이 하단에 배치됨
               return CustomScrollView(
-                slivers: [
+                slivers: <Widget>[
                   SliverFillRemaining(
                     hasScrollBody: false,
                     child: Padding(
@@ -120,7 +121,7 @@ class MemoryDecisionView extends StatelessWidget {
           subtitle: '저는 바로 선물을 공개할거에요.',
           icon: Icons.card_giftcard_rounded,
           onPressed: () async {
-            final hasGalleryData = context
+            final bool hasGalleryData = context
                 .read<GiftPackagingBloc>()
                 .state
                 .gallery
@@ -168,7 +169,7 @@ class MemoryDecisionView extends StatelessWidget {
 
               if (confirm == true && context.mounted) {
                 // 갤러리 데이터 초기화 후 이동
-                context.read<GiftPackagingBloc>().add(SetGalleryItems([]));
+                context.read<GiftPackagingBloc>().add(SetGalleryItems(<GalleryItem>[]));
                 context.push('/addgift/delivery-method');
               } else if (confirm == false && context.mounted) {
                 // 데이터를 유지한 채 이동
@@ -198,7 +199,7 @@ class MemoryDecisionView extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 32.0, horizontal: 16.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: <Widget>[
           Icon(icon, size: 56, color: contentColor),
           const SizedBox(height: 24),
           Text(

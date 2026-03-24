@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:retrofit/dio.dart';
 
 import '../../../core/di/service_locator.dart';
 import '../model/gacha_content.dart';
@@ -107,8 +108,8 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
     debugPrint('========================================');
 
     try {
-      final api = getIt<AddGiftApi>();
-      final response = await api.createGift(jsonMap);
+      final AddGiftApi api = getIt<AddGiftApi>();
+      final HttpResponse<dynamic> response = await api.createGift(jsonMap);
       debugPrint(
         '[GiftPackagingBloc] 서버 전송 성공! (상태 코드: ${response.response.statusCode})',
       );
@@ -120,7 +121,7 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
       debugPrint('에러 내용: $e');
       debugPrint('스택 트레이스: \n$stackTrace');
 
-      final errorStr = e.toString();
+      final String errorStr = e.toString();
       if (errorStr.contains('statusCode')) {
         debugPrint('[GiftPackagingBloc] 상세 에러 (StatusCode 포함): $errorStr');
       }

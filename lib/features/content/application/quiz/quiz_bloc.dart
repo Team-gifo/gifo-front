@@ -15,10 +15,10 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
   }
 
   void _onInitQuiz(InitQuiz event, Emitter<QuizState> emit) {
-    final lobbyData = LobbyData.getDummyByCode(event.code);
+    final LobbyData? lobbyData = LobbyData.getDummyByCode(event.code);
     if (lobbyData == null || lobbyData.content?.quiz == null) return;
 
-    final quiz = lobbyData.content!.quiz!;
+    final QuizContent quiz = lobbyData.content!.quiz!;
     emit(
       state.copyWith(
         userName: lobbyData.user,
@@ -42,15 +42,15 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
     if (state.quizContent == null) return;
     if (state.userAnswer.trim().isEmpty) return;
 
-    final currentQuiz = state.quizContent!.list[state.currentQuizIndex];
+    final QuizItem currentQuiz = state.quizContent!.list[state.currentQuizIndex];
     final bool isCorrect = currentQuiz.answer.any(
       (String ans) =>
           ans.toLowerCase() == state.userAnswer.trim().toLowerCase(),
     );
 
     if (isCorrect) {
-      final newCorrectCount = state.correctCount + 1;
-      final nextIndex = state.currentQuizIndex + 1;
+      final int newCorrectCount = state.correctCount + 1;
+      final int nextIndex = state.currentQuizIndex + 1;
 
       // 마지막 문제 여부 체크
       if (nextIndex >= state.quizContent!.list.length) {
@@ -75,11 +75,11 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
         );
       }
     } else {
-      final newLives = state.currentLives - 1;
+      final int newLives = state.currentLives - 1;
 
       if (newLives <= 0) {
         // 기회 소진 시 다음 문제로 이동
-        final nextIndex = state.currentQuizIndex + 1;
+        final int nextIndex = state.currentQuizIndex + 1;
         if (nextIndex >= state.quizContent!.list.length) {
           emit(
             state.copyWith(

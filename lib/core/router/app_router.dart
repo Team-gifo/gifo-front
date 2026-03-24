@@ -46,12 +46,12 @@ class _ErrorRedirectPageState extends State<_ErrorRedirectPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       
-      final routerState = GoRouterState.of(context);
-      final currentPath = routerState.uri.path;
+      final GoRouterState routerState = GoRouterState.of(context);
+      final String currentPath = routerState.uri.path;
       
       // sitemap.xml, robots.txt 등 정적 파일 요청이나 개발망 경로가 강제로 플러터로 넘어온 경우
       // '잘못된 초대코드' 토스트가 뜨는 것을 방지
-      final isStaticFile = currentPath.endsWith('.xml') || 
+      final bool isStaticFile = currentPath.endsWith('.xml') || 
                            currentPath.endsWith('.txt') || 
                            currentPath.endsWith('.png') ||
                            currentPath.endsWith('.json');
@@ -114,7 +114,7 @@ final GoRouter appRouter = GoRouter(
       path: '/lobby',
       pageBuilder: (BuildContext context, GoRouterState state) {
         final String code = state.extra as String? ?? 'helloworld';
-        final lobbyData =
+        final LobbyData lobbyData =
             LobbyData.getDummyByCode(code) ??
             LobbyData.getDummyByCode('helloworld')!;
         return NoTransitionPage(
@@ -152,10 +152,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/content/gacha',
       pageBuilder: (BuildContext context, GoRouterState state) {
-        final code = state.extra as String? ?? 'helloworld';
+        final String code = state.extra as String? ?? 'helloworld';
         return NoTransitionPage(
           child: BlocProvider<GachaBloc>(
-            create: (context) => GachaBloc(),
+            create: (BuildContext context) => GachaBloc(),
             child: GachaView(code: code),
           ),
         );
@@ -165,10 +165,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/content/quiz',
       pageBuilder: (BuildContext context, GoRouterState state) {
-        final code = state.extra as String? ?? 'quiz123';
+        final String code = state.extra as String? ?? 'quiz123';
         return NoTransitionPage(
           child: BlocProvider<QuizBloc>(
-            create: (context) => QuizBloc(),
+            create: (BuildContext context) => QuizBloc(),
             child: QuizView(code: code),
           ),
         );
@@ -181,7 +181,7 @@ final GoRouter appRouter = GoRouter(
         final String code = state.extra as String? ?? 'open123';
         return NoTransitionPage(
           child: BlocProvider<UnboxingBloc>(
-            create: (context) => UnboxingBloc(),
+            create: (BuildContext context) => UnboxingBloc(),
             child: UnboxingView(code: code),
           ),
         );
@@ -214,7 +214,7 @@ final GoRouter appRouter = GoRouter(
           child: child,
         );
       },
-      routes: [
+      routes: <RouteBase>[
         // 선물 포장 - 받는 분 성함 입력 화면
         GoRoute(
           path: '/addgift',

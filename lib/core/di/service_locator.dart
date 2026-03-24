@@ -9,7 +9,7 @@ final GetIt getIt = GetIt.instance;
 // 앱 시작 시 호출하여 의존성을 등록
 void setupServiceLocator() {
   // Dio 설정 (BaseUrl + LogInterceptor)
-  final dio = Dio(
+  final Dio dio = Dio(
     BaseOptions(
       baseUrl: dotenv.env['url'] ?? '',
       connectTimeout: const Duration(seconds: 10),

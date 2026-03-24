@@ -39,9 +39,9 @@ class _PackageCompleteViewState extends State<PackageCompleteView> {
           child: Stack(
             children: <Widget>[
               // 상단 중앙에서 하단으로 내리는 컨페티 애니메이션
-              Align(
+              const Align(
                 alignment: Alignment.topCenter,
-                child: const SharedConfettiWidget(autoPlay: true),
+                child: SharedConfettiWidget(autoPlay: true),
               ),
               Center(
                 child: Column(

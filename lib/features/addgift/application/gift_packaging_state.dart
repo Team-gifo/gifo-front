@@ -18,7 +18,7 @@ class GiftPackagingState {
 
   // 랜덤한 서브타이틀 명칭 생성 헬퍼
   static String generateRandomSubTitle() {
-    final List<String> randomTitles = [
+    final List<String> randomTitles = <String>[
       '두근두근',
       '설레는',
       '호기심 가득',
@@ -30,7 +30,7 @@ class GiftPackagingState {
       '깜짝',
       '환상적인',
     ];
-    final random = Random();
+    final Random random = Random();
     return randomTitles[random.nextInt(randomTitles.length)];
   }
 
@@ -42,7 +42,7 @@ class GiftPackagingState {
     this.receiverName = '',
     this.subTitle = '',
     this.bgm = '',
-    this.gallery = const [],
+    this.gallery = const <GalleryItem>[],
     this.selectedContentType,
     this.gachaContent,
     this.quizContent,

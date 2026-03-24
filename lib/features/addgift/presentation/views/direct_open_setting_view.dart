@@ -31,7 +31,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
   @override
   void initState() {
     super.initState();
-    final blocState = context.read<GiftPackagingBloc>().state;
+    final GiftPackagingState blocState = context.read<GiftPackagingBloc>().state;
     if (blocState.receiverName.isNotEmpty) {
       _userNameController.text = blocState.receiverName;
     }
@@ -90,8 +90,8 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
   }
 
   void _completePackage() {
-    final bloc = context.read<GiftPackagingBloc>();
-    final packagingState = bloc.state;
+    final GiftPackagingBloc bloc = context.read<GiftPackagingBloc>();
+    final GiftPackagingState packagingState = bloc.state;
 
     // 로컬 데이터 -> freezed UnboxingContent 변환
     final UnboxingContent unboxing = UnboxingContent(

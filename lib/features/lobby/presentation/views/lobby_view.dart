@@ -5,8 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/center_burst_confetti_widget.dart';
+import '../../../../core/widgets/grid_background_painter.dart';
 import '../../model/lobby_data.dart';
 
 class LobbyView extends StatefulWidget {
@@ -62,7 +62,7 @@ class _LobbyViewState extends State<LobbyView> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       // 0. 메인 로고 (타이핑 완료 후 버튼과 함께 노출, 애니메이션 X)
-                      if (_showConfetti) ...[
+                      if (_showConfetti) ...<Widget>[
                         MouseRegion(
                           cursor: SystemMouseCursors.click,
                           child: GestureDetector(
@@ -89,7 +89,7 @@ class _LobbyViewState extends State<LobbyView> {
                       // 1. 상단 텍스트 타이핑 영역 (순차적 실행)
                       if (_currentTypingIndex >= 0)
                         AnimatedTextKit(
-                          animatedTexts: [
+                          animatedTexts: <AnimatedText>[
                             TyperAnimatedText(
                               'Happy Birthday,',
                               speed: const Duration(milliseconds: 80),
@@ -112,7 +112,7 @@ class _LobbyViewState extends State<LobbyView> {
                         ),
                       if (_currentTypingIndex >= 1)
                         AnimatedTextKit(
-                          animatedTexts: [
+                          animatedTexts: <AnimatedText>[
                             TyperAnimatedText(
                               '${widget.data.user}!',
                               speed: const Duration(
@@ -143,7 +143,7 @@ class _LobbyViewState extends State<LobbyView> {
                         child: _showConfetti
                             ? Column(
                                 key: const ValueKey('lobby_enter_button'),
-                                children: [
+                                children: <Widget>[
                                   SizedBox(height: distTextToButton),
                                   ElevatedButton(
                                     onPressed: () {

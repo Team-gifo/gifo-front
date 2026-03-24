@@ -37,9 +37,9 @@ class _QuizViewState extends State<QuizView> {
 
     return BlocConsumer<QuizBloc, QuizState>(
       // 퀴즈 완료 시 결과 화면으로 이동
-      listener: (context, state) {
+      listener: (BuildContext context, QuizState state) {
         if (state.isFinished && state.quizContent != null) {
-          final reward = state.isSuccess
+          final RewardItem reward = state.isSuccess
               ? state.quizContent!.successReward
               : state.quizContent!.failReward;
 
@@ -66,7 +66,7 @@ class _QuizViewState extends State<QuizView> {
           );
         }
       },
-      builder: (context, state) {
+      builder: (BuildContext context, QuizState state) {
         if (state.quizContent == null) {
           return Title(
             title: 'Happy Birthday, ${state.userName} | Gifo',
@@ -267,7 +267,7 @@ class _QuizViewState extends State<QuizView> {
 
     if (quiz.type == 'multiple_choice') {
       content = BlocBuilder<QuizBloc, QuizState>(
-        builder: (context, state) {
+        builder: (BuildContext context, QuizState state) {
           return Wrap(
             spacing: 12,
             runSpacing: 12,
@@ -295,7 +295,7 @@ class _QuizViewState extends State<QuizView> {
       );
     } else if (quiz.type == 'ox') {
       content = BlocBuilder<QuizBloc, QuizState>(
-        builder: (context, state) {
+        builder: (BuildContext context, QuizState state) {
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[

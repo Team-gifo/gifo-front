@@ -4,7 +4,8 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:universal_web/web.dart' as web;
+import '../../../../core/widgets/seo_image.dart';
+import '../../../../core/widgets/seo_text.dart';
 import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -49,57 +50,9 @@ class _HomeViewState extends State<HomeView>
   // AppBar 초대코드 버튼 표시 여부 (두 번째 섹션부터 노출)
   bool _showAppBarAction = false;
 
-  // SEO용 메타 태그 삽입
-  void _injectSEO() {
-    if (!kIsWeb) return;
-
-    try {
-      web.document.title = 'Gifo - 세상에 단 하나뿐인 특별한 선물 포장';
-
-      void injectOrUpdateMeta(
-        String attrName,
-        String attrValue,
-        String content,
-      ) {
-        var meta = web.document.querySelector('meta[$attrName="$attrValue"]');
-        if (meta == null) {
-          meta = web.document.createElement('meta');
-          meta.setAttribute(attrName, attrValue);
-          web.document.head?.append(meta);
-        }
-        meta.setAttribute('content', content);
-      }
-
-      injectOrUpdateMeta(
-        'name',
-        'description',
-        '기억에 남고 특별한 감동을 선물하고 싶다면 오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요. Gifo에서 지금 무료로 만들어보세요.',
-      );
-      injectOrUpdateMeta(
-        'name',
-        'keywords',
-        'Gifo, 기포, 선물, 생일, 이벤트, 포장, 특별한 선물, 웹사이트 선물, 모바일 교환권 대신',
-      );
-      injectOrUpdateMeta('property', 'og:title', 'Gifo - 세상에 단 하나뿐인 특별한 선물 포장');
-      injectOrUpdateMeta(
-        'property',
-        'og:description',
-        '특별한 날, 당신만의 마음을 꾹꾹 눌러 담아 오직 한 사람만을 위한 특별한 웹 공간을 만들고 전달해보세요.',
-      );
-      injectOrUpdateMeta('property', 'og:type', 'website');
-      injectOrUpdateMeta('property', 'og:url', web.window.location.href);
-      injectOrUpdateMeta(
-        'property',
-        'og:image',
-        'https://gifo.co.kr/assets/images/title_logo.png',
-      );
-    } catch (_) {}
-  }
-
   @override
   void initState() {
     super.initState();
-    _injectSEO();
 
     _animationController = AnimationController(
       vsync: this,
@@ -369,11 +322,11 @@ class _HomeViewState extends State<HomeView>
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          // Logo
                           Row(
                             children: <Widget>[
-                              Image.asset(
-                                'assets/images/title_logo.png',
+                              SeoImage(
+                                imagePath: 'assets/images/title_logo.png',
+                                alt: 'Gifo Title Logo',
                                 width: isMobile ? 72 : 100,
                                 color: Colors.white,
                               ),
@@ -508,9 +461,11 @@ class _HomeViewState extends State<HomeView>
                                         opacity: 0.8,
                                         child: Transform.rotate(
                                           angle: -0.15,
-                                          child: Image.asset(
+                                          child: SeoImage(
                                             color: Colors.white,
-                                            'assets/images/gift_box.png',
+                                            imagePath:
+                                                'assets/images/gift_box.png',
+                                            alt: 'Floating Gift Box',
                                             width: isMobile ? 100 : 250,
                                             fit: BoxFit.contain,
                                           ),
@@ -536,9 +491,11 @@ class _HomeViewState extends State<HomeView>
                                         opacity: 0.8,
                                         child: Transform.rotate(
                                           angle: 0.2,
-                                          child: Image.asset(
+                                          child: SeoImage(
                                             color: Colors.white,
-                                            'assets/images/gift_box.png',
+                                            imagePath:
+                                                'assets/images/gift_box.png',
+                                            alt: 'Floating Gift Box',
                                             width: isMobile ? 120 : 250,
                                             fit: BoxFit.contain,
                                           ),
@@ -564,8 +521,9 @@ class _HomeViewState extends State<HomeView>
                                       ),
                                     ),
                                     SizedBox(height: isMobile ? 28 : 48),
-                                    Text(
+                                    SeoText(
                                       'Surprise, Play, and Gift.',
+                                      tag: 'h1',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         fontFamily: 'PFStardustS',
@@ -579,9 +537,10 @@ class _HomeViewState extends State<HomeView>
                                       ),
                                     ),
                                     SizedBox(height: isMobile ? 14 : 24),
-                                    Text(
+                                    SeoText(
                                       '기억에 남고 특별한 감동을 선물하고 싶다면\n오직 한 사람만을 위한 생일 사이트를 포장하고, 전달해주세요.\n\n'
                                       '* 현재 무료 서비스로 운영중',
+                                      tag: 'h2',
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
                                         fontFamily: 'WantedSans',
@@ -1238,8 +1197,9 @@ class _HomeViewState extends State<HomeView>
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image.asset(
-                  'assets/images/icons/app_icon.png',
+                SeoImage(
+                  imagePath: 'assets/images/icons/app_icon.png',
+                  alt: 'Gifo App Icon',
                   height: 32,
                   errorBuilder: (_, __, ___) => const Icon(Icons.palette),
                 ),
@@ -1373,8 +1333,9 @@ class _HomeViewState extends State<HomeView>
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          'assets/images/icons/app_icon.png',
+        SeoImage(
+          imagePath: 'assets/images/icons/app_icon.png',
+          alt: 'Gifo Footer Logo',
           height: 24,
           errorBuilder:
               (BuildContext context, Object error, StackTrace? stackTrace) =>
@@ -1449,7 +1410,10 @@ class _HomeViewState extends State<HomeView>
             SizedBox(
               width: innerSize,
               height: innerSize,
-              child: Image.asset('assets/images/icons/app_icon.png'),
+              child: const SeoImage(
+                imagePath: 'assets/images/icons/app_icon.png',
+                alt: 'GIFO App Icon',
+              ),
             ),
           ],
         ),
@@ -1558,7 +1522,11 @@ class _SectionLayoutState extends State<_SectionLayout> {
               onTap: () => Navigator.pop(context),
               child: Container(color: Colors.black.withValues(alpha: 0.8)),
             ),
-            Center(child: InteractiveViewer(child: Image.asset(path))),
+            Center(
+              child: InteractiveViewer(
+                child: SeoImage(imagePath: path, alt: 'Expanded Image'),
+              ),
+            ),
             Positioned(
               top: 40,
               right: 20,
@@ -1662,8 +1630,9 @@ class _SectionLayoutState extends State<_SectionLayout> {
               ),
             ],
           ),
-          child: Text(
+          child: SeoText(
             widget.tag,
+            tag: 'span',
             style: TextStyle(
               fontFamily: 'PFStardustS',
               color: AppColors.neonPurpleLight,
@@ -1673,8 +1642,9 @@ class _SectionLayoutState extends State<_SectionLayout> {
         ),
         SizedBox(height: widget.isMobile ? 20 : 28),
         // 큰 제목
-        Text(
+        SeoText(
           widget.title,
+          tag: 'h3',
           textAlign: textAlign,
           style: TextStyle(
             fontFamily: 'PFStardustS',
@@ -1689,8 +1659,9 @@ class _SectionLayoutState extends State<_SectionLayout> {
         ),
         SizedBox(height: widget.isMobile ? 16 : 24),
         // 소개 문구
-        Text(
+        SeoText(
           widget.description,
+          tag: 'p',
           textAlign: textAlign,
           style: TextStyle(
             fontFamily: 'WantedSans',
@@ -1755,8 +1726,9 @@ class _SectionLayoutState extends State<_SectionLayout> {
               child: GestureDetector(
                 onTap: () =>
                     _showFullScreenImage(context, widget.imagePaths[rIdx]),
-                child: Image.asset(
-                  widget.imagePaths[rIdx],
+                child: SeoImage(
+                  imagePath: widget.imagePaths[rIdx],
+                  alt: 'Mock Service Screen',
                   fit: BoxFit.cover,
                   alignment: Alignment.topCenter,
                 ),

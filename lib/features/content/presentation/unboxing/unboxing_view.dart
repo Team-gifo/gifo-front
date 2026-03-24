@@ -29,7 +29,7 @@ class _UnboxingViewState extends State<UnboxingView> {
 
     return BlocConsumer<UnboxingBloc, UnboxingState>(
       // 선물 수령 완료 시 결과 화면으로 이동
-      listener: (context, state) {
+      listener: (BuildContext context, UnboxingState state) {
         if (state.isReceived && state.unboxingContent != null) {
           context.push(
             '/content/result',
@@ -41,7 +41,7 @@ class _UnboxingViewState extends State<UnboxingView> {
           );
         }
       },
-      builder: (context, state) {
+      builder: (BuildContext context, UnboxingState state) {
         if (state.unboxingContent == null) {
           return Title(
             title: 'Happy Birthday, ${state.userName} | Gifo',
