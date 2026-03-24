@@ -27,7 +27,9 @@ class _LobbyViewState extends State<LobbyView> {
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isMobile = screenWidth < AppBreakpoints.mobile;
-    final bool isTablet = screenWidth >= AppBreakpoints.mobile && screenWidth < AppBreakpoints.tablet;
+    final bool isTablet =
+        screenWidth >= AppBreakpoints.mobile &&
+        screenWidth < AppBreakpoints.tablet;
 
     // 반응형 수치 설정
     final double logoHeight = isMobile ? 50 : (isTablet ? 65 : 80);
@@ -139,7 +141,9 @@ class _LobbyViewState extends State<LobbyView> {
                         ),
                       // 2. 입장하기 버튼 (페이드인 애니메이션 적용)
                       AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 1500), // 1.5초 동안 서서히 등장
+                        duration: const Duration(
+                          milliseconds: 1500,
+                        ), // 1.5초 동안 서서히 등장
                         child: _showConfetti
                             ? Column(
                                 key: const ValueKey('lobby_enter_button'),
@@ -149,17 +153,29 @@ class _LobbyViewState extends State<LobbyView> {
                                     onPressed: () {
                                       // 갤러리 데이터 존재 여부 판단
                                       if (widget.data.gallery.isNotEmpty) {
-                                        context.push('/memory-gallery', extra: widget.code);
+                                        context.push(
+                                          '/memory-gallery',
+                                          extra: widget.code,
+                                        );
                                       } else if (widget.data.content != null) {
                                         // 추억 갤러리 스킵 후 바로 콘텐츠로 이동
-                                        if (widget.data.content!.gacha != null) {
+                                        if (widget.data.content!.gacha !=
+                                            null) {
                                           context.push(
                                             '/content/gacha',
                                             extra: widget.code,
                                           );
-                                        } else if (widget.data.content!.quiz != null) {
-                                          context.push('/content/quiz', extra: widget.code);
-                                        } else if (widget.data.content!.unboxing != null) {
+                                        } else if (widget.data.content!.quiz !=
+                                            null) {
+                                          context.push(
+                                            '/content/quiz',
+                                            extra: widget.code,
+                                          );
+                                        } else if (widget
+                                                .data
+                                                .content!
+                                                .unboxing !=
+                                            null) {
                                           context.push(
                                             '/content/unboxing',
                                             extra: widget.code,
@@ -179,7 +195,9 @@ class _LobbyViewState extends State<LobbyView> {
                                           color: Colors.white,
                                           width: 2,
                                         ), // 네온 스타일 보더
-                                        borderRadius: BorderRadius.circular(12.0),
+                                        borderRadius: BorderRadius.circular(
+                                          12.0,
+                                        ),
                                       ),
                                     ),
                                     child: Text(
@@ -192,7 +210,9 @@ class _LobbyViewState extends State<LobbyView> {
                                   ),
                                 ],
                               )
-                            : const SizedBox.shrink(key: ValueKey('lobby_button_empty')),
+                            : const SizedBox.shrink(
+                                key: ValueKey('lobby_button_empty'),
+                              ),
                       ),
                     ],
                   ),

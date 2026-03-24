@@ -229,7 +229,7 @@ return $default(_that.successReward,_that.failReward,_that.list);case _:
 @JsonSerializable()
 
 class _QuizContent implements QuizContent {
-  const _QuizContent({@JsonKey(name: 'success_reward') required this.successReward, @JsonKey(name: 'fail_reward') required this.failReward, final  List<QuizItemModel> list = const []}): _list = list;
+  const _QuizContent({@JsonKey(name: 'success_reward') required this.successReward, @JsonKey(name: 'fail_reward') required this.failReward, final  List<QuizItemModel> list = const <QuizItemModel>[]}): _list = list;
   factory _QuizContent.fromJson(Map<String, dynamic> json) => _$QuizContentFromJson(json);
 
 @override@JsonKey(name: 'success_reward') final  QuizSuccessReward successReward;
@@ -1063,7 +1063,7 @@ return $default(_that.quizId,_that.type,_that.title,_that.imageUrl,_that.descrip
 @JsonSerializable()
 
 class _QuizItemModel implements QuizItemModel {
-  const _QuizItemModel({@JsonKey(name: 'quiz_id') this.quizId = 0, this.type = 'multiple_choice', this.title = '', @JsonKey(name: 'image_url') this.imageUrl, this.description, this.hint, final  List<String> options = const [], final  List<String> answer = const [], @JsonKey(name: 'play_limit') this.playLimit = 1}): _options = options,_answer = answer;
+  const _QuizItemModel({@JsonKey(name: 'quiz_id') this.quizId = 0, this.type = 'multiple_choice', this.title = '', @JsonKey(name: 'image_url') this.imageUrl, this.description, this.hint, final  List<String> options = const <String>[], final  List<String> answer = const <String>[], @JsonKey(name: 'play_limit') this.playLimit = 1}): _options = options,_answer = answer;
   factory _QuizItemModel.fromJson(Map<String, dynamic> json) => _$QuizItemModelFromJson(json);
 
 @override@JsonKey(name: 'quiz_id') final  int quizId;

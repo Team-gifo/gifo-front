@@ -13,7 +13,7 @@ _GachaContent _$GachaContentFromJson(Map<String, dynamic> json) =>
           (json['list'] as List<dynamic>?)
               ?.map((e) => GachaItem.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          const [],
+          const <GachaItem>[],
     );
 
 Map<String, dynamic> _$GachaContentToJson(_GachaContent instance) =>
