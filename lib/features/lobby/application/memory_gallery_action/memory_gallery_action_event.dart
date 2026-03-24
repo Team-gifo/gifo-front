@@ -7,3 +7,5 @@ class ProcessDownloadEvent extends MemoryGalleryActionEvent {
 
   ProcessDownloadEvent({required this.filesInfo});
 }
+
+class SetLoadingEvent extends MemoryGalleryActionEvent {}

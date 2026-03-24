@@ -115,6 +115,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                       title: const Text('다운로드 완료!'),
                       type: ToastificationType.success,
                       autoCloseDuration: const Duration(seconds: 3),
+                      alignment: Alignment.topCenter,
                     );
                   } else if (state.status == ActionStatus.failure) {
                     toastification.show(
@@ -123,6 +124,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                       description: Text(state.errorMessage ?? ''),
                       type: ToastificationType.error,
                       autoCloseDuration: const Duration(seconds: 3),
+                      alignment: Alignment.topCenter,
                     );
                   }
                 },
@@ -200,7 +202,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                         builder: (context, state) {
                           if (state.status == ActionStatus.loading) {
                             return Container(
-                              color: Colors.black.withValues(alpha: 0.6),
+                              color: Colors.black.withValues(alpha: 0.5),
                               child: const Center(
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
@@ -210,7 +212,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                                     ),
                                     SizedBox(height: 16),
                                     Text(
-                                      '다운로드 처리 중...',
+                                      '다운로드 중..',
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontFamily: 'PFStardust',
@@ -493,11 +495,9 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
       return;
     }
 
-    // 로딩 시작 (BLoC에만 보내면 실제 처리를 View가 하므로 직접 Loading 상태를 emit하려면
-    // BLoC에서 캡처 처리를 해야하지만, 캡처는 위젯과 직결되므로 여기서 캡처 중이라도 사용자가 알 수 있게 UI를 막아둘 필요가 있음.
-    // 캡처 전에 BLoC 상태를 임의로 바꿀 수 있게 Event를 주입하거나, UI 스레드에서 캡처하므로 잠시 프리징되는 것을 대기합니다.)
-    // 가장 안전한 방법은 여기서 바로 BLoC Download 처리 이벤트를 보내되, 캡처는 미리 수행하는 것입니다.
-    // 캡처하는 동안 살짝 프리징 될 수 있으므로, 캡처 전에 모달을 닫고 짧은 딜레이를 주어 닫히는 애니메이션을 보장합니다.
+    // 로딩 시작 (캡처 프로세스 시작 알림)
+    bloc.add(SetLoadingEvent());
+    
     await Future.delayed(const Duration(milliseconds: 300));
     if (!context.mounted) return;
 

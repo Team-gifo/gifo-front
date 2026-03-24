@@ -12,6 +12,9 @@ class MemoryGalleryActionBloc
     extends Bloc<MemoryGalleryActionEvent, MemoryGalleryActionState> {
   MemoryGalleryActionBloc() : super(MemoryGalleryActionState.initial()) {
     on<ProcessDownloadEvent>(_onProcessDownload);
+    on<SetLoadingEvent>((SetLoadingEvent event, Emitter<MemoryGalleryActionState> emit) {
+      emit(state.copyWith(status: ActionStatus.loading, errorMessage: null));
+    });
   }
 
   Future<void> _onProcessDownload(
