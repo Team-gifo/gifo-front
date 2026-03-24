@@ -222,7 +222,7 @@ return $default(_that.user,_that.subTitle,_that.bgm,_that.gallery,_that.content)
 @JsonSerializable()
 
 class _GiftRequest implements GiftRequest {
-  const _GiftRequest({this.user = '', @JsonKey(name: 'sub_title') this.subTitle = '', this.bgm = '', final  List<GalleryItem> gallery = const [], required this.content}): _gallery = gallery;
+  const _GiftRequest({this.user = '', @JsonKey(name: 'sub_title') this.subTitle = '', this.bgm = '', final  List<GalleryItem> gallery = const <GalleryItem>[], required this.content}): _gallery = gallery;
   factory _GiftRequest.fromJson(Map<String, dynamic> json) => _$GiftRequestFromJson(json);
 
 @override@JsonKey() final  String user;

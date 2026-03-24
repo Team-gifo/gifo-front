@@ -17,7 +17,7 @@ _QuizContent _$QuizContentFromJson(Map<String, dynamic> json) => _QuizContent(
       (json['list'] as List<dynamic>?)
           ?.map((e) => QuizItemModel.fromJson(e as Map<String, dynamic>))
           .toList() ??
-      const [],
+      const <QuizItemModel>[],
 );
 
 Map<String, dynamic> _$QuizContentToJson(_QuizContent instance) =>
@@ -64,10 +64,10 @@ _QuizItemModel _$QuizItemModelFromJson(
   hint: json['hint'] as String?,
   options:
       (json['options'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-      const [],
+      const <String>[],
   answer:
       (json['answer'] as List<dynamic>?)?.map((e) => e as String).toList() ??
-      const [],
+      const <String>[],
   playLimit: (json['play_limit'] as num?)?.toInt() ?? 1,
 );
 

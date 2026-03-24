@@ -78,6 +78,7 @@ Future<void> _onSubmitPackage(
 | BLoC | 파일 | 역할 |
 |------|------|------|
 | `LobbyBloc` | `lib/features/lobby/application/lobby_bloc.dart` | 초대 코드 검증 |
+| `MemoryGalleryActionBloc` | `lib/features/lobby/application/memory_gallery_action/memory_gallery_action_bloc.dart` | 추억 갤러리 이미지 처리 및 다운로드 (ZIP 압축) |
 
 ## GiftPackagingBloc 상세
 

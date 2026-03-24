@@ -33,7 +33,8 @@ lib/
 │   ├── network/                       # (placeholder, 미구현)
 │   ├── router/
 │   │   └── app_router.dart            # GoRouter 전체 라우트
-│   ├── utils/                         # (placeholder, 미구현)
+│   ├── utils/
+│   │   └── file_download_helper.dart  # 웹 기반 파일 다운로드 유틸리티
 │   └── widgets/
 │       ├── center_burst_confetti_widget.dart
 │       ├── grid_background_painter.dart
@@ -85,7 +86,11 @@ lib/
     │   ├── application/
     │   │   ├── lobby_bloc.dart
     │   │   ├── lobby_event.dart
-    │   │   └── lobby_state.dart
+    │   │   ├── lobby_state.dart
+    │   │   └── memory_gallery_action/      # 추억 갤러리 다운로드 처리
+    │   │       ├── memory_gallery_action_bloc.dart
+    │   │       ├── memory_gallery_action_event.dart
+    │   │       └── memory_gallery_action_state.dart
     │   ├── model/
     │   │   └── lobby_data.dart         # 더미 데이터 + getDummyByCode()
     │   ├── presentation/views/
