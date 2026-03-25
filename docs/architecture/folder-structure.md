@@ -122,7 +122,10 @@ lib/
         │   ├── quiz/quiz_content_model.dart
         │   └── unboxing/unboxing_content_model.dart
         ├── presentation/
-        │   ├── gacha/gacha_view.dart
+        │   ├── gacha/
+        │   │   ├── gacha_view.dart         # 메인 뷰 (레이아웃 조합)
+        │   │   ├── gacha_widgets.dart      # 서브 위젯 분리 (패널, 머신, 버튼)
+        │   │   └── gacha_result_modal.dart # 뽑기 결과 인라인 모달
         │   ├── quiz/quiz_view.dart
         │   ├── unboxing/unboxing_view.dart
         │   └── result/result_view.dart
