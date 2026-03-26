@@ -29,6 +29,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   final QuizRewardData _failReward = QuizRewardData();
 
   String _selectedBgm = '신나는 생일';
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -269,7 +270,26 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   Widget build(BuildContext context) {
     final bool isMobile = MediaQuery.sizeOf(context).width < 800;
 
-    return Title(
+    return BlocListener<GiftPackagingBloc, GiftPackagingState>(
+      listenWhen: (GiftPackagingState prev, GiftPackagingState curr) =>
+          prev.submitStatus != curr.submitStatus,
+      listener: (BuildContext context, GiftPackagingState packagingState) {
+        if (packagingState.submitStatus == SubmitStatus.success) {
+          isPackageComplete = true;
+          context.replace('/addgift/package-complete');
+        } else if (packagingState.submitStatus == SubmitStatus.failure) {
+          setState(() => _isSubmitting = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('서버 전송에 실패했습니다. 다시 시도해 주세요.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        } else if (packagingState.submitStatus == SubmitStatus.loading) {
+          setState(() => _isSubmitting = true);
+        }
+      },
+      child: Title(
       title: '선물 포장하기 - Gifo',
       color: AppColors.darkBg,
       child: Scaffold(
@@ -345,7 +365,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
         ],
       ),
       bottomNavigationBar: isMobile ? _buildMobileBottomBar() : null,
-    ));
+    )));
   }
 
   Widget _buildStepIndicator() {
@@ -1094,8 +1114,6 @@ class _QuizSettingViewState extends State<QuizSettingView> {
       ),
     );
 
-    isPackageComplete = true;
-    context.replace('/addgift/package-complete');
   }
 }
 
