@@ -2,123 +2,122 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/constants/app_breakpoints.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../model/gacha_content.dart';
+import '../widgets/addgift_scaffold.dart';
 
 class GiftDeliveryMethodView extends StatelessWidget {
   const GiftDeliveryMethodView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        toolbarHeight: 68,
-        backgroundColor: const Color(0xFFF8F9FA),
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/');
-            }
-          },
+    return Title(
+      title: '선물 포장하기 - Gifo',
+      color: AppColors.darkBg,
+      child: AddgiftScaffold(
+        appBar: AppBar(
+          toolbarHeight: 68,
+          backgroundColor: AppColors.darkBg,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/');
+              }
+            },
+          ),
+          actions: <Widget>[_buildStepIndicator()],
         ),
-        actions: <Widget>[_buildStepIndicator()],
-      ),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            // 화면 너비가 800 이상이면 데스크톱(가로) 배치, 미만이면 모바일(세로) 배치
-            final bool isDesktop = constraints.maxWidth >= 800;
-
-            if (isDesktop) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40.0,
-                    vertical: 24.0,
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+              final bool isDesktop =
+                  constraints.maxWidth >= AppBreakpoints.tablet;
+              if (isDesktop) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 40.0,
+                      vertical: 24.0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Expanded(
+                          child: _buildMainText(TextAlign.left),
+                        ),
+                        const SizedBox(width: 80),
+                        Expanded(
+                          flex: 2,
+                          child: _buildGridOptions(context, isDesktop: true),
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      // 좌측 텍스트
-                      Expanded(flex: 1, child: _buildMainText(TextAlign.left)),
-                      const SizedBox(width: 80),
-                      // 우측 그리드 목록
-                      Expanded(
-                        flex: 2, // 그리드 부분이 좀 더 넓게 차지하도록
-                        child: _buildGridOptions(isDesktop: true),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            } else {
-              // 모바일 환경
+                );
+              }
               return SingleChildScrollView(
                 child: Padding(
                   padding: const EdgeInsets.all(24.0),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       const SizedBox(height: 40),
                       _buildMainText(TextAlign.center),
-                      const SizedBox(height: 60),
-                      _buildGridOptions(isDesktop: false),
+                      const SizedBox(height: 48),
+                      _buildGridOptions(context, isDesktop: false),
                       const SizedBox(height: 40),
                     ],
                   ),
                 ),
               );
-            }
-          },
+            },
+          ),
         ),
       ),
     );
   }
 
-  // 안내 문구 위젯 (텍스트 정렬 방향 동적 적용)
   Widget _buildMainText(TextAlign alignment) {
     return Text(
       '친구에게 전달할 방식을\n선택해주세요 !',
       textAlign: alignment,
       style: const TextStyle(
-        fontSize: 32,
-        fontWeight: FontWeight.bold,
-        color: Colors.black,
-        height: 1.4,
+        fontFamily: 'PFStardustS',
+        fontSize: 28,
+        color: Colors.white,
+        height: 1.5,
       ),
     );
   }
 
-  // 선택지 그리드 목록
-  Widget _buildGridOptions({required bool isDesktop}) {
-    // 항목 데이터
-    final List<Map<String, String>> options = <Map<String, String>>[
-      <String, String>{
+  Widget _buildGridOptions(BuildContext context, {required bool isDesktop}) {
+    final List<Map<String, dynamic>> options = <Map<String, dynamic>>[
+      <String, dynamic>{
         'title': '캡슐 뽑기',
-        'icon': 'assets/images/gacha_machine.png', // 실제 이미지 에셋 경로 사용
-        'type': 'image', // 아이콘인지 이미지인지 구분
+        'icon': 'assets/images/gacha_machine.png',
+        'accent': AppColors.neonPurple,
       },
-      <String, String>{
+      <String, dynamic>{
         'title': '문제 맞추기',
         'icon': 'assets/images/quiz_character.png',
-        'type': 'image',
+        'accent': AppColors.neonBlue,
       },
-      <String, String>{
+      <String, dynamic>{
         'title': '바로 오픈',
         'icon': 'assets/images/open_gift_box.png',
-        'type': 'image',
+        'accent': AppColors.pixelPurple,
       },
     ];
 
-    // 모바일 환경은 2열, 데스크톱 환경은 3열로 설정하여 최대 3개 배치 요구 조건 충족
     final int crossAxisCount = isDesktop ? 3 : 2;
 
     return GridView.builder(
@@ -126,27 +125,72 @@ class GiftDeliveryMethodView extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: crossAxisCount,
-        mainAxisSpacing: 24,
-        crossAxisSpacing: 24,
-        childAspectRatio: 0.8, // 세로로 좀 더 긴 형태
+        mainAxisSpacing: 20,
+        crossAxisSpacing: 20,
+        childAspectRatio: 0.8,
       ),
       itemCount: options.length,
       itemBuilder: (BuildContext context, int index) {
-        return _buildDeliveryOptionCard(
-          title: options[index]['title']!,
-          iconData: options[index]['icon']!,
-          type: options[index]['type']!,
-          onTap: () => _handleOptionTap(context, options[index]['title']!),
+        return _buildOptionCard(
+          context: context,
+          title: options[index]['title'] as String,
+          iconPath: options[index]['icon'] as String,
+          accent: options[index]['accent'] as Color,
         );
       },
+    );
+  }
+
+  Widget _buildOptionCard({
+    required BuildContext context,
+    required String title,
+    required String iconPath,
+    required Color accent,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _handleOptionTap(context, title),
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: accent.withValues(alpha: 0.4),
+              width: 1.5,
+            ),
+          ),
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Expanded(
+                child: Center(
+                  child: Image.asset(iconPath, fit: BoxFit.contain),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontFamily: 'WantedSans',
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: accent,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
   Future<void> _handleOptionTap(BuildContext context, String title) async {
     final GiftPackagingBloc bloc = context.read<GiftPackagingBloc>();
     final GiftPackagingState state = bloc.state;
-
-    // 현재 각 콘텐츠별 데이터 유무 확인
     final GachaContent? savedGacha = state.gachaContent;
     final bool hasGachaData = savedGacha != null && savedGacha.list.isNotEmpty;
 
@@ -171,21 +215,33 @@ class GiftDeliveryMethodView extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          backgroundColor: Colors.white,
+          backgroundColor: const Color(0xFF1A1A1A),
           title: const Text(
             '콘텐츠 변경',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontFamily: 'WantedSans',
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
           content: const Text(
             '캡슐 뽑기에 작성 중인 데이터가 있습니다.\n초기화하고 새로운 콘텐츠로 넘어가겠습니까?',
-            style: TextStyle(height: 1.5, fontSize: 16),
+            style: TextStyle(
+              fontFamily: 'WantedSans',
+              height: 1.5,
+              fontSize: 15,
+              color: Colors.white70,
+            ),
           ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text(
                 '아니오',
-                style: TextStyle(color: Colors.grey, fontSize: 16),
+                style: TextStyle(
+                  fontFamily: 'WantedSans',
+                  color: Colors.white38,
+                ),
               ),
             ),
             TextButton(
@@ -193,8 +249,8 @@ class GiftDeliveryMethodView extends StatelessWidget {
               child: const Text(
                 '예',
                 style: TextStyle(
-                  color: Colors.red,
-                  fontSize: 16,
+                  fontFamily: 'WantedSans',
+                  color: Colors.redAccent,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -202,14 +258,10 @@ class GiftDeliveryMethodView extends StatelessWidget {
           ],
         ),
       );
-
       if (confirm == true) {
-        // 기존 캡슐 뽑기 데이터 초기화
         bloc.add(SetGachaContent(const GachaContent()));
         bloc.add(SetContentType(selectedType));
-        if (context.mounted) {
-          context.push(route);
-        }
+        if (context.mounted) context.push(route);
       }
     } else {
       bloc.add(SetContentType(selectedType));
@@ -217,75 +269,6 @@ class GiftDeliveryMethodView extends StatelessWidget {
     }
   }
 
-  // 개별 방식 선택 카드
-  Widget _buildDeliveryOptionCard({
-    required String title,
-    required String iconData,
-    required String type,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.shade300, width: 2),
-        ),
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            // 이미지 또는 아이콘 표시 영역
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.transparent, // 이미지 배경 투명하게
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: type == 'image'
-                      ? Image.asset(iconData, fit: BoxFit.contain)
-                      : Icon(
-                          _getIconForTitle(title),
-                          size: 48,
-                          color: Colors.grey.shade400,
-                        ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // 항목별 임시 아이콘 반환용 유틸리티 함수
-  IconData _getIconForTitle(String title) {
-    switch (title) {
-      case '캡슐 뽑기':
-        return Icons.catching_pokemon_outlined; // 유사한 모양으로 대체
-      case '문제 맞추기':
-        return Icons.quiz_outlined;
-      case '바로 오픈':
-        return Icons.card_giftcard_outlined;
-      default:
-        return Icons.image_outlined;
-    }
-  }
-
-  // 상단 진행 단계 인디케이터 위젯 (현재 3단계로 가정)
   Widget _buildStepIndicator() {
     return Padding(
       padding: const EdgeInsets.only(right: 20.0),
@@ -302,21 +285,22 @@ class GiftDeliveryMethodView extends StatelessWidget {
     );
   }
 
-  // 인디케이터 원형 위젯
   Widget _buildCircle({required bool isActive, required String number}) {
     return Container(
       width: 28,
       height: 28,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isActive ? Colors.black : Colors.grey.shade200,
+        color: isActive ? AppColors.neonPurple : Colors.white12,
+        border: isActive ? null : Border.all(color: Colors.white24),
       ),
       child: Center(
         child: Text(
           number,
           style: TextStyle(
-            color: isActive ? Colors.white : Colors.grey.shade500,
-            fontSize: 14,
+            fontFamily: 'WantedSans',
+            color: isActive ? Colors.white : Colors.white38,
+            fontSize: 13,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -324,12 +308,13 @@ class GiftDeliveryMethodView extends StatelessWidget {
     );
   }
 
-  // 인디케이터 연결 선 위젯
   Widget _buildLine({required bool isActive}) {
     return Container(
       width: 16,
       height: 2,
-      color: isActive ? Colors.black : Colors.grey.shade200,
+      color: isActive
+          ? AppColors.neonPurple.withValues(alpha: 0.5)
+          : Colors.white12,
     );
   }
 }

@@ -19,6 +19,7 @@ part 'gift_packaging_state.dart';
 
 class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
   GiftPackagingBloc() : super(GiftPackagingState.initial()) {
+    on<SetMode>(_onSetMode);
     on<SetReceiverName>(_onSetReceiverName);
     on<SetGalleryItems>(_onSetGalleryItems);
     on<SetSubTitle>(_onSetSubTitle);
@@ -29,6 +30,10 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
     on<SetUnboxingContent>(_onSetUnboxingContent);
     on<SubmitPackage>(_onSubmitPackage);
     on<ResetPackaging>(_onResetPackaging);
+  }
+
+  void _onSetMode(SetMode event, Emitter<GiftPackagingState> emit) {
+    emit(state.copyWith(mode: event.mode));
   }
 
   void _onSetReceiverName(
@@ -99,6 +104,14 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
 
     // JSON 변환 후 로그 출력
     final Map<String, dynamic> jsonMap = request.toJson();
+
+    // null content 필드 제거 (Freezed는 nullable 필드를 null로 직렬화하므로)
+    final Map<String, dynamic>? contentMap =
+        jsonMap['content'] as Map<String, dynamic>?;
+    if (contentMap != null) {
+      contentMap.removeWhere((String key, dynamic value) => value == null);
+    }
+
     final String prettyJson = const JsonEncoder.withIndent(
       '  ',
     ).convert(jsonMap);
@@ -113,8 +126,25 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
       debugPrint(
         '[GiftPackagingBloc] 서버 전송 성공! (상태 코드: ${response.response.statusCode})',
       );
+
+      // 서버 응답에서 공유 코드 파싱 (필드명 미확정으로 방어 파싱)
+      final Map<String, dynamic>? responseData =
+          response.data as Map<String, dynamic>?;
+      final String shareCode =
+          responseData?['invite_code'] as String? ??
+          responseData?['code'] as String? ??
+          responseData?['share_code'] as String? ??
+          '';
+      final String shareUrl = shareCode.isNotEmpty
+          ? Uri.base.resolve('/gift/code/$shareCode').toString()
+          : responseData?['share_url'] as String? ?? '';
+
       // 전송 완료: 성공 상태로 전환 (뷰에서 이 상태를 감지해 화면 전환)
-      emit(state.copyWith(submitStatus: SubmitStatus.success));
+      emit(state.copyWith(
+        submitStatus: SubmitStatus.success,
+        shareCode: shareCode,
+        shareUrl: shareUrl,
+      ));
     } catch (e, stackTrace) {
       debugPrint('========================================');
       debugPrint('[GiftPackagingBloc] 서버 전송 중 예외 발생!');

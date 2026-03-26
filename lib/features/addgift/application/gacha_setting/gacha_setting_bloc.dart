@@ -176,8 +176,10 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
     UpdatePlayCount event,
     Emitter<GachaSettingState> emit,
   ) {
-    final int playCount = int.tryParse(event.countStr) ?? 3;
+    final int rawCount = int.tryParse(event.countStr) ?? 3;
     final List<GachaItem> currentItems = _packagingBloc.state.gachaContent?.list ?? <GachaItem>[];
+    final int maxCount = currentItems.length;
+    final int playCount = rawCount.clamp(0, maxCount);
     _packagingBloc.add(
       SetGachaContent(GachaContent(playCount: playCount, list: currentItems)),
     );
