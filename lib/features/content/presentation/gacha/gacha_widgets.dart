@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../lobby/model/lobby_data.dart';
 
@@ -35,9 +36,7 @@ class GachaMachineSectionState extends State<GachaMachineSection>
 
   late AnimationController _openController;
   late Animation<double> _openAnimation;
-
   bool _isAnimating = false;
-  GachaItem? _lastResult; // 내부 결과 저장 (애니메이션 연출용)
 
   static const List<Color> _dotPalette = <Color>[
     Color(0xFFFF6B6B),
@@ -104,10 +103,13 @@ class GachaMachineSectionState extends State<GachaMachineSection>
     super.dispose();
   }
 
+  Color _dispensedCapsuleColor = Colors.white;
+
   // 외부(부모)에서 결과가 나오면 호출하여 애니메이션 시작
   Future<void> startResultAnimation(GachaItem item) async {
     setState(() {
-      _lastResult = item;
+      _dispensedCapsuleColor =
+          _dotPalette[math.Random().nextInt(_dotPalette.length)];
     });
 
     // 1. 노브 회전 단계
@@ -120,9 +122,8 @@ class GachaMachineSectionState extends State<GachaMachineSection>
 
     // 3. 캡슐 오픈 단계
     await _openController.forward();
-    await Future<void>.delayed(const Duration(milliseconds: 500));
 
-    // 4. 완료 콜백 (모달 띄우기)
+    // 4. 완료 콜백 (모달 띄우기) - 딜레이 없이 즉시 출력
     widget.onAnimationComplete?.call(item);
 
     // 초기화 및 상태 해제
@@ -131,7 +132,6 @@ class GachaMachineSectionState extends State<GachaMachineSection>
     _openController.reset();
     setState(() {
       _isAnimating = false;
-      _lastResult = null;
     });
   }
 
@@ -149,19 +149,35 @@ class GachaMachineSectionState extends State<GachaMachineSection>
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isDesktop = screenWidth >= AppBreakpoints.desktop;
+    double machineScale = 1.0;
+
+    if (isDesktop) {
+      machineScale = 1.35;
+    } else if (screenWidth >= AppBreakpoints.tablet) {
+      machineScale = 1.25;
+    } else {
+      machineScale = 1.15; // 모바일 스케일 약간 상향
+    }
+
     return Column(
       children: <Widget>[
+        SizedBox(height: isDesktop ? 24 : 24),
         _buildRemainingBadge(),
-        const SizedBox(height: 24),
+        SizedBox(height: isDesktop ? 24 : 24),
         Expanded(
           child: AnimatedBuilder(
-            animation: Listenable.merge(<Listenable>[_dropController, _openController]),
+            animation: Listenable.merge(<Listenable>[
+              _dropController,
+              _openController,
+            ]),
             builder: (BuildContext context, Widget? child) {
               return Stack(
                 alignment: Alignment.center,
                 clipBehavior: Clip.none,
                 children: <Widget>[
-                  // 머신 본체 (흔들림 적용)
+                  // 머신 본체 (흔들림 적용 + 스케일 적용)
                   AnimatedBuilder(
                     animation: _shakeAnimation,
                     builder: (BuildContext context, Widget? child) {
@@ -171,52 +187,28 @@ class GachaMachineSectionState extends State<GachaMachineSection>
                           : 0;
                       return Transform.translate(
                         offset: Offset(offsetX, 0),
-                        child: child,
+                        child: Transform.scale(
+                          scale: machineScale,
+                          child: child,
+                        ),
                       );
                     },
-                    child: FittedBox(
-                      fit: BoxFit.contain,
-                      child: _buildPixelMachineFrame(),
-                    ),
+                    child: _buildPixelMachineFrame(),
                   ),
 
-                  // 노브에서 나와서 중앙으로 이동하는 캡슐
+                  // 노브에서 나와서 중앙으로 이동하는 캡슐 - 이펙트 앞에 배치
                   if (_isAnimating && _dropController.value > 0)
                     Positioned(
                       // Y좌표: 노브 위치(440) -> 중앙(300)
-                      top: 440 - (140 * _dropAnimation.value),
-                      child: ScaleTransition(
-                        scale: _dropScaleAnimation,
+                      // 스케일에 따라 위치 보정 (기본 440에서 스케일 중심 기준 조정)
+                      top:
+                          (440 * machineScale) -
+                          (200 * machineScale * _dropAnimation.value),
+                      child: Transform.scale(
+                        scale: machineScale * _dropScaleAnimation.value,
                         child: _buildCapsule(
-                          _lastResult != null
-                              ? _dotPalette[widget.items.indexOf(_lastResult!) %
-                                    _dotPalette.length]
-                              : _dotPalette[math.Random().nextInt(
-                                  _dotPalette.length,
-                                )],
+                          _dispensedCapsuleColor,
                           _openAnimation.value,
-                        ),
-                      ),
-                    ),
-
-                  // 오픈되는 연출 (빛 에너지 발산)
-                  if (_isAnimating && _openController.value > 0)
-                    FadeTransition(
-                      opacity: _openAnimation,
-                      child: SizedBox(
-                        width: 300,
-                        height: 300,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            boxShadow: <BoxShadow>[
-                              BoxShadow(
-                                color: AppColors.neonPurple.withValues(alpha: 0.6),
-                                blurRadius: 150 * _openAnimation.value,
-                                spreadRadius: 30 * _openAnimation.value,
-                              ),
-                            ],
-                          ),
                         ),
                       ),
                     ),
@@ -229,64 +221,75 @@ class GachaMachineSectionState extends State<GachaMachineSection>
     );
   }
 
-  Widget _buildCapsule(Color color, double openValue) {
-    const double size = 40.0;
-    const double halfSize = size / 2;
-    const double iconSize = 20.0;
+  Widget _buildCapsule(Color color, double openValue, {double size = 60.0}) {
+    final double halfSize = size / 2;
+    final double iconSize = size / 2;
 
     // 전체 형태를 그리는 함수
     Widget buildFullCapsule() {
-      return Container(
+      return SizedBox(
         width: size,
         height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.black,
-            width: 2,
-            strokeAlign: BorderSide.strokeAlignOutside,
-          ),
-          color: Colors.white,
-        ),
-        clipBehavior: Clip.antiAlias,
         child: Stack(
           children: <Widget>[
-            // 중앙 아이콘 (물음표)
-            const Center(
-              child: Icon(
-                Icons.question_mark,
-                size: iconSize,
-                color: Colors.black87,
+            // 내부 콘텐츠를 ClipOval로 정확하게 원형 클리핑
+            ClipOval(
+              child: Stack(
+                children: <Widget>[
+                  // 배경 흰색
+                  Container(color: Colors.white),
+                  // 상단 반투명 흰색 막
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: halfSize,
+                    child: Container(
+                      color: Colors.white.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  // 하단 특정 컬러 반투명 막
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    height: halfSize,
+                    child: Container(color: color.withValues(alpha: 0.7)),
+                  ),
+                  // 중앙 분리선
+                  Align(
+                    alignment: Alignment.center,
+                    child: Container(height: 1, color: Colors.black26),
+                  ),
+                  // 중앙 아이콘 (물음표)
+                  Center(
+                    child: Icon(
+                      Icons.question_mark,
+                      size: iconSize,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ],
               ),
             ),
-            // 상단 반투명 흰색 막
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              height: halfSize,
-              child: Container(
-                color: Colors.white.withValues(alpha: 0.3),
+            // 원형 테두리를 별도 레이어로 얹어 클리핑 영향을 받지 않게 처리
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.black38,
+                  width: 1.5,
+                  strokeAlign: BorderSide.strokeAlignInside,
+                ),
               ),
-            ),
-            // 하단 특정 컬러 반투명 막
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: halfSize,
-              child: Container(
-                color: color.withValues(alpha: 0.7),
-              ),
-            ),
-            // 중앙 분리선
-            Align(
-              alignment: Alignment.center,
-              child: Container(height: 1, color: Colors.black),
             ),
           ],
         ),
       );
+    }
+
+    if (openValue == 0.0) {
+      return buildFullCapsule();
     }
 
     return SizedBox(
@@ -298,7 +301,7 @@ class GachaMachineSectionState extends State<GachaMachineSection>
         children: <Widget>[
           // 하단부 (아래쪽 절반)
           Transform.translate(
-            offset: const Offset(0, halfSize / 2),
+            offset: Offset(0, halfSize / 2),
             child: ClipRect(
               child: Align(
                 alignment: Alignment.bottomCenter,
@@ -307,9 +310,11 @@ class GachaMachineSectionState extends State<GachaMachineSection>
               ),
             ),
           ),
-          // 상단부 뚜껑 (위쪽 절반 - 열릴 때 위로 이동하며 회전)
           Transform.translate(
-            offset: Offset(0, -halfSize / 2 - 20.0 * openValue), // 위쪽으로 들림
+            offset: Offset(
+              0,
+              -halfSize / 2 - (size / 2) * openValue,
+            ), // 위쪽으로 들림
             child: Transform.rotate(
               angle: 0.3 * openValue, // 살짝 회전
               child: ClipRect(
@@ -347,7 +352,7 @@ class GachaMachineSectionState extends State<GachaMachineSection>
             '남은 뽑기 횟수',
             style: TextStyle(
               fontFamily: 'PFStardust',
-              fontSize: 12,
+              fontSize: 16,
               color: Colors.white.withValues(alpha: 0.8),
               letterSpacing: 1,
             ),
@@ -373,50 +378,125 @@ class GachaMachineSectionState extends State<GachaMachineSection>
       height: 580,
       child: Column(
         children: <Widget>[
-          // 1. 머신 상단 (캡슐 보관통)
+          // 1. 머신 상단부 - 유리 돔 보관통
           Expanded(
             flex: 3,
-            child: Container(
-              width: 260,
-              decoration: BoxDecoration(
-                color: const Color(0xFF1E1626).withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.neonPurple.withValues(alpha: 0.5),
-                  width: 3,
-                ),
-                boxShadow: <BoxShadow>[
-                  BoxShadow(
-                    color: AppColors.neonPurple.withValues(alpha: 0.15),
-                    blurRadius: 30,
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Stack(
-                  children: <Widget>[
-                    Positioned.fill(child: _buildCapsulesInside()),
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: Container(
-                        height: 2,
-                        decoration: BoxDecoration(
-                          boxShadow: <BoxShadow>[
-                            BoxShadow(
-                              color: AppColors.neonPurple,
-                              blurRadius: 10,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
-                      ),
+            child: Stack(
+              alignment: Alignment.topCenter,
+              children: <Widget>[
+                // 메인 캡슐 보관통
+                Container(
+                  width: 260,
+                  decoration: BoxDecoration(
+                    // 상단을 훨씬 둥글게 -> 캡슐 머신 유리 돔 실루엣
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(90),
+                      topRight: Radius.circular(90),
+                      bottomLeft: Radius.circular(10),
+                      bottomRight: Radius.circular(10),
                     ),
-                  ],
+                    // 반투명 짙은 배경 (유리 느낌)
+                    color: const Color(0xFF1A1030).withValues(alpha: 0.7),
+                    border: Border.all(
+                      color: AppColors.neonPurple.withValues(alpha: 0.6),
+                      width: 2.5,
+                    ),
+                    boxShadow: <BoxShadow>[
+                      // 외부 네온 글로우
+                      BoxShadow(
+                        color: AppColors.neonPurple.withValues(alpha: 0.3),
+                        blurRadius: 24,
+                        spreadRadius: 2,
+                      ),
+                      // 내부 바닥 조명
+                      BoxShadow(
+                        color: AppColors.neonPurple.withValues(alpha: 0.08),
+                        blurRadius: 40,
+                        spreadRadius: -10,
+                        offset: const Offset(0, 20),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(88),
+                      topRight: Radius.circular(88),
+                      bottomLeft: Radius.circular(8),
+                      bottomRight: Radius.circular(8),
+                    ),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: <Widget>[
+                        // 캡슐들
+                        Positioned.fill(child: _buildCapsulesInside()),
+                        // 유리 상단 반사광 (왼쪽 하이라이트)
+                        Positioned(
+                          top: 10,
+                          left: 30,
+                          child: Container(
+                            width: 60,
+                            height: 90,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(40),
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: <Color>[
+                                  Colors.white.withValues(alpha: 0.13),
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        // 상단 안쪽 네온 테두리 글로우
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            height: 3,
+                            decoration: BoxDecoration(
+                              boxShadow: <BoxShadow>[
+                                BoxShadow(
+                                  color: AppColors.neonPurple,
+                                  blurRadius: 12,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+                // 하단 금속 림 (보관통 & 본체 사이 연결고리)
+                Positioned(
+                  bottom: 0,
+                  child: Container(
+                    width: 270,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      gradient: LinearGradient(
+                        colors: <Color>[
+                          const Color(0xFF3D2A5F),
+                          AppColors.neonPurple.withValues(alpha: 0.8),
+                          const Color(0xFF3D2A5F),
+                        ],
+                      ),
+                      boxShadow: <BoxShadow>[
+                        BoxShadow(
+                          color: AppColors.neonPurple.withValues(alpha: 0.5),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 12),
@@ -504,24 +584,71 @@ class GachaMachineSectionState extends State<GachaMachineSection>
   }
 
   Widget _buildCapsulesInside() {
-    final int count = widget.remainingCount;
-    final math.Random random = math.Random(42);
+    final int count = 18;
+    // 고정 시드로 매번 위치가 흔들리지 않고 안정적으로 쌓여 있도록 유지
+    final math.Random random = math.Random(1234);
+
     return Stack(
+      clipBehavior: Clip.none,
       children: List.generate(count, (int index) {
         final Color color = _dotPalette[index % _dotPalette.length];
-        return Positioned(
-          left: 40 + random.nextDouble() * 180,
-          top: 80 + random.nextDouble() * 260,
-          child: Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-              boxShadow: <BoxShadow>[
-                BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 4),
-              ],
-            ),
+
+        // 헥스 그리드 형태로 박스 아래에서부터 쌓이도록 계산 (캡슐 너비 68px)
+        int r = 0;
+        int remain = index;
+        while (true) {
+          int cap = (r % 2 == 0) ? 4 : 3;
+          if (remain < cap) break;
+          remain -= cap;
+          r++;
+        }
+        int col = remain;
+        bool isEvenRow = (r % 2 == 0);
+
+        // 컨테이너 너비 260px, 캡슐 너비 68px
+        double targetX =
+            (isEvenRow ? -6.0 : 28.0) +
+            col * 68.0 +
+            random.nextDouble() * 6 -
+            3;
+        // 컨테이너 높이 약 318px, 바닥 Y좌표 = 240px, 위로 쌓일때마다 약 58px씩 상승
+        double targetY = 240.0 - r * 58.0 + random.nextDouble() * 8 - 4;
+
+        // 최종 안착 시 회전 각도
+        double targetAngle = random.nextDouble() * math.pi * 2;
+
+        // 순차적 떨어짐 연출을 위한 딜레이 및 시간 설정
+        int delayMs = index * 100; // 캡슐 하나당 100ms 씩 늦게 출발
+        int activeMs = 800 + random.nextInt(300); // 떨어지는 속도 약간 랜덤
+        int totalMs = delayMs + activeMs;
+        double delayRatio = delayMs / totalMs;
+
+        return TweenAnimationBuilder<double>(
+          key: ValueKey<int>(index), // 고유 키를 부여하여 리스트 변경 시 안정성 확보
+          tween: Tween<double>(begin: 0.0, end: 1.0),
+          duration: Duration(milliseconds: totalMs),
+          curve: Curves.linear, // 커브는 빌더 내부에서 적용
+          builder: (BuildContext context, double time, Widget? child) {
+            double value = 0.0;
+            if (time > delayRatio) {
+              // 딜레이 이후부터 1.0까지 진행도를 0.0~1.0으로 정규화
+              double normalizedTime = (time - delayRatio) / (1.0 - delayRatio);
+              // 바운스 효과를 1.0 도달 시 넘어서면서 튕기도록 처리
+              value = Curves.bounceOut.transform(normalizedTime);
+            }
+
+            // Y좌표: 위(-120)에서부터 목표 지점(targetY)으로 이동
+            double currentY = -120 + (targetY + 120) * value;
+
+            return Positioned(
+              left: targetX,
+              top: currentY,
+              child: Transform.rotate(angle: targetAngle * value, child: child),
+            );
+          },
+          child: IgnorePointer(
+            // 내부 캡슐 크기는 68.0으로 25% 축소 (기존 90 기준)
+            child: _buildCapsule(color, 0.0, size: 68.0),
           ),
         );
       }),
@@ -607,7 +734,7 @@ class _GachaDrawButtonState extends State<GachaDrawButton>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   Text(
-                    'DRAW',
+                    'DRAW NOW',
                     style: TextStyle(
                       fontFamily: 'PFStardust',
                       fontSize: 18,
@@ -615,26 +742,6 @@ class _GachaDrawButtonState extends State<GachaDrawButton>
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1,
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    '지금 뽑기',
-                    style: TextStyle(
-                      fontFamily: 'WantedSans',
-                      fontSize: 14,
-                      color: isEnabled
-                          ? Colors.white.withValues(alpha: 0.9)
-                          : Colors.grey,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.touch_app,
-                    size: 16,
-                    color: isEnabled
-                        ? Colors.white.withValues(alpha: 0.8)
-                        : Colors.grey,
                   ),
                 ],
               ),
@@ -653,36 +760,49 @@ class GachaHistoryPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLarge = screenWidth >= AppBreakpoints.desktop;
+    final double scale = isLarge ? 1.2 : 1.0;
+
     return Container(
-      width: 300,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
-      ),
+      width: isLarge ? 300 : double.infinity,
+      padding: EdgeInsets.all(isLarge ? 20 : 0),
+      // 모바일/태블릿(모달)에서는 투명 배경, 데스크톱 패널에서는 유색 배경
+      decoration: isLarge
+          ? BoxDecoration(
+              color: const Color(0xFF130E1F),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.neonPurple.withValues(alpha: 0.3),
+              ),
+            )
+          : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          const Row(
+          Row(
             children: <Widget>[
-              Icon(Icons.history, color: AppColors.neonPurple, size: 20),
-              SizedBox(width: 10),
+              Icon(
+                Icons.history_rounded,
+                color: AppColors.neonPurple,
+                size: 20 * scale,
+              ),
+              const SizedBox(width: 10),
               Text(
-                'HISTORY',
+                '당첨된 기록',
                 style: TextStyle(
                   fontFamily: 'PFStardust',
-                  fontSize: 16,
+                  fontSize: 16 * scale,
                   color: Colors.white,
                   letterSpacing: 1,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20 * scale),
           Expanded(
             child: history.isEmpty
-                ? _buildEmptyState()
+                ? _buildEmptyState(scale)
                 : ListView.separated(
                     padding: EdgeInsets.zero,
                     itemCount: history.length,
@@ -700,8 +820,8 @@ class GachaHistoryPanel extends StatelessWidget {
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: Container(
-                          width: 40,
-                          height: 40,
+                          width: 40 * scale,
+                          height: 40 * scale,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(color: AppColors.neonPurple),
@@ -713,17 +833,17 @@ class GachaHistoryPanel extends StatelessWidget {
                         ),
                         title: Text(
                           item.itemName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontFamily: 'WantedSans',
                             color: Colors.white,
-                            fontSize: 14,
+                            fontSize: 14 * scale,
                           ),
                         ),
                         subtitle: Text(
                           time,
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.5),
-                            fontSize: 12,
+                            fontSize: 12 * scale,
                           ),
                         ),
                       );
@@ -735,7 +855,7 @@ class GachaHistoryPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(double scale) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -743,15 +863,15 @@ class GachaHistoryPanel extends StatelessWidget {
           Icon(
             Icons.inventory_2_outlined,
             color: Colors.white.withValues(alpha: 0.2),
-            size: 40,
+            size: 40 * scale,
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: 12 * scale),
           Text(
-            'NO HISTORY YET',
+            '아직 뽑은 기록이 없습니다.',
             style: TextStyle(
-              fontFamily: 'PFStardust',
+              fontFamily: 'WantedSans',
               color: Colors.white.withValues(alpha: 0.3),
-              fontSize: 12,
+              fontSize: 12 * scale,
             ),
           ),
         ],
@@ -767,86 +887,128 @@ class GachaPrizeListPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isLarge = screenWidth >= AppBreakpoints.desktop;
+    final double scale = isLarge ? 1.2 : 1.0;
+
     return Container(
-      width: 300,
-      padding: const EdgeInsets.all(20),
+      width: isLarge ? 300 : double.infinity,
+      padding: EdgeInsets.all(isLarge ? 24 : 20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
+        color: const Color(0xFF130E1F), // 히스토리 패널과 통일감 있는 배경색
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.neonPurple.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Row(
             children: <Widget>[
-              const Icon(Icons.stars, color: AppColors.neonPurple, size: 20),
-              const SizedBox(width: 10),
-              const Text(
-                'PRIZE LIST',
+              Icon(
+                Icons.stars_rounded,
+                color: AppColors.neonPurple,
+                size: 20 * scale,
+              ),
+              SizedBox(width: 10 * scale),
+              Text(
+                '경품 목록',
                 style: TextStyle(
                   fontFamily: 'PFStardust',
-                  fontSize: 16,
+                  fontSize: 16 * scale,
                   color: Colors.white,
                   letterSpacing: 1,
+                  shadows: <Shadow>[
+                    Shadow(
+                      color: AppColors.neonPurple.withValues(alpha: 0.5),
+                      blurRadius: 8,
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20 * scale),
           Expanded(
             child: ListView.separated(
               padding: EdgeInsets.zero,
               itemCount: items.length,
               separatorBuilder: (BuildContext context, int index) =>
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12 * scale),
               itemBuilder: (BuildContext context, int index) {
                 final GachaItem item = items[index];
                 return Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: EdgeInsets.all(12 * scale),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: Colors.white.withValues(alpha: 0.03),
                     borderRadius: BorderRadius.circular(8),
+                    // 아이템 좌측에 네온 포인트 바 추가
+                    border: Border(
+                      left: BorderSide(
+                        color: AppColors.neonPurple.withValues(alpha: 0.4),
+                        width: 4,
+                      ),
+                    ),
                   ),
                   child: Row(
                     children: <Widget>[
                       Container(
-                        width: 44,
-                        height: 44,
+                        width: 44 * scale,
+                        height: 44 * scale,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
                           image: DecorationImage(
                             image: AssetImage(item.imageUrl),
                             fit: BoxFit.cover,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12 * scale),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
                             Text(
                               item.itemName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: 'WantedSans',
-                                color: Colors.white,
+                                color: Colors.white.withValues(alpha: 0.9),
                                 fontWeight: FontWeight.bold,
-                                fontSize: 13,
+                                fontSize: 13 * scale,
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              item.percentOpen
-                                  ? '${(item.percent * 100).toStringAsFixed(2)}% CHANCE'
-                                  : 'SECRET CHANCE',
-                              style: TextStyle(
-                                color: AppColors.neonPurple.withValues(
-                                  alpha: 0.8,
+                            SizedBox(height: 4 * scale),
+                            Row(
+                              children: <Widget>[
+                                Icon(
+                                  Icons.bolt_rounded,
+                                  size: 10 * scale,
+                                  color: AppColors.neonPurple,
                                 ),
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  item.percentOpen
+                                      ? '${(item.percent * 100).toStringAsFixed(2)}%'
+                                      : '확률 미공개',
+                                  style: TextStyle(
+                                    color: AppColors.neonPurple.withValues(
+                                      alpha: 0.8,
+                                    ),
+                                    fontFamily: 'WantedSans',
+                                    fontSize: 11 * scale,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
