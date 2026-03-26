@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gifo/features/addgift/model/gacha_content.dart';
 import 'package:go_router/go_router.dart';
@@ -1437,6 +1438,9 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                 controller: _playCountController,
                 textAlign: TextAlign.right,
                 keyboardType: TextInputType.number,
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   filled: true,
