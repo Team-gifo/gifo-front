@@ -35,6 +35,7 @@ dependencies:
   jaspr: ^0.22.4
   screenshot: ^3.0.0
   archive: ^4.0.9
+  barcode: ^2.2.9
 
 dev_dependencies:
   flutter_test:

@@ -33,6 +33,11 @@ lib/
 │   ├── network/                       # (placeholder, 미구현)
 │   ├── router/
 │   │   └── app_router.dart            # GoRouter 전체 라우트
+│   ├── blocs/
+│   │   └── download/                  # 공용 파일 다운로드 BLoC (피처 공유)
+│   │       ├── download_bloc.dart
+│   │       ├── download_event.dart
+│   │       └── download_state.dart
 │   ├── utils/
 │   │   └── file_download_helper.dart  # 웹 기반 파일 다운로드 유틸리티
 │   └── widgets/

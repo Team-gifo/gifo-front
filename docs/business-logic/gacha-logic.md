@@ -101,6 +101,11 @@ BlocConsumer<GachaBloc, GachaState>(
 )
 ```
 
+**폭죽 효과 연출 (Confetti):**
+- 모달 내부 공간에 국한되지 않고, 시각적 개방감을 위해 **모달 밖(최상위 Stack)**에서 전체 화면으로 터지도록 설정되어 있다.
+- `showGachaResultModal`의 `pageBuilder` 내부에 `SharedConfettiWidget`을 배치하여 구현.
+
+
 모달 닫기 시 `ClearLastDrawnItem` 이벤트를 dispatch해 상태를 초기화한다:
 
 ```dart

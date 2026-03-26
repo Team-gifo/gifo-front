@@ -1,8 +1,15 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../lobby/model/lobby_data.dart';
+import '../../../../core/blocs/download/download_bloc.dart';
+import '../widgets/gifticon_frame.dart';
+
 
 class GachaMachineSection extends StatefulWidget {
   final int remainingCount;
@@ -753,10 +760,63 @@ class _GachaDrawButtonState extends State<GachaDrawButton>
   }
 }
 
-class GachaHistoryPanel extends StatelessWidget {
+class GachaHistoryPanel extends StatefulWidget {
   final List<Map<String, dynamic>> history;
+  final String userName;
+  final String inviteCode;
 
-  const GachaHistoryPanel({super.key, required this.history});
+  const GachaHistoryPanel({
+    super.key,
+    required this.history,
+    required this.userName,
+    required this.inviteCode,
+  });
+
+  @override
+  State<GachaHistoryPanel> createState() => _GachaHistoryPanelState();
+}
+
+class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
+  final ScreenshotController _screenshotController = ScreenshotController();
+
+  Future<void> _handleDownload(GachaItem item, String time) async {
+    // 1. 캡쳐 진행 알림 (로딩 상태)
+    context.read<DownloadBloc>().add(const SetDownloadLoadingEvent());
+
+    // 2. 기프티콘 프레임 위젯 생성 (캡쳐용)
+    // 폰트 및 이미지 로드 대기를 위해 약간의 지연 처리 권장
+    await Future<void>.delayed(const Duration(milliseconds: 300));
+
+    final String qrUrl = '${Uri.base.origin}/gift/code/${widget.inviteCode}';
+
+    try {
+      final Uint8List? imageBytes = await _screenshotController.captureFromWidget(
+        GifticonFrame(
+          itemName: item.itemName,
+          imageUrl: item.imageUrl,
+          recipientName: widget.userName,
+          issueDate: time,
+          inviteCode: widget.inviteCode,
+          qrUrl: qrUrl,
+        ),
+        delay: const Duration(milliseconds: 100),
+      );
+
+      if (imageBytes != null && mounted) {
+        // 3. 공용 DownloadBloc을 통해 실제 다운로드 실행
+        final String fileName = 'gifticon_${item.itemName}_$time.png';
+        context.read<DownloadBloc>().add(
+          ProcessDownloadEvent(
+            filesInfo: <Map<String, dynamic>>[
+              <String, dynamic>{'name': fileName, 'bytes': imageBytes},
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('[GachaHistoryPanel] Capture Error: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -767,7 +827,6 @@ class GachaHistoryPanel extends StatelessWidget {
     return Container(
       width: isLarge ? 300 : double.infinity,
       padding: EdgeInsets.all(isLarge ? 20 : 0),
-      // 모바일/태블릿(모달)에서는 투명 배경, 데스크톱 패널에서는 유색 배경
       decoration: isLarge
           ? BoxDecoration(
               color: const Color(0xFF130E1F),
@@ -801,15 +860,15 @@ class GachaHistoryPanel extends StatelessWidget {
           ),
           SizedBox(height: 20 * scale),
           Expanded(
-            child: history.isEmpty
+            child: widget.history.isEmpty
                 ? _buildEmptyState(scale)
                 : ListView.separated(
                     padding: EdgeInsets.zero,
-                    itemCount: history.length,
+                    itemCount: widget.history.length,
                     separatorBuilder: (BuildContext context, int index) =>
                         const Divider(color: Colors.white10),
                     itemBuilder: (BuildContext context, int index) {
-                      final Map<String, dynamic> record = history[index];
+                      final Map<String, dynamic> record = widget.history[index];
                       final GachaItem? item = record['item'] is GachaItem
                           ? record['item'] as GachaItem
                           : null;
@@ -846,6 +905,16 @@ class GachaHistoryPanel extends StatelessWidget {
                             fontSize: 12 * scale,
                           ),
                         ),
+                        // 우측에 다운로드 아이콘 배치
+                        trailing: IconButton(
+                          icon: Icon(
+                            Icons.file_download_outlined,
+                            color: AppColors.neonPurple.withOpacity(0.8),
+                            size: 20 * scale,
+                          ),
+                          onPressed: () => _handleDownload(item, time),
+                          tooltip: '기프티콘 이미지 저장',
+                        ),
                       );
                     },
                   ),
@@ -854,6 +923,7 @@ class GachaHistoryPanel extends StatelessWidget {
       ),
     );
   }
+
 
   Widget _buildEmptyState(double scale) {
     return Center(

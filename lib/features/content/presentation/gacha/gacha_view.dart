@@ -200,7 +200,11 @@ class _GachaViewState extends State<GachaView> {
           // 좌측: 히스토리 패널 (가변 너비)
           Expanded(
             flex: 1,
-            child: GachaHistoryPanel(history: state.history),
+            child: GachaHistoryPanel(
+              history: state.history,
+              userName: state.userName,
+              inviteCode: widget.code,
+            ),
           ),
           const SizedBox(width: 28),
           // 중앙: 가챠 머신 섹션 (가세 비율 유지하며 중앙 집중)
@@ -285,7 +289,13 @@ class _GachaViewState extends State<GachaView> {
                 ),
               ),
               const SizedBox(height: 16),
-              Expanded(child: GachaHistoryPanel(history: state.history)),
+              Expanded(
+                child: GachaHistoryPanel(
+                  history: state.history,
+                  userName: state.userName,
+                  inviteCode: widget.code,
+                ),
+              ),
             ],
           ),
         );
