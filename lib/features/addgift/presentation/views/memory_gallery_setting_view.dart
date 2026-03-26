@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/grid_background_painter.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../application/memory_gallery_setting/memory_gallery_setting_bloc.dart';
 
@@ -99,7 +101,7 @@ class _MemoryGallerySettingViewState
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: const Color(0xFF1A1A2E),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24.0)),
         ),
@@ -131,7 +133,7 @@ class _MemoryGallerySettingViewState
               return Align(
                 alignment: Alignment.centerRight,
                 child: Material(
-                  color: const Color(0xFFF8F9FA),
+                  color: const Color(0xFF1A1A2E),
                   elevation: 8,
                   child: SizedBox(
                     width: 480,
@@ -200,23 +202,24 @@ class _MemoryGallerySettingViewState
         final bool canSave = _canSave(galleryState.uiItems);
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF8F9FA),
+          backgroundColor: AppColors.darkBg,
           appBar: AppBar(
             toolbarHeight: 68,
-            backgroundColor: const Color(0xFFF8F9FA),
+            backgroundColor: AppColors.darkBg,
             surfaceTintColor: Colors.transparent,
             elevation: 0,
             centerTitle: true,
             title: const Text(
               '추억 갤러리',
               style: TextStyle(
+                fontFamily: 'WantedSans',
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: Colors.white,
               ),
             ),
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              icon: const Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () {
                 context.read<MemoryGallerySettingBloc>().add(
                   const SortMemoryItems(MemorySortType.manual),
@@ -231,10 +234,17 @@ class _MemoryGallerySettingViewState
             // 데스크톱에서만 appbar에 진행도 표시
             actions: <Widget>[if (!isMobile) _buildStepIndicator()],
           ),
-          body: SafeArea(
-            child: isMobile
-                ? _buildMobileBody(context, galleryState)
-                : _buildDesktopBody(context, galleryState),
+          body: Stack(
+            children: <Widget>[
+              Positioned.fill(
+                child: CustomPaint(painter: GridBackgroundPainter()),
+              ),
+              SafeArea(
+                child: isMobile
+                    ? _buildMobileBody(context, galleryState)
+                    : _buildDesktopBody(context, galleryState),
+              ),
+            ],
           ),
           bottomNavigationBar: _buildBottomBar(
             context,
@@ -266,10 +276,14 @@ class _MemoryGallerySettingViewState
           vertical: isMobile ? 6 : 8,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.black : Colors.white,
+          color: isSelected
+              ? AppColors.neonPurple.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? Colors.black : Colors.grey.shade300,
+            color: isSelected
+                ? AppColors.neonPurple
+                : Colors.white.withValues(alpha: 0.2),
           ),
         ),
         child: Row(
@@ -278,8 +292,8 @@ class _MemoryGallerySettingViewState
             Text(
               label,
               style: TextStyle(
-                fontFamily: 'PFStardust',
-                color: isSelected ? Colors.white : Colors.grey.shade700,
+                fontFamily: 'WantedSans',
+                color: isSelected ? AppColors.neonPurple : Colors.white60,
                 fontSize: isMobile ? 12 : 14,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
               ),
@@ -359,7 +373,7 @@ class _MemoryGallerySettingViewState
                       });
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: AppColors.neonBlue,
                       foregroundColor: Colors.white,
                       elevation: 0,
                     ),
@@ -502,13 +516,13 @@ class _MemoryGallerySettingViewState
               // 배경 (카드 본체)
               Positioned.fill(
                 child: Material(
-                  color: Colors.white,
+                  color: Colors.white.withValues(alpha: 0.05),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16.0),
                     side: BorderSide(
                       color: selectedItemId == itemData.id
-                          ? Colors.orange
-                          : Colors.grey.shade200,
+                          ? AppColors.neonPurple
+                          : Colors.white24,
                       width: selectedItemId == itemData.id ? 2.5 : 1.0,
                     ),
                   ),
@@ -529,7 +543,7 @@ class _MemoryGallerySettingViewState
                               width: double.infinity,
                               clipBehavior: Clip.antiAlias,
                               decoration: BoxDecoration(
-                                color: const Color(0xFFF8F9FA),
+                                color: Colors.white.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(12.0),
                               ),
                               child: itemData.imageFile != null
@@ -556,12 +570,12 @@ class _MemoryGallerySettingViewState
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontFamily: 'PFStardust',
+                                  fontFamily: 'WantedSans',
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: itemData.title.isEmpty
-                                      ? Colors.grey
-                                      : Colors.black,
+                                      ? Colors.white38
+                                      : Colors.white,
                                 ),
                               ),
                               const SizedBox(height: 12),
@@ -572,12 +586,12 @@ class _MemoryGallerySettingViewState
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontFamily: 'PFStardust',
+                                  fontFamily: 'WantedSans',
                                   fontSize: 14,
                                   height: 1.5,
                                   color: itemData.description.isEmpty
-                                      ? Colors.grey
-                                      : Colors.black87,
+                                      ? Colors.white38
+                                      : Colors.white70,
                                 ),
                               ),
                             ],
@@ -649,8 +663,11 @@ class _MemoryGallerySettingViewState
   Widget _buildDesktopAddCard() {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        backgroundColor: Colors.white,
-        side: BorderSide(color: Colors.grey.shade300, width: 1.5),
+        backgroundColor: AppColors.neonPurple.withValues(alpha: 0.05),
+        side: BorderSide(
+          color: AppColors.neonPurple.withValues(alpha: 0.4),
+          width: 1.5,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.0),
         ),
@@ -671,13 +688,17 @@ class _MemoryGallerySettingViewState
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Icon(Icons.add_circle_outline, size: 28, color: Colors.grey.shade400),
+          Icon(
+            Icons.add_circle_outline,
+            size: 28,
+            color: AppColors.neonPurple.withValues(alpha: 0.7),
+          ),
           const SizedBox(width: 10),
           Text(
             '추억 추가하기',
             style: TextStyle(
-              fontFamily: 'PFStardust',
-              color: Colors.grey.shade600,
+              fontFamily: 'WantedSans',
+              color: AppColors.neonPurple.withValues(alpha: 0.8),
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
@@ -740,7 +761,7 @@ class _MemoryGallerySettingViewState
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: AppColors.neonBlue,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(
@@ -793,12 +814,12 @@ class _MemoryGallerySettingViewState
                   Icon(
                     Icons.photo_library_outlined,
                     size: 64,
-                    color: Colors.grey.shade300,
+                    color: Colors.white24,
                   ),
                   const SizedBox(height: 16),
-                  Text(
+                  const Text(
                     '아직 등록된 추억이 없어요.',
-                    style: TextStyle(color: Colors.grey.shade400, fontSize: 15),
+                    style: TextStyle(color: Colors.white38, fontSize: 15),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton.icon(
@@ -808,7 +829,7 @@ class _MemoryGallerySettingViewState
                       );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
+                      backgroundColor: AppColors.neonBlue,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(
@@ -889,13 +910,13 @@ class _MemoryGallerySettingViewState
         clipBehavior: Clip.none,
         children: <Widget>[
           Material(
-            color: Colors.white,
+            color: Colors.white.withValues(alpha: 0.05),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16.0),
               side: BorderSide(
                 color: selectedItemId == itemData.id
-                    ? Colors.orange
-                    : Colors.grey.shade200,
+                    ? AppColors.neonPurple
+                    : Colors.white24,
                 width: selectedItemId == itemData.id ? 2.0 : 1.0,
               ),
             ),
@@ -947,12 +968,12 @@ class _MemoryGallerySettingViewState
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontFamily: 'PFStardust',
+                              fontFamily: 'WantedSans',
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                               color: itemData.title.isEmpty
-                                  ? Colors.grey
-                                  : Colors.black,
+                                  ? Colors.white38
+                                  : Colors.white,
                             ),
                           ),
                           const SizedBox(height: 4),
@@ -963,11 +984,11 @@ class _MemoryGallerySettingViewState
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
-                              fontFamily: 'PFStardust',
+                              fontFamily: 'WantedSans',
                               fontSize: 13,
                               color: itemData.description.isEmpty
-                                  ? Colors.grey
-                                  : Colors.black87,
+                                  ? Colors.white38
+                                  : Colors.white70,
                             ),
                           ),
                         ],
@@ -1023,15 +1044,10 @@ class _MemoryGallerySettingViewState
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.grey.shade200)),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              offset: const Offset(0, -4),
-              blurRadius: 10,
-            ),
-          ],
+          color: AppColors.darkBg,
+          border: Border(
+            top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -1042,15 +1058,16 @@ class _MemoryGallerySettingViewState
                 const Icon(
                   Icons.photo_library_rounded,
                   size: 20,
-                  color: Colors.black87,
+                  color: Colors.white70,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   '추억 목록 [ $itemCount개 ]',
                   style: const TextStyle(
+                    fontFamily: 'WantedSans',
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Colors.white,
                   ),
                 ),
               ],
@@ -1088,10 +1105,10 @@ class _MemoryGallerySettingViewState
                     }
                   : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: canSave ? Colors.black : Colors.grey.shade300,
+                backgroundColor: AppColors.neonPurple,
                 foregroundColor: Colors.white,
-                disabledBackgroundColor: Colors.grey.shade300,
-                disabledForegroundColor: Colors.grey.shade500,
+                disabledBackgroundColor: Colors.white12,
+                disabledForegroundColor: Colors.white38,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24.0,
                   vertical: 18.0,
@@ -1134,14 +1151,16 @@ class _MemoryGallerySettingViewState
       height: 28,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isActive ? Colors.black : Colors.grey.shade200,
+        color: isActive ? AppColors.neonPurple : Colors.white12,
+        border: isActive ? null : Border.all(color: Colors.white24),
       ),
       child: Center(
         child: Text(
           number,
           style: TextStyle(
-            color: isActive ? Colors.white : Colors.grey.shade500,
-            fontSize: 14,
+            fontFamily: 'WantedSans',
+            color: isActive ? Colors.white : Colors.white38,
+            fontSize: 13,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -1153,7 +1172,9 @@ class _MemoryGallerySettingViewState
     return Container(
       width: 16,
       height: 2,
-      color: isActive ? Colors.black : Colors.grey.shade200,
+      color: isActive
+          ? AppColors.neonPurple.withValues(alpha: 0.5)
+          : Colors.white12,
     );
   }
 }
@@ -1204,12 +1225,14 @@ class _MemoryEditForm extends StatelessWidget {
                           const Text(
                             '추억 상세 설정',
                             style: TextStyle(
+                              fontFamily: 'WantedSans',
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
                           IconButton(
-                            icon: const Icon(Icons.close),
+                            icon: const Icon(Icons.close, color: Colors.white70),
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                         ],
@@ -1220,14 +1243,17 @@ class _MemoryEditForm extends StatelessWidget {
                       const Text(
                         '제목',
                         style: TextStyle(
+                          fontFamily: 'WantedSans',
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 8),
                       TextFormField(
                         key: ValueKey<String>('title_$itemId'),
                         initialValue: itemData.title,
+                        style: const TextStyle(color: Colors.white),
                         onChanged: (String val) {
                           context.read<MemoryGallerySettingBloc>().add(
                             UpdateMemoryItemTitle(itemId, val),
@@ -1235,9 +1261,9 @@ class _MemoryEditForm extends StatelessWidget {
                         },
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: Colors.white.withValues(alpha: 0.07),
                           hintText: '제목을 입력해주세요',
-                          hintStyle: const TextStyle(color: Colors.grey),
+                          hintStyle: const TextStyle(color: Colors.white38),
                           suffixIcon: itemData.title.isNotEmpty
                               ? IconButton(
                                   icon: const Icon(Icons.clear, size: 20),
@@ -1260,7 +1286,9 @@ class _MemoryEditForm extends StatelessWidget {
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
-                              color: isTitleValid ? Colors.black26 : Colors.red,
+                              color: isTitleValid
+                                  ? Colors.white24
+                                  : Colors.red,
                               width: isTitleValid ? 1.0 : 1.5,
                             ),
                           ),
@@ -1268,7 +1296,7 @@ class _MemoryEditForm extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
                               color: isTitleValid
-                                  ? const Color(0xFF6DE1F1)
+                                  ? AppColors.neonPurple
                                   : Colors.red,
                               width: 1.5,
                             ),
@@ -1284,8 +1312,10 @@ class _MemoryEditForm extends StatelessWidget {
                       const Text(
                         '이미지',
                         style: TextStyle(
+                          fontFamily: 'WantedSans',
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -1295,10 +1325,10 @@ class _MemoryEditForm extends StatelessWidget {
                           child: Container(
                             height: 120,
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Colors.white.withValues(alpha: 0.07),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
-                                color: Colors.black26,
+                                color: Colors.white24,
                                 width: 1,
                               ),
                             ),
@@ -1306,7 +1336,7 @@ class _MemoryEditForm extends StatelessWidget {
                               child: Icon(
                                 Icons.add_photo_alternate,
                                 size: 40,
-                                color: Colors.grey,
+                                color: Colors.white38,
                               ),
                             ),
                           ),
@@ -1318,10 +1348,10 @@ class _MemoryEditForm extends StatelessWidget {
                             Container(
                               constraints: const BoxConstraints(maxHeight: 500),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Colors.white.withValues(alpha: 0.05),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: Colors.black26,
+                                  color: Colors.white24,
                                   width: 1,
                                 ),
                               ),
@@ -1342,8 +1372,10 @@ class _MemoryEditForm extends StatelessWidget {
                                   icon: const Icon(Icons.edit, size: 16),
                                   label: const Text('수정'),
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.blue,
-                                    side: const BorderSide(color: Colors.blue),
+                                    foregroundColor: AppColors.neonBlue,
+                                    side: BorderSide(
+                                      color: AppColors.neonBlue,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
@@ -1356,8 +1388,10 @@ class _MemoryEditForm extends StatelessWidget {
                                   icon: const Icon(Icons.delete, size: 16),
                                   label: const Text('삭제'),
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.red,
-                                    side: const BorderSide(color: Colors.red),
+                                    foregroundColor: Colors.redAccent,
+                                    side: const BorderSide(
+                                      color: Colors.redAccent,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -1386,6 +1420,7 @@ class _MemoryEditForm extends StatelessWidget {
                         key: ValueKey<String>('desc_$itemId'),
                         initialValue: itemData.description,
                         maxLines: 4,
+                        style: const TextStyle(color: Colors.white),
                         onChanged: (String val) {
                           context.read<MemoryGallerySettingBloc>().add(
                             UpdateMemoryItemDescription(itemId, val),
@@ -1393,14 +1428,14 @@ class _MemoryEditForm extends StatelessWidget {
                         },
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: Colors.white.withValues(alpha: 0.07),
                           hintText: '설명을 입력해주세요',
-                          hintStyle: const TextStyle(color: Colors.grey),
+                          hintStyle: const TextStyle(color: Colors.white38),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
                               color: isDescriptionValid
-                                  ? const Color(0xFF6DE1F1)
+                                  ? AppColors.neonPurple
                                   : Colors.red,
                               width: 1.5,
                             ),
@@ -1409,7 +1444,7 @@ class _MemoryEditForm extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
                               color: isDescriptionValid
-                                  ? Colors.black26
+                                  ? Colors.white24
                                   : Colors.red,
                               width: isDescriptionValid ? 1.0 : 1.5,
                             ),
@@ -1418,7 +1453,7 @@ class _MemoryEditForm extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
                               color: isDescriptionValid
-                                  ? const Color(0xFF6DE1F1)
+                                  ? AppColors.neonPurple
                                   : Colors.red,
                               width: 1.5,
                             ),
@@ -1441,8 +1476,12 @@ class _MemoryEditForm extends StatelessWidget {
                   vertical: 16,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                  color: const Color(0xFF1A1A2E),
+                  border: Border(
+                    top: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
+                  ),
                 ),
                 child: Row(
                   children: <Widget>[
@@ -1455,13 +1494,13 @@ class _MemoryEditForm extends StatelessWidget {
                           );
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.red.shade400,
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.redAccent,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(
-                              color: Colors.red.shade400,
+                            side: const BorderSide(
+                              color: Colors.redAccent,
                               width: 1.5,
                             ),
                           ),
@@ -1470,6 +1509,7 @@ class _MemoryEditForm extends StatelessWidget {
                         child: const Text(
                           '삭제',
                           style: TextStyle(
+                            fontFamily: 'WantedSans',
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
@@ -1481,7 +1521,7 @@ class _MemoryEditForm extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () => Navigator.of(context).pop(),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
+                          backgroundColor: AppColors.neonPurple,
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
@@ -1492,6 +1532,7 @@ class _MemoryEditForm extends StatelessWidget {
                         child: const Text(
                           '닫기',
                           style: TextStyle(
+                            fontFamily: 'WantedSans',
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),

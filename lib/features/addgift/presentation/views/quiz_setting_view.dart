@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/widgets/grid_background_painter.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../model/gift_content.dart';
 import '../../model/quiz_content.dart';
@@ -269,59 +271,68 @@ class _QuizSettingViewState extends State<QuizSettingView> {
 
     return Title(
       title: '선물 포장하기 - Gifo',
-      color: Colors.black,
+      color: AppColors.darkBg,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: AppColors.darkBg,
         appBar: AppBar(
         toolbarHeight: 68,
-        backgroundColor: const Color(0xFFF8F9FA),
+        backgroundColor: AppColors.darkBg,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         title: isMobile ? null : _buildTitleBar(),
         actions: <Widget>[_buildStepIndicator()],
       ),
-      body: SafeArea(
-        child: isMobile
-            ? Column(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: _buildTitleBar(),
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: _buildItemsSection(isMobile),
-                    ),
-                  ),
-                ],
-              )
-            : Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
-                  Expanded(
-                    flex: 7,
-                    child: Padding(
-                      padding: const EdgeInsets.all(40.0),
-                      child: _buildItemsSection(isMobile),
-                    ),
-                  ),
-                  Container(width: 1, color: Colors.grey.shade200),
-                  Expanded(
-                    flex: 3,
-                    child: Padding(
-                      padding: const EdgeInsets.all(40.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: _buildSettingsSection(isMobile: false),
-                            ),
-                          ),
+      body: Stack(
+        children: <Widget>[
+          Positioned.fill(
+            child: CustomPaint(painter: GridBackgroundPainter()),
+          ),
+          SafeArea(
+            child: isMobile
+                ? Column(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: _buildTitleBar(),
+                        ),
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                          child: _buildItemsSection(isMobile),
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: <Widget>[
+                      Expanded(
+                        flex: 7,
+                        child: Padding(
+                          padding: const EdgeInsets.all(40.0),
+                          child: _buildItemsSection(isMobile),
+                        ),
+                      ),
+                      Container(
+                        width: 1,
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Padding(
+                          padding: const EdgeInsets.all(40.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: <Widget>[
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  child: _buildSettingsSection(isMobile: false),
+                                ),
+                              ),
                           const SizedBox(height: 24),
                           _buildCompleteButton(),
                         ],
@@ -330,6 +341,8 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                   ),
                 ],
               ),
+          ),
+        ],
       ),
       bottomNavigationBar: isMobile ? _buildMobileBottomBar() : null,
     ));
