@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:barcode/barcode.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/grid_background_painter.dart';
 
 /// 당첨된 기록을 기반으로 기프티콘 프레임을 생성하는 위젯
-/// 
+///
 /// 캡쳐용으로 사용되며, 고정된 규격(약 400x750)으로 디자인되었습니다.
 class GifticonFrame extends StatelessWidget {
   final String itemName;
@@ -34,110 +35,121 @@ class GifticonFrame extends StatelessWidget {
       width: canvasWidth,
       height: canvasHeight,
       // 배경은 짙은 그리드 느낌을 주기 위해 약간의 처리
-      decoration: const BoxDecoration(
-        color: AppColors.darkBg,
-      ),
+      decoration: const BoxDecoration(color: AppColors.darkBg),
       child: Stack(
         children: <Widget>[
+          // 0. 그리드 배경 적용
+          Positioned.fill(
+            child: CustomPaint(
+              painter: GridBackgroundPainter(),
+            ),
+          ),
           // 1. 네온 테두리 디자인 (전체 캔버스 기준)
           Positioned(
             left: 20,
-            top: 20,
+            top: 40,
             right: 20,
-            bottom: 60, // 하단 여백
+            bottom: 40, // 상단(40)과 하단(40)의 여백을 동일하게 맞춤
             child: CustomPaint(
               painter: _GifticonBorderPainter(color: AppColors.neonPurple),
             ),
           ),
-          
-          // 2. 내부 콘텐츠 배치
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40.0),
-            child: Column(
-              children: <Widget>[
-                const SizedBox(height: 60),
-                // 중앙 상품 이미지 영역 (흰색 배경 박스)
-                Container(
-                  width: 240,
-                  height: 240,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.white.withOpacity(0.1),
-                        blurRadius: 20,
-                      )
-                    ],
-                  ),
-                  child: Image.asset(
-                    imageUrl,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                const SizedBox(height: 50),
-                
-                // 정보 영역 리스트
-                _buildInfoRow(
-                  leftWidget: Text(
-                    itemName,
-                    style: const TextStyle(
+
+          // 2. 내부 콘텐츠 배치 (프레임 내부에 정렬)
+          Positioned.fill(
+            top: 40,
+            bottom: 60, // 하단 QR 공간 확보를 위해 여백 증대
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 45.0),
+              child: Column(
+                children: <Widget>[
+                  const SizedBox(height: 60), // 상단 여백 확대 (50->60)
+                  // 중앙 상품 이미지 영역
+                  Container(
+                    width: 250,
+                    height: 250,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
                       color: Colors.white,
-                      fontSize: 22,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.05),
+                          blurRadius: 30,
+                        ),
+                      ],
+                    ),
+                    child: Image.asset(imageUrl, fit: BoxFit.contain),
+                  ),
+                  const SizedBox(height: 60), // 이미지와 이름 사이 간격 확대 (50->60)
+                  // 정보 영역 리스트 (간격 및 가독성 조정)
+                  _buildInfoRow(
+                    leftWidget: Text(
+                      itemName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontFamily: 'WantedSans',
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    rightWidget: _buildQRCode(
+                      qrUrl,
+                      size: 60,
+                    ), // QR 코드를 이름 우측으로 이동 (사이즈 축소)
+                  ),
+                  const SizedBox(height: 60), // 경품 이름과 아래 정보 간격 확대
+
+                  _buildInfoRow(
+                    label: '받는이',
+                    value: recipientName,
+                    valueStyle: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 19,
                       fontFamily: 'WantedSans',
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  rightWidget: Image.asset(
-                    'assets/images/title_logo.png',
-                    height: 32,
-                    color: Colors.white.withOpacity(0.9),
+                  const SizedBox(height: 28),
+
+                  _buildInfoRow(
+                    label: '당첨일시',
+                    value: issueDate,
+                    valueStyle: TextStyle(
+                      color: Colors.white.withOpacity(0.7),
+                      fontSize: 16,
+                      fontFamily: 'WantedSans',
+                    ),
                   ),
-                ),
-                const SizedBox(height: 48),
-                
-                _buildInfoRow(
-                  label: '받는이',
-                  value: recipientName,
-                  valueStyle: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontFamily: 'WantedSans',
-                    fontWeight: FontWeight.w600,
+                  const SizedBox(height: 28),
+
+                  _buildInfoRow(
+                    label: '유효코드',
+                    value: inviteCode,
+                    valueStyle: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 19,
+                      fontFamily: 'WantedSans',
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2.0,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 32),
-                
-                _buildInfoRow(
-                  label: '발급기한',
-                  value: issueDate,
-                  valueStyle: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
-                    fontSize: 15,
-                    fontFamily: 'WantedSans',
-                  ),
-                ),
-                const SizedBox(height: 32),
-                
-                _buildInfoRow(
-                  label: '유효코드',
-                  value: inviteCode,
-                  valueStyle: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontFamily: 'WantedSans',
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-                
-                const Spacer(),
-                
-                // 하단 QR 코드 (테두리 하단 중앙에 위치하도록 배치)
-                _buildQRCode(qrUrl),
-                const SizedBox(height: 35),
-              ],
+                ],
+              ),
+            ),
+          ),
+
+          // 3. 하단 브랜드 로고 (프레임 하단 경계선 중앙에 배치)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 15, // 50px 높이 로고의 중앙(25px)이 하단 선(40px)에 일치하도록 조정 (15 + 25 = 40)
+            child: Center(
+              child: Image.asset(
+                'assets/images/title_logo.png',
+                height: 50,
+                color: Colors.white.withOpacity(0.9),
+              ),
             ),
           ),
         ],
@@ -156,49 +168,46 @@ class GifticonFrame extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
-        leftWidget ?? Text(
-          label ?? '',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.5),
-            fontSize: 18,
-            fontFamily: 'WantedSans',
-          ),
-        ),
-        rightWidget ?? Flexible(
-          child: Text(
-            value ?? '',
-            textAlign: TextAlign.end,
-            style: valueStyle,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
+        leftWidget ??
+            Text(
+              label ?? '',
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.5),
+                fontSize: 18,
+                fontFamily: 'WantedSans',
+              ),
+            ),
+        rightWidget ??
+            Flexible(
+              child: Text(
+                value ?? '',
+                textAlign: TextAlign.end,
+                style: valueStyle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
       ],
     );
   }
 
   /// barcode 패키지를 사용하여 QR 코드를 생성하는 함수
-  Widget _buildQRCode(String data) {
+  Widget _buildQRCode(String data, {double size = 80}) {
     final Barcode qrCode = Barcode.qrCode();
+    final double svgSize = size * 0.9;
     final String svgString = qrCode.toSvg(
       data,
-      width: 90,
-      height: 90,
+      width: svgSize,
+      height: svgSize,
+      color: 0xFFFFFFFF, // QR 코드를 화이트 색상으로 변경
     );
 
     return Container(
-      width: 100,
-      height: 100,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(4),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: AppColors.neonPurple.withOpacity(0.4),
-            blurRadius: 15,
-          ),
-        ],
+      width: size,
+      height: size,
+      padding: const EdgeInsets.all(4),
+      decoration: const BoxDecoration(
+        color: Colors.transparent, // 배경 제거
       ),
       child: SvgPicture.string(svgString),
     );
@@ -219,7 +228,7 @@ class _GifticonBorderPainter extends CustomPainter {
       ..strokeWidth = 3.0;
 
     final Path path = Path();
-    
+
     // 테두리 라인: 상단 좌측 -> 우측 -> 하단 우측 -> 하단 좌측 (가운데 끊김)
     path.moveTo(size.width * 0.35, size.height);
     path.lineTo(0, size.height);
@@ -230,13 +239,13 @@ class _GifticonBorderPainter extends CustomPainter {
 
     // 네온 글로우 효과
     canvas.drawPath(path, paint);
-    
+
     final Paint glowPaint = Paint()
       ..color = color.withOpacity(0.4)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 8.0
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6.0);
-    
+
     canvas.drawPath(path, glowPaint);
   }
 

@@ -1,15 +1,15 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
-import 'package:flutter/material.dart';
-import 'package:screenshot/screenshot.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:screenshot/screenshot.dart';
+
+import '../../../../core/blocs/download/download_bloc.dart';
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../lobby/model/lobby_data.dart';
-import '../../../../core/blocs/download/download_bloc.dart';
 import '../widgets/gifticon_frame.dart';
-
 
 class GachaMachineSection extends StatefulWidget {
   final int remainingCount;
@@ -790,17 +790,18 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
     final String qrUrl = '${Uri.base.origin}/gift/code/${widget.inviteCode}';
 
     try {
-      final Uint8List? imageBytes = await _screenshotController.captureFromWidget(
-        GifticonFrame(
-          itemName: item.itemName,
-          imageUrl: item.imageUrl,
-          recipientName: widget.userName,
-          issueDate: time,
-          inviteCode: widget.inviteCode,
-          qrUrl: qrUrl,
-        ),
-        delay: const Duration(milliseconds: 100),
-      );
+      final Uint8List? imageBytes = await _screenshotController
+          .captureFromWidget(
+            GifticonFrame(
+              itemName: item.itemName,
+              imageUrl: item.imageUrl,
+              recipientName: widget.userName,
+              issueDate: time,
+              inviteCode: widget.inviteCode,
+              qrUrl: qrUrl,
+            ),
+            delay: const Duration(milliseconds: 100),
+          );
 
       if (imageBytes != null && mounted) {
         // 3. 공용 DownloadBloc을 통해 실제 다운로드 실행
@@ -856,6 +857,27 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
                   letterSpacing: 1,
                 ),
               ),
+              if (widget.history.isNotEmpty) ...<Widget>[
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.neonPurple,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    widget.history.length > 99
+                        ? '99+'
+                        : widget.history.length.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
           SizedBox(height: 20 * scale),
@@ -923,7 +945,6 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
       ),
     );
   }
-
 
   Widget _buildEmptyState(double scale) {
     return Center(

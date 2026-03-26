@@ -39,7 +39,8 @@ class _GachaViewState extends State<GachaView> {
     return BlocConsumer<GachaBloc, GachaState>(
       // 뽑기 결과가 나오면 머신 애니메이션 시작 후 완료 시 모달 표시
       listenWhen: (GachaState prev, GachaState curr) =>
-          curr.lastDrawnItem != null && prev.lastDrawnItem != curr.lastDrawnItem,
+          curr.lastDrawnItem != null &&
+          prev.lastDrawnItem != curr.lastDrawnItem,
       listener: (BuildContext context, GachaState state) {
         if (state.lastDrawnItem != null) {
           // BLoC에서 결과가 넘어오면 머신 위젯의 '결과 낙하' 애니메이션 트리거
@@ -97,7 +98,8 @@ class _GachaViewState extends State<GachaView> {
 
   // AppBar: memory_gallery_view 방식 (로고 + 타이틀), 타이틀 텍스트는 기존 103~112번 코드 유지
   Widget _buildAppBar(GachaState state, bool isMobileOrSmall) {
-    final bool isMobile = MediaQuery.of(context).size.width < AppBreakpoints.tablet;
+    final bool isMobile =
+        MediaQuery.of(context).size.width < AppBreakpoints.tablet;
 
     return Container(
       decoration: BoxDecoration(
@@ -144,9 +146,7 @@ class _GachaViewState extends State<GachaView> {
                 ),
               ),
               const SizedBox(width: 16),
-            ] else ...<Widget>[
-              const SizedBox(width: 8),
-            ],
+            ] else ...<Widget>[const SizedBox(width: 8)],
             // 타이틀 텍스트
             RichText(
               text: TextSpan(
@@ -178,10 +178,24 @@ class _GachaViewState extends State<GachaView> {
                 onPressed: () => _showMobilePrizeModal(state),
                 tooltip: '경품 목록',
               ),
-              IconButton(
-                icon: const Icon(Icons.history, color: Colors.white70),
-                onPressed: () => _showMobileHistoryModal(state),
-                tooltip: '뽑기 히스토리',
+              Badge(
+                label: Text(
+                  state.history.length > 99
+                      ? '99+'
+                      : state.history.length.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                isLabelVisible: state.history.isNotEmpty,
+                backgroundColor: AppColors.neonPurple,
+                child: IconButton(
+                  icon: const Icon(Icons.history, color: Colors.white70),
+                  onPressed: () => _showMobileHistoryModal(state),
+                  tooltip: '뽑기 히스토리',
+                ),
               ),
             ],
           ],
@@ -278,16 +292,6 @@ class _GachaViewState extends State<GachaView> {
           child: Column(
             children: <Widget>[
               _buildBottomSheetHandle(),
-              const SizedBox(height: 8),
-              const Text(
-                '뽑기 히스토리',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'WantedSans',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
               const SizedBox(height: 16),
               Expanded(
                 child: GachaHistoryPanel(
@@ -323,18 +327,10 @@ class _GachaViewState extends State<GachaView> {
           child: Column(
             children: <Widget>[
               _buildBottomSheetHandle(),
-              const SizedBox(height: 8),
-              const Text(
-                '경품 목록',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontFamily: 'WantedSans',
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
               const SizedBox(height: 16),
-              Expanded(child: GachaPrizeListPanel(items: state.gachaContent!.list)),
+              Expanded(
+                child: GachaPrizeListPanel(items: state.gachaContent!.list),
+              ),
             ],
           ),
         );
