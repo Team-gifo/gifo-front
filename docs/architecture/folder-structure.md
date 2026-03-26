@@ -33,6 +33,11 @@ lib/
 │   ├── network/                       # (placeholder, 미구현)
 │   ├── router/
 │   │   └── app_router.dart            # GoRouter 전체 라우트
+│   ├── blocs/
+│   │   └── download/                  # 공용 파일 다운로드 BLoC (피처 공유)
+│   │       ├── download_bloc.dart
+│   │       ├── download_event.dart
+│   │       └── download_state.dart
 │   ├── utils/
 │   │   └── file_download_helper.dart  # 웹 기반 파일 다운로드 유틸리티
 │   └── widgets/
@@ -122,7 +127,12 @@ lib/
         │   ├── quiz/quiz_content_model.dart
         │   └── unboxing/unboxing_content_model.dart
         ├── presentation/
-        │   ├── gacha/gacha_view.dart
+        │   ├── gacha/
+        │   │   ├── gacha_view.dart         # 메인 뷰 (레이아웃 조합)
+        │   │   ├── gacha_widgets.dart      # 서브 위젯 분리 (패널, 머신, 버튼)
+        │   │   └── gacha_result_modal.dart # 뽑기 결과 인라인 모달
+        │   ├── widgets/
+        │   │   └── gifticon_frame.dart     # 캡쳐/공유용 기프티콘 프레임 위젯
         │   ├── quiz/quiz_view.dart
         │   ├── unboxing/unboxing_view.dart
         │   └── result/result_view.dart

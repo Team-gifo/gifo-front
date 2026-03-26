@@ -13,6 +13,7 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
     on<InitGacha>(_onInitGacha);
     on<DrawGacha>(_onDrawGacha);
     on<ResetGacha>(_onResetGacha);
+    on<ClearLastDrawnItem>(_onClearLastDrawnItem);
   }
 
   // 더미 데이터 기반 초기화 (추후 서버 데이터로 교체 예정)
@@ -26,7 +27,7 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
         userName: lobbyData.user,
         gachaContent: gacha,
         remainingCount: gacha.playCount,
-        history: const <Map<String, String>>[],
+        history: const <Map<String, dynamic>>[],
         lastDrawnItem: null,
       ),
     );
@@ -38,17 +39,10 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
 
     final List<GachaItem> items = state.gachaContent!.list;
     final GachaItem randomItem = items[Random().nextInt(items.length)];
-    final String timeStr = _formatTime(DateTime.now());
-
-    final List<Map<String, String>> newHistory = <Map<String, String>>[
-      <String, String>{'time': timeStr, 'item': randomItem.itemName},
-      ...state.history,
-    ];
 
     emit(
       state.copyWith(
         remainingCount: state.remainingCount - 1,
-        history: newHistory,
         lastDrawnItem: randomItem,
       ),
     );
@@ -56,6 +50,27 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
 
   void _onResetGacha(ResetGacha event, Emitter<GachaState> emit) {
     emit(const GachaState());
+  }
+
+  // 결과 모달 닫기 후 lastDrawnItem 초기화 및 히스토리 추가
+  void _onClearLastDrawnItem(
+    ClearLastDrawnItem event,
+    Emitter<GachaState> emit,
+  ) {
+    if (state.lastDrawnItem == null) return;
+
+    final String timeStr = _formatTime(DateTime.now());
+    final List<Map<String, dynamic>> newHistory = <Map<String, dynamic>>[
+      <String, dynamic>{'time': timeStr, 'item': state.lastDrawnItem},
+      ...state.history,
+    ];
+
+    emit(
+      state.copyWith(
+        lastDrawnItem: null,
+        history: newHistory,
+      ),
+    );
   }
 
   String _formatTime(DateTime time) {

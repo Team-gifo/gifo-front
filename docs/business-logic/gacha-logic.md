@@ -5,7 +5,11 @@
 ## 관련 파일
 
 - `lib/features/content/application/gacha/gacha_bloc.dart`
+- `lib/features/content/application/gacha/gacha_event.dart`
 - `lib/features/content/application/gacha/gacha_state.dart`
+- `lib/features/content/presentation/gacha/gacha_view.dart`
+- `lib/features/content/presentation/gacha/gacha_widgets.dart`
+- `lib/features/content/presentation/gacha/gacha_result_modal.dart`
 - `lib/features/lobby/model/lobby_data.dart`
 
 ## 초기화 로직 (InitGacha)
@@ -42,8 +46,8 @@ void _onDrawGacha(DrawGacha event, Emitter<GachaState> emit) {
   final randomItem = items[Random().nextInt(items.length)];  // 단순 균등 랜덤
   final timeStr = _formatTime(DateTime.now());
 
-  final newHistory = [
-    {'time': timeStr, 'item': randomItem.itemName},
+  final List<Map<String, dynamic>> newHistory = <Map<String, dynamic>>[
+    <String, dynamic>{'time': timeStr, 'item': randomItem},
     ...state.history,  // 최신 항목이 앞에 오도록 역순 삽입
   ];
 
@@ -81,21 +85,45 @@ String _formatTime(DateTime time) {
 
 **특이사항:** 자정(0시) → "12시"로 처리
 
-## 결과 화면 이동 트리거
+## 결과 모달 표시 트리거 (ClearLastDrawnItem 포함)
 
-`GachaView`에서 `BlocListener`로 `lastDrawnItem` 변화를 감지:
+`GachaView`에서 `BlocConsumer`로 `lastDrawnItem` 변화를 감지한 뒤,
+`result_view`로 이동하는 대신 **인라인 모달**(`showGachaResultModal`)을 표시한다.
 
 ```dart
-BlocListener<GachaBloc, GachaState>(
-  listenWhen: (prev, curr) => curr.lastDrawnItem != null && prev.lastDrawnItem != curr.lastDrawnItem,
+BlocConsumer<GachaBloc, GachaState>(
+  // lastDrawnItem이 새 값으로 바뀔 때만 리스너 실행
+  listenWhen: (prev, curr) =>
+      curr.lastDrawnItem != null && prev.lastDrawnItem != curr.lastDrawnItem,
   listener: (context, state) {
-    context.go('/content/result', extra: {
-      'itemName': state.lastDrawnItem!.itemName,
-      'imageUrl': state.lastDrawnItem!.imageUrl,
-      'userName': state.userName ?? '',
-    });
+    showGachaResultModal(context, state.lastDrawnItem!);
   },
 )
+```
+
+**폭죽 효과 연출 (Confetti):**
+- 모달 내부 공간에 국한되지 않고, 시각적 개방감을 위해 **모달 밖(최상위 Stack)**에서 전체 화면으로 터지도록 설정되어 있다.
+- `showGachaResultModal`의 `pageBuilder` 내부에 `SharedConfettiWidget`을 배치하여 구현.
+
+
+모달 닫기 시 `ClearLastDrawnItem` 이벤트를 dispatch해 상태를 초기화한다:
+
+```dart
+// gacha_result_modal.dart 내부 onClose 콜백
+onClose: () {
+  Navigator.of(ctx).pop();
+  context.read<GachaBloc>().add(const ClearLastDrawnItem());
+},
+```
+
+```dart
+// gacha_bloc.dart
+void _onClearLastDrawnItem(
+  ClearLastDrawnItem event,
+  Emitter<GachaState> emit,
+) {
+  emit(state.copyWith(lastDrawnItem: null));
+}
 ```
 
 ## GachaItem 모델 구조

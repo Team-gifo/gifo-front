@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:gifo/features/lobby/model/lobby_data.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/constants/app_breakpoints.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/grid_background_painter.dart';
+import '../../../lobby/model/lobby_data.dart';
 import '../../application/gacha/gacha_bloc.dart';
+import 'gacha_result_modal.dart';
+import 'gacha_widgets.dart';
 
 class GachaView extends StatefulWidget {
   final String code;
@@ -15,6 +21,9 @@ class GachaView extends StatefulWidget {
 }
 
 class _GachaViewState extends State<GachaView> {
+  final GlobalKey<GachaMachineSectionState> _machineKey =
+      GlobalKey<GachaMachineSectionState>();
+
   @override
   void initState() {
     super.initState();
@@ -23,21 +32,19 @@ class _GachaViewState extends State<GachaView> {
 
   @override
   Widget build(BuildContext context) {
-    final Size size = MediaQuery.of(context).size;
-    final bool isDesktop = size.width > 900;
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isDesktop = screenWidth >= AppBreakpoints.desktop;
+    final bool isMobileOrSmall = screenWidth < AppBreakpoints.desktop;
 
     return BlocConsumer<GachaBloc, GachaState>(
-      // 뽑기 결과가 나오면 결과 화면으로 이동
+      // 뽑기 결과가 나오면 머신 애니메이션 시작 후 완료 시 모달 표시
+      listenWhen: (GachaState prev, GachaState curr) =>
+          curr.lastDrawnItem != null &&
+          prev.lastDrawnItem != curr.lastDrawnItem,
       listener: (BuildContext context, GachaState state) {
         if (state.lastDrawnItem != null) {
-          context.push(
-            '/content/result',
-            extra: <String, String>{
-              'itemName': state.lastDrawnItem!.itemName,
-              'imageUrl': state.lastDrawnItem!.imageUrl,
-              'userName': state.userName,
-            },
-          );
+          // BLoC에서 결과가 넘어오면 머신 위젯의 '결과 낙하' 애니메이션 트리거
+          _machineKey.currentState?.startResultAnimation(state.lastDrawnItem!);
         }
       },
       builder: (BuildContext context, GachaState state) {
@@ -46,7 +53,10 @@ class _GachaViewState extends State<GachaView> {
             title: 'Happy Birthday, ${state.userName} | Gifo',
             color: Colors.black,
             child: const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+              backgroundColor: AppColors.darkBg,
+              body: Center(
+                child: CircularProgressIndicator(color: AppColors.neonPurple),
+              ),
             ),
           );
         }
@@ -55,296 +65,286 @@ class _GachaViewState extends State<GachaView> {
           title: 'Happy Birthday, ${state.userName} | Gifo',
           color: Colors.black,
           child: Scaffold(
-            backgroundColor: Colors.white,
-            appBar: _buildAppBar(state, isDesktop),
-          body: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: isDesktop
-                  ? _buildDesktopLayout(state)
-                  : _buildMobileLayout(state),
+            backgroundColor: AppColors.darkBg,
+            body: SafeArea(
+              child: Stack(
+                children: <Widget>[
+                  // 배경 그리드 패턴
+                  Positioned.fill(
+                    child: CustomPaint(painter: GridBackgroundPainter()),
+                  ),
+                  // 상단 AppBar 영역
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: _buildAppBar(state, isMobileOrSmall),
+                  ),
+                  // 메인 콘텐츠 영역
+                  Positioned.fill(
+                    top: isMobileOrSmall ? 64 : 72,
+                    child: isDesktop
+                        ? _buildDesktopLayout(state)
+                        : _buildMobileLayout(state, isMobileOrSmall),
+                  ),
+                ],
+              ),
             ),
           ),
-          bottomNavigationBar: isDesktop
-              ? null
-              : SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                      vertical: 8.0,
-                    ),
-                    child: _buildDrawButton(state, isMobile: true),
-                  ),
-                ),
-        ));
+        );
       },
     );
   }
 
-  PreferredSizeWidget _buildAppBar(GachaState state, bool isDesktop) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      title: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+  // AppBar: memory_gallery_view 방식 (로고 + 타이틀), 타이틀 텍스트는 기존 103~112번 코드 유지
+  Widget _buildAppBar(GachaState state, bool isMobileOrSmall) {
+    final bool isMobile =
+        MediaQuery.of(context).size.width < AppBreakpoints.tablet;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.darkBg.withValues(alpha: 0.8),
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.neonPurple.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.neonPurple.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobileOrSmall ? 16.0 : 32.0,
+          vertical: 12.0,
+        ),
         child: Row(
           children: <Widget>[
-            Image.asset('assets/images/title_logo.png', height: 50),
-            const SizedBox(width: 16),
+            if (!isMobile) ...<Widget>[
+              // 로고 (홈으로 이동 가능) - 모바일에서 숨김
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () async {
+                    final Uri homeUri = Uri.base.resolve('/');
+                    if (await canLaunchUrl(homeUri)) {
+                      await launchUrl(homeUri, webOnlyWindowName: '_blank');
+                    } else {
+                      if (context.mounted) context.go('/');
+                    }
+                  },
+                  child: Image.asset(
+                    'assets/images/title_logo.png',
+                    height: isMobileOrSmall ? 40 : 48,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+            ] else ...<Widget>[const SizedBox(width: 8)],
+            // 타이틀 텍스트
             RichText(
               text: TextSpan(
-                style: const TextStyle(
-                  fontSize: 20,
-                  color: Colors.black,
+                style: TextStyle(
+                  fontSize: isMobileOrSmall ? 15 : 18,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
+                  fontFamily: 'WantedSans',
                 ),
                 children: <InlineSpan>[
                   TextSpan(
                     text: state.userName,
-                    style: const TextStyle(color: Colors.blue),
+                    style: const TextStyle(color: AppColors.neonPurple),
                   ),
                   const TextSpan(text: '님의 '),
                   const TextSpan(
                     text: '신나는 오락',
-                    style: TextStyle(color: Colors.blue),
+                    style: TextStyle(color: AppColors.neonPurple),
                   ),
                   const TextSpan(text: ' 뽑기'),
                 ],
               ),
             ),
+            const Spacer(),
+            // 모바일에서 히스토리 및 경품 목록 버튼
+            if (isMobileOrSmall) ...<Widget>[
+              IconButton(
+                icon: const Icon(Icons.card_giftcard, color: Colors.white70),
+                onPressed: () => _showMobilePrizeModal(state),
+                tooltip: '경품 목록',
+              ),
+              Badge(
+                label: Text(
+                  state.history.length > 99
+                      ? '99+'
+                      : state.history.length.toString(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                isLabelVisible: state.history.isNotEmpty,
+                backgroundColor: AppColors.neonPurple,
+                child: IconButton(
+                  icon: const Icon(Icons.history, color: Colors.white70),
+                  onPressed: () => _showMobileHistoryModal(state),
+                  tooltip: '뽑기 히스토리',
+                ),
+              ),
+            ],
           ],
         ),
       ),
-      actions: isDesktop
-          ? null
-          : <Widget>[
-              IconButton(
-                icon: const Icon(Icons.history, color: Colors.black),
-                onPressed: () {
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) => AlertDialog(
-                      title: const Text('히스토리'),
-                      content: SizedBox(
-                        width: double.maxFinite,
-                        child: _buildHistoryBoard(state),
-                      ),
-                      actions: <Widget>[
-                        TextButton(
-                          onPressed: () => context.pop(),
-                          child: const Text('닫기'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 8.0),
-            ],
     );
   }
 
+  // 데스크톱: 3단 레이아웃 (히스토리 | 머신 | 경품 목록) - 가변 너비 적용
   Widget _buildDesktopLayout(GachaState state) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Expanded(
-          flex: 4,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              const SizedBox(height: 32),
-              Text(
-                '남은 기회 : ${state.remainingCount}회',
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Image.asset(
-                'assets/images/gacha_machine.png',
-                fit: BoxFit.contain,
-                height: 500,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 48),
-        Expanded(
-          flex: 6,
-          child: Column(
-            children: <Widget>[
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Expanded(child: _buildPrizeListBoard(state)),
-                    const SizedBox(width: 24),
-                    Expanded(child: _buildHistoryBoard(state)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 32),
-              _buildDrawButton(state, isMobile: false),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMobileLayout(GachaState state) {
-    return SingleChildScrollView(
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          const SizedBox(height: 16),
-          Text(
-            '남은 기회 : ${state.remainingCount}회',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          // 좌측: 히스토리 패널 (가변 너비)
+          Expanded(
+            flex: 1,
+            child: GachaHistoryPanel(
+              history: state.history,
+              userName: state.userName,
+              inviteCode: widget.code,
+            ),
           ),
-          const SizedBox(height: 16),
-          Image.asset(
-            'assets/images/gacha_machine.png',
-            fit: BoxFit.contain,
-            height: 300,
+          const SizedBox(width: 28),
+          // 중앙: 가챠 머신 섹션 (가세 비율 유지하며 중앙 집중)
+          Expanded(
+            flex: 2,
+            child: GachaMachineSection(
+              key: _machineKey,
+              remainingCount: state.remainingCount,
+              items: state.gachaContent!.list,
+              onDraw: state.remainingCount > 0
+                  ? () => context.read<GachaBloc>().add(const DrawGacha())
+                  : null,
+              onAnimationComplete: (GachaItem item) {
+                showGachaResultModal(context, item);
+              },
+            ),
           ),
-          const SizedBox(height: 32),
-          _buildPrizeListBoard(state),
-          const SizedBox(height: 24),
+          const SizedBox(width: 28),
+          // 우측: 경품 목록 패널 (가변 너비)
+          Expanded(
+            flex: 1,
+            child: GachaPrizeListPanel(items: state.gachaContent!.list),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildPrizeListBoard(GachaState state) {
+  // 모바일: 단일 컬럼 (머신 전체 활용), 히스토리/경품은 AppBar 아이콘으로 접근
+  Widget _buildMobileLayout(GachaState state, bool isMobileOrSmall) {
     return Column(
       children: <Widget>[
-        const Text(
-          '경품 목록',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          height: 400,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: ListView.separated(
-            padding: const EdgeInsets.all(16.0),
-            itemCount: state.gachaContent!.list.length,
-            separatorBuilder: (BuildContext context, int index) => const SizedBox(height: 16),
-            itemBuilder: (BuildContext context, int index) {
-              final GachaItem item = state.gachaContent!.list[index];
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text(item.itemName, style: const TextStyle(fontSize: 16)),
-                  Text(
-                    item.percentOpen
-                        ? '${item.percent.toStringAsFixed(item.percent == item.percent.toInt() ? 0 : 3)}%'
-                        : '비공개',
-                    style: const TextStyle(fontSize: 16, color: Colors.black54),
-                  ),
-                ],
-              );
-            },
+        // 중앙 머신 섹션 (가변 높이)
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
+            child: GachaMachineSection(
+              key: _machineKey,
+              remainingCount: state.remainingCount,
+              items: state.gachaContent!.list,
+              onDraw: state.remainingCount > 0
+                  ? () => context.read<GachaBloc>().add(const DrawGacha())
+                  : null,
+              onAnimationComplete: (GachaItem item) {
+                showGachaResultModal(context, item);
+              },
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildHistoryBoard(GachaState state) {
-    return Column(
-      children: <Widget>[
-        const Text(
-          '히스토리',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          height: 400,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(12),
+  // 모바일 전용 히스토리 바텀시트
+  void _showMobileHistoryModal(GachaState state) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext ctx) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.6,
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+          decoration: const BoxDecoration(
+            color: Color(0xFF130E1F),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
           ),
-          child: state.history.isEmpty
-              ? const Center(
-                  child: Text(
-                    '아직 뽑은 기록이 없어요.',
-                    style: TextStyle(color: Colors.black54),
-                  ),
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.all(16.0),
-                  itemCount: state.history.length,
-                  separatorBuilder: (BuildContext context, int index) =>
-                      const SizedBox(height: 16),
-                  itemBuilder: (BuildContext context, int index) {
-                    final Map<String, String> h = state.history[index];
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Text(
-                          h['time']!,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.black54,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        RichText(
-                          text: TextSpan(
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.black,
-                            ),
-                            children: <InlineSpan>[
-                              TextSpan(
-                                text: '"${h['item']}"',
-                                style: const TextStyle(
-                                  color: Colors.redAccent,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const TextSpan(text: ' 를 뽑았습니다.'),
-                            ],
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+          child: Column(
+            children: <Widget>[
+              _buildBottomSheetHandle(),
+              const SizedBox(height: 16),
+              Expanded(
+                child: GachaHistoryPanel(
+                  history: state.history,
+                  userName: state.userName,
+                  inviteCode: widget.code,
                 ),
-        ),
-      ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildDrawButton(GachaState state, {required bool isMobile}) {
-    return SizedBox(
-      width: double.infinity,
-      height: 60,
-      child: ElevatedButton(
-        onPressed: state.remainingCount > 0
-            ? () => context.read<GachaBloc>().add(const DrawGacha())
-            : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFFC7DEFF),
-          foregroundColor: Colors.black,
-          disabledBackgroundColor: Colors.grey.shade300,
-          disabledForegroundColor: Colors.grey.shade600,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+  // 모바일 전용 경품 목록 바텀시트
+  void _showMobilePrizeModal(GachaState state) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (BuildContext ctx) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.6,
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+          decoration: const BoxDecoration(
+            color: Color(0xFF130E1F),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
           ),
-          elevation: 0,
-        ),
-        child: const Text(
-          '지금 뽑기',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
+          child: Column(
+            children: <Widget>[
+              _buildBottomSheetHandle(),
+              const SizedBox(height: 16),
+              Expanded(
+                child: GachaPrizeListPanel(items: state.gachaContent!.list),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildBottomSheetHandle() {
+    return Container(
+      width: 40,
+      height: 4,
+      decoration: BoxDecoration(
+        color: Colors.white24,
+        borderRadius: BorderRadius.circular(4),
       ),
     );
   }

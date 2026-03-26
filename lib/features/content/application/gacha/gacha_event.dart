@@ -19,3 +19,8 @@ class DrawGacha extends GachaEvent {
 class ResetGacha extends GachaEvent {
   const ResetGacha();
 }
+
+// 결과 모달 닫기 후 마지막 당첨 아이템 초기화
+class ClearLastDrawnItem extends GachaEvent {
+  const ClearLastDrawnItem();
+}
