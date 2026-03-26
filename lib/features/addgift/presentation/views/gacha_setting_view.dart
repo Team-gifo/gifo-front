@@ -112,6 +112,12 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
       setState(() {});
     });
     _playCountController.addListener(() {
+      final int capsuleCount = context.read<GachaSettingBloc>().state.uiItems.length;
+      final int rawValue = int.tryParse(_playCountController.text) ?? 1;
+      if (capsuleCount > 0 && rawValue > capsuleCount) {
+        _playCountController.text = capsuleCount.toString();
+        return;
+      }
       context.read<GachaSettingBloc>().add(
         UpdatePlayCount(_playCountController.text),
       );
@@ -1457,6 +1463,14 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ],
+        ),
+        const SizedBox(height: 6),
+        BlocBuilder<GachaSettingBloc, GachaSettingState>(
+          builder: (BuildContext context, GachaSettingState state) => Text(
+            '최대 ${state.uiItems.length}회 설정 가능 (캡슐 개수 기준)',
+            style: const TextStyle(fontSize: 12, color: Colors.white38),
+            textAlign: TextAlign.end,
+          ),
         ),
         const SizedBox(height: 40),
         const Row(
