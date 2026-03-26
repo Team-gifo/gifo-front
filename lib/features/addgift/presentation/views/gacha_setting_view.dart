@@ -6,7 +6,9 @@ import 'package:gifo/features/addgift/model/gacha_content.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/widgets/grid_background_painter.dart';
 import '../../application/gacha_setting/gacha_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
 
@@ -847,16 +849,16 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                 child: Stack(
                   children: <Widget>[
                     Scaffold(
-                      backgroundColor: const Color(0xFFF8F9FA),
+                      backgroundColor: AppColors.darkBg,
                       appBar: AppBar(
                         toolbarHeight: 68,
-                        backgroundColor: const Color(0xFFF8F9FA),
+                        backgroundColor: AppColors.darkBg,
                         surfaceTintColor: Colors.transparent,
                         elevation: 0,
                         leading: IconButton(
                           icon: const Icon(
                             Icons.arrow_back,
-                            color: Colors.black,
+                            color: Colors.white,
                           ),
                           onPressed: isLoading
                               ? null
@@ -871,7 +873,14 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                         title: _buildTitleBar(),
                         actions: <Widget>[if (!isMobile) _buildStepIndicator()],
                       ),
-                      body: SafeArea(
+                      body: Stack(
+                        children: <Widget>[
+                          Positioned.fill(
+                            child: CustomPaint(
+                              painter: GridBackgroundPainter(),
+                            ),
+                          ),
+                          SafeArea(
                         child: isMobile
                             ? SingleChildScrollView(
                                 child: Padding(
@@ -918,6 +927,8 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                   ),
                                 ],
                               ),
+                          ),
+                        ],
                       ),
                       // 모바일인 경우 하단 네비게이션 적용 (톱니바퀴 모달 + 완료버튼)
                       bottomNavigationBar: isMobile
