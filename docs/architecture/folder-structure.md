@@ -131,6 +131,8 @@ lib/
         │   │   ├── gacha_view.dart         # 메인 뷰 (레이아웃 조합)
         │   │   ├── gacha_widgets.dart      # 서브 위젯 분리 (패널, 머신, 버튼)
         │   │   └── gacha_result_modal.dart # 뽑기 결과 인라인 모달
+        │   ├── widgets/
+        │   │   └── gifticon_frame.dart     # 캡쳐/공유용 기프티콘 프레임 위젯
         │   ├── quiz/quiz_view.dart
         │   ├── unboxing/unboxing_view.dart
         │   └── result/result_view.dart
