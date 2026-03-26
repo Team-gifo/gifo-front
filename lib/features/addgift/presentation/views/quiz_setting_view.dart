@@ -838,7 +838,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
     return SizedBox(
       height: 60,
       child: ElevatedButton(
-        onPressed: _completePackage,
+        onPressed: _isSubmitting ? null : _completePackage,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF6DE1F1), // 하늘색 톤
           shape: RoundedRectangleBorder(
@@ -939,7 +939,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
               child: SizedBox(
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: _completePackage,
+                  onPressed: _isSubmitting ? null : _completePackage,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF6DE1F1),
                     shape: RoundedRectangleBorder(
