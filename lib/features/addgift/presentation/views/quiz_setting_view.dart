@@ -679,7 +679,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                 children: <Widget>[
                   const Text(
                     '맞춘 문제가 ',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   DropdownButtonHideUnderline(
                     child: DropdownButton<int>(
@@ -694,7 +694,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
-                      icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+                      icon: const Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.white38),
                       items:
                           List<int>.generate(
                                 _items.isEmpty ? 1 : _items.length,
@@ -720,7 +720,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                   ),
                   const Text(
                     ' 일 때',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ],
               ),
@@ -748,7 +748,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
             children: <Widget>[
               const Text(
                 '그 외 (실패 보상 등)',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
               ),
               const SizedBox(height: 16),
               Column(
@@ -765,7 +765,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
         const SizedBox(height: 40),
         const Text(
           'BGM 설정',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         const SizedBox(height: 8),
         Container(
@@ -779,7 +779,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
             children: <Widget>[
               const Text(
                 '메인 BGM :',
-                style: TextStyle(fontWeight: FontWeight.bold),
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
               ),
               const SizedBox(height: 12),
               Row(
@@ -795,6 +795,9 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                         child: DropdownButton<String>(
                           value: _selectedBgm,
                           isExpanded: true,
+                          dropdownColor: const Color(0xFF1A1A1A),
+                          style: const TextStyle(color: Colors.white),
+                          iconEnabledColor: Colors.white38,
                           onChanged: (String? val) {
                             setState(() {
                               _selectedBgm = val!;
@@ -1000,6 +1003,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 24),

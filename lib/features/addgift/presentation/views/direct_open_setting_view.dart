@@ -224,13 +224,14 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
       height: 28,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isActive ? Colors.black : Colors.grey.shade200,
+        color: isActive ? AppColors.pixelPurple : Colors.white.withValues(alpha: 0.1),
+        border: isActive ? null : Border.all(color: Colors.white24),
       ),
       child: Center(
         child: Text(
           number,
           style: TextStyle(
-            color: isActive ? Colors.white : Colors.grey.shade500,
+            color: isActive ? Colors.white : Colors.white38,
             fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
@@ -243,7 +244,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
     return Container(
       width: 16,
       height: 2,
-      color: isActive ? Colors.black : Colors.grey.shade200,
+      color: isActive ? AppColors.pixelPurple.withValues(alpha: 0.5) : Colors.white12,
     );
   }
 
@@ -256,8 +257,10 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
           width: 100,
           child: TextFormField(
             controller: _userNameController,
+            style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               hintText: '닉네임',
+              hintStyle: const TextStyle(color: Colors.white38),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,
@@ -265,20 +268,30 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2), width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.pixelPurple, width: 1.5),
               ),
             ),
           ),
         ),
         const SizedBox(width: 8),
-        const Text('님의', style: TextStyle(fontSize: 16)),
+        const Text('님의', style: TextStyle(fontSize: 16, color: Colors.white70)),
         const SizedBox(width: 8),
         SizedBox(
           width: 120,
           child: TextFormField(
             controller: _subTitleController,
+            style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               hintText: '서브 타이틀',
+              hintStyle: const TextStyle(color: Colors.white38),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,
@@ -286,13 +299,21 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3), width: 1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2), width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.pixelPurple, width: 1.5),
               ),
             ),
           ),
         ),
         const SizedBox(width: 8),
-        const Text('선물 개봉', style: TextStyle(fontSize: 16)),
+        const Text('선물 개봉', style: TextStyle(fontSize: 16, color: Colors.white70)),
       ],
     );
   }
@@ -327,15 +348,16 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
+        color: Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           const Text(
             '개봉 전',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           const SizedBox(height: 16),
           InkWell(
@@ -345,9 +367,9 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
               width: isMobile ? 200 : 280,
               height: isMobile ? 200 : 280,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white12,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade300, width: 2),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 2),
                 image: _beforeData.imageFile != null
                     ? DecorationImage(
                         image: NetworkImage(_beforeData.imageFile!.path),
@@ -356,19 +378,19 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
                     : null,
               ),
               child: _beforeData.imageFile == null
-                  ? Column(
+                  ? const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Icon(
                           Icons.card_giftcard,
                           size: 64,
-                          color: Colors.grey.shade400,
+                          color: Colors.white38,
                         ),
-                        const SizedBox(height: 8),
-                        const Text(
+                        SizedBox(height: 8),
+                        Text(
                           '상자 이미지 변경',
                           style: TextStyle(
-                            color: Colors.grey,
+                            color: Colors.white38,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -382,19 +404,29 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
             alignment: Alignment.centerLeft,
             child: Text(
               '설명란 문구',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: _beforeDescController,
+            style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               hintText: '상자 하단에 보여질 설명을 입력해주세요.',
+              hintStyle: const TextStyle(color: Colors.white38),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: Colors.white12,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.pixelPurple),
               ),
             ),
           ),
@@ -407,15 +439,16 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF2F2),
+        color: Colors.white.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           const Text(
             '개봉 후',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           const SizedBox(height: 16),
           InkWell(
@@ -425,9 +458,9 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
               width: isMobile ? 200 : 280,
               height: isMobile ? 200 : 280,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white12,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade300, width: 2),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 2),
                 image: _afterData.imageFile != null
                     ? DecorationImage(
                         image: NetworkImage(_afterData.imageFile!.path),
@@ -436,19 +469,19 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
                     : null,
               ),
               child: _afterData.imageFile == null
-                  ? Column(
+                  ? const Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
                         Icon(
                           Icons.image,
                           size: 64,
-                          color: Colors.grey.shade400,
+                          color: Colors.white38,
                         ),
-                        const SizedBox(height: 8),
-                        const Text(
+                        SizedBox(height: 8),
+                        Text(
                           '물품 사진 등록',
                           style: TextStyle(
-                            color: Colors.grey,
+                            color: Colors.white38,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -460,18 +493,28 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
           const SizedBox(height: 24),
           const Align(
             alignment: Alignment.centerLeft,
-            child: Text('물품 이름', style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text('물품 이름', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: _afterNameController,
+            style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
               hintText: '상품 이름을 기입해주세요.',
+              hintStyle: const TextStyle(color: Colors.white38),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: Colors.white12,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.pixelPurple),
               ),
             ),
           ),
@@ -486,7 +529,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
       children: <Widget>[
         const Text(
           'BGM (배경음악)',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
         ),
         const SizedBox(height: 8),
         Row(
@@ -495,13 +538,16 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
+                  color: Colors.white12,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _selectedBgm,
                     isExpanded: true,
+                    dropdownColor: const Color(0xFF1A1A1A),
+                    style: const TextStyle(color: Colors.white),
+                    iconEnabledColor: Colors.white38,
                     onChanged: (String? val) {
                       setState(() {
                         _selectedBgm = val!;
@@ -524,10 +570,10 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+                color: Colors.white12,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.play_arrow, color: Colors.grey),
+              child: const Icon(Icons.play_arrow, color: Colors.white38),
             ),
           ],
         ),
@@ -564,8 +610,8 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.grey.shade200)),
+          color: Colors.white.withValues(alpha: 0.07),
+          border: const Border(top: BorderSide(color: Colors.white12)),
         ),
         child: Row(
           children: <Widget>[
@@ -578,11 +624,11 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.white.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade300, width: 2),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 2),
                 ),
-                child: Icon(Icons.settings, color: Colors.grey.shade700),
+                child: const Icon(Icons.settings, color: Colors.white60),
               ),
             ),
             const SizedBox(width: 16),
@@ -607,7 +653,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
                   bottom: MediaQuery.of(context).viewInsets.bottom,
                 ),
                 decoration: const BoxDecoration(
-                  color: Colors.white,
+                  color: AppColors.darkBg,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 child: SingleChildScrollView(
@@ -620,7 +666,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 24),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
+                          color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -629,6 +675,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -642,7 +689,7 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
                             setState(() {});
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
+                            backgroundColor: AppColors.pixelPurple,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
