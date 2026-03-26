@@ -2,8 +2,10 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:screenshot/screenshot.dart';
+import 'package:toastification/toastification.dart';
 
 import '../../../../core/blocs/download/download_bloc.dart';
 import '../../../../core/constants/app_breakpoints.dart';
@@ -779,6 +781,50 @@ class GachaHistoryPanel extends StatefulWidget {
 class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
   final ScreenshotController _screenshotController = ScreenshotController();
 
+  void _handleShare() {
+    if (widget.history.isEmpty) return;
+
+    final String userName = widget.userName;
+    final String inviteCode = widget.inviteCode;
+    final String origin = Uri.base.origin;
+    final String link = '$origin/gift/code/$inviteCode';
+
+    // 모든 당첨 기록 명단 생성 (중복 포함 전체 리스트)
+    final List<String> itemNamesList = widget.history.map((
+      Map<String, dynamic> record,
+    ) {
+      final GachaItem item = record['item'] as GachaItem;
+      return '- ${item.itemName}';
+    }).toList();
+
+    final String message =
+        '''[ Gifo ]
+"$userName"님이 당신이 준비해 주신 선물을 뽑았습니다!
+
+🎉 당첨 목록 🎉
+${itemNamesList.join('\n')}
+
+당첨된 결과에 대해 기쁜 마음으로 선물해주세요!
+
+"$link"''';
+
+    Clipboard.setData(ClipboardData(text: message)).then((_) {
+      if (mounted) {
+        toastification.show(
+          context: context,
+          title: const Text(
+            '클립보드에 복사되었습니다. 친구에게 공유해주세요!',
+            style: TextStyle(fontFamily: 'WantedSans', fontSize: 13),
+          ),
+          autoCloseDuration: const Duration(seconds: 3),
+          type: ToastificationType.success,
+          style: ToastificationStyle.minimal,
+          alignment: Alignment.topCenter,
+        );
+      }
+    });
+  }
+
   Future<void> _handleDownload(GachaItem item, String time) async {
     // 1. 캡쳐 진행 알림 (로딩 상태)
     context.read<DownloadBloc>().add(const SetDownloadLoadingEvent());
@@ -843,7 +889,7 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
           Row(
             children: <Widget>[
               Icon(
-                Icons.history_rounded,
+                Icons.celebration_rounded, // 히스토리 아이콘을 폭죽 아이콘으로 변경
                 color: AppColors.neonPurple,
                 size: 20 * scale,
               ),
@@ -860,8 +906,10 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
               if (widget.history.isNotEmpty) ...<Widget>[
                 const SizedBox(width: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.neonPurple,
                     borderRadius: BorderRadius.circular(10),
@@ -874,6 +922,29 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: _handleShare,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  icon: const Icon(
+                    Icons.share_rounded,
+                    size: 16,
+                    color: AppColors.neonPurple,
+                  ),
+                  label: const Text(
+                    '공유하기',
+                    style: TextStyle(
+                      fontFamily: 'WantedSans',
+                      color: Colors.white70,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),

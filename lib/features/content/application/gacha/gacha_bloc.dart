@@ -27,7 +27,7 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
         userName: lobbyData.user,
         gachaContent: gacha,
         remainingCount: gacha.playCount,
-        history: const <Map<String, String>>[],
+        history: const <Map<String, dynamic>>[],
         lastDrawnItem: null,
       ),
     );
