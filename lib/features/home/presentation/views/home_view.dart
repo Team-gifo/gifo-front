@@ -843,9 +843,9 @@ class _HomeViewState extends State<HomeView>
                               '(콘텐츠는 주기적으로 업데이트 됩니다)\n\n'
                               '당신이 준비한 콘텐츠를 통해 더 특별한 순간을 만드세요.',
                           imagePlaceholderLabel: 'Play Contents',
-                          imagePaths: const [
-                            'assets/images/example/play_ex.png',
-                            'assets/images/example/play_ex.png',
+                          imagePaths: const <String>[
+                            'assets/images/example/play_ex_1.png',
+                            'assets/images/example/play_ex_2.png',
                           ],
                           reversed: true, // 이미지 좌측, 텍스트 우측
                         ),
@@ -857,15 +857,14 @@ class _HomeViewState extends State<HomeView>
                           isMobile: isMobile,
                           isTablet: isTablet,
                           tag: 'GIFT',
-                          title: '선물 쿠폰으로 전달',
+                          title: '선물 쿠폰 & 공유하기',
                           description:
-                              '결과에 따른 선물은 언제든 받을 수 있게\n'
-                              '쿠폰 이미지로 발급해 제공해드립니다.\n\n'
+                              '결과에 따른 선물은 쉽게, 언제든 받을 수 있게\n'
+                              '클립보드 복사 및 쿠폰 이미지로 발급해 제공해드립니다.\n\n'
                               '특별한 날의 추억을 이미지로 간직하고,\n'
                               '소중한 사람에게 영원히 기억될 선물을 전하세요.',
                           imagePlaceholderLabel: 'Gift Coupon',
-                          imagePaths: const [
-                            'assets/images/example/gift_ex.png',
+                          imagePaths: const <String>[
                             'assets/images/example/gift_ex.png',
                           ],
                         ),

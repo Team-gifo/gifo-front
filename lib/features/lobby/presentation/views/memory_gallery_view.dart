@@ -13,7 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
-import '../../application/memory_gallery_action/memory_gallery_action_bloc.dart';
+import '../../../../core/blocs/download/download_bloc.dart';
 import '../../model/lobby_data.dart';
 
 class MemoryGalleryView extends StatefulWidget {
@@ -108,9 +108,9 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
         // 기존 AppBar를 제거하고 본문에 직관적으로 배치
         body: SafeArea(
           child:
-              BlocListener<MemoryGalleryActionBloc, MemoryGalleryActionState>(
+              BlocListener<DownloadBloc, DownloadState>(
                 listener: (context, state) {
-                  if (state.status == ActionStatus.success) {
+                  if (state.status == DownloadStatus.success) {
                     toastification.show(
                       context: context,
                       title: const Text('다운로드 완료!'),
@@ -118,7 +118,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                       autoCloseDuration: const Duration(seconds: 3),
                       alignment: Alignment.topCenter,
                     );
-                  } else if (state.status == ActionStatus.failure) {
+                  } else if (state.status == DownloadStatus.failure) {
                     toastification.show(
                       context: context,
                       title: const Text('다운로드 중 오류가 발생했습니다.'),
@@ -235,12 +235,9 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                     // 4. 처리 중일 경우 오버레이 (다이얼로그 외의 전체 컴포넌트 커버)
                     Positioned.fill(
                       child:
-                          BlocBuilder<
-                            MemoryGalleryActionBloc,
-                            MemoryGalleryActionState
-                          >(
+                          BlocBuilder<DownloadBloc, DownloadState>(
                             builder: (context, state) {
-                              if (state.status == ActionStatus.loading) {
+                              if (state.status == DownloadStatus.loading) {
                                 return Container(
                                   color: Colors.black.withValues(alpha: 0.5),
                                   child: const Center(
@@ -877,8 +874,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   }
 
   Future<void> _executeDownload() async {
-    final MemoryGalleryActionBloc bloc = context
-        .read<MemoryGalleryActionBloc>();
+    final DownloadBloc bloc = context.read<DownloadBloc>();
     final List<Map<String, dynamic>> filesInfo = [];
 
     if (!_dlOriginal && !_dlDesktop && !_dlMobile) {
@@ -893,7 +889,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
     }
 
     // 로딩 시작
-    bloc.add(SetLoadingEvent());
+    bloc.add(const SetDownloadLoadingEvent());
 
     // UI 비동기 갱신을 위한 대기
     await Future.delayed(const Duration(milliseconds: 300));
@@ -970,7 +966,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
     if (filesInfo.isNotEmpty) {
       bloc.add(ProcessDownloadEvent(filesInfo: filesInfo));
     } else {
-      bloc.add(SetLoadingEvent()); // 로딩 상태 해제 (선택된 항목이 없거나 캡처 실패 시)
+      bloc.add(const SetDownloadLoadingEvent()); // 로딩 상태 해제 (캡쳐 실패 시)
     }
   }
 

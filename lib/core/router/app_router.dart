@@ -19,7 +19,7 @@ import '../../features/content/presentation/result/result_view.dart';
 import '../../features/content/presentation/unboxing/unboxing_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
 import '../../features/lobby/application/lobby_bloc.dart';
-import '../../features/lobby/application/memory_gallery_action/memory_gallery_action_bloc.dart';
+import '../../core/blocs/download/download_bloc.dart';
 import '../../features/lobby/model/lobby_data.dart';
 import '../../features/lobby/presentation/views/lobby_view.dart';
 import '../../features/lobby/presentation/views/memory_gallery_view.dart';
@@ -146,7 +146,7 @@ final GoRouter appRouter = GoRouter(
         final String code = state.extra as String? ?? 'helloworld';
         return NoTransitionPage(
           child: BlocProvider(
-            create: (_) => MemoryGalleryActionBloc(),
+            create: (_) => DownloadBloc(),
             child: MemoryGalleryView(code: code),
           ),
         );
@@ -158,8 +158,15 @@ final GoRouter appRouter = GoRouter(
       pageBuilder: (BuildContext context, GoRouterState state) {
         final String code = state.extra as String? ?? 'helloworld';
         return NoTransitionPage(
-          child: BlocProvider<GachaBloc>(
-            create: (BuildContext context) => GachaBloc(),
+          child: MultiBlocProvider(
+            providers: <BlocProvider<dynamic>>[
+              BlocProvider<GachaBloc>(
+                create: (BuildContext context) => GachaBloc(),
+              ),
+              BlocProvider<DownloadBloc>(
+                create: (BuildContext context) => DownloadBloc(),
+              ),
+            ],
             child: GachaView(code: code),
           ),
         );

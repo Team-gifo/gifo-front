@@ -58,7 +58,7 @@ class LobbyData {
   // 1. 캡슐 뽑기 더미 데이터
   static GachaContent _getDummyGacha() {
     return GachaContent(
-      playCount: 3,
+      playCount: 30,
       list: <GachaItem>[
         GachaItem(
           itemName: '닌텐도 스위치2',
