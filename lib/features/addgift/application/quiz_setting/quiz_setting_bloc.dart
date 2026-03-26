@@ -1,5 +1,4 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:image_picker/image_picker.dart';
 
 import '../../model/gallery_item.dart';
 import '../../model/gift_content.dart';
@@ -13,7 +12,7 @@ part 'quiz_setting_state.dart';
 class QuizSettingBloc extends Bloc<QuizSettingEvent, QuizSettingState> {
   final GiftPackagingBloc _packagingBloc;
 
-  QuizSettingBloc(this._packagingBloc) : super(const QuizSettingState()) {
+  QuizSettingBloc(this._packagingBloc) : super(QuizSettingState()) {
     on<InitQuizSetting>(_onInit);
     on<UpdateQuizItems>(_onUpdateItems);
     on<UpdateSuccessReward>(_onUpdateSuccessReward);

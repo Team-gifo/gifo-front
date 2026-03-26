@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/addgift/application/gift_packaging_bloc.dart';
+import '../../features/addgift/presentation/views/ai_intro_view.dart';
 import '../../features/addgift/presentation/views/direct_open_setting_view.dart';
 import '../../features/addgift/presentation/views/gacha_setting_view.dart';
 import '../../features/addgift/presentation/views/gift_delivery_method_view.dart';
@@ -219,11 +220,16 @@ final GoRouter appRouter = GoRouter(
         );
       },
       routes: <RouteBase>[
-        // 선물 포장 - 받는 분 성함 입력 화면
+        // 선물 포장 - 진입 화면 (mode=ai면 AI 소개, 아니면 직접 입력)
         GoRoute(
           path: '/addgift',
-          builder: (BuildContext context, GoRouterState state) =>
-              const ReceiverNameView(),
+          builder: (BuildContext context, GoRouterState state) {
+            final String? mode = state.uri.queryParameters['mode'];
+            if (mode == 'ai') {
+              return const AiIntroView();
+            }
+            return const ReceiverNameView();
+          },
         ),
         // 선물 포장 - 추억 공유 여부 선택 화면
         GoRoute(
