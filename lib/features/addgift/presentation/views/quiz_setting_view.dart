@@ -370,14 +370,16 @@ class _QuizSettingViewState extends State<QuizSettingView> {
       height: 28,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isActive ? Colors.black : Colors.grey.shade200,
+        color: isActive ? AppColors.neonPurple : Colors.white12,
+        border: isActive ? null : Border.all(color: Colors.white24),
       ),
       child: Center(
         child: Text(
           number,
           style: TextStyle(
-            color: isActive ? Colors.white : Colors.grey.shade500,
-            fontSize: 14,
+            fontFamily: 'WantedSans',
+            color: isActive ? Colors.white : Colors.white38,
+            fontSize: 13,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -389,7 +391,9 @@ class _QuizSettingViewState extends State<QuizSettingView> {
     return Container(
       width: 16,
       height: 2,
-      color: isActive ? Colors.black : Colors.grey.shade200,
+      color: isActive
+          ? AppColors.neonPurple.withValues(alpha: 0.5)
+          : Colors.white12,
     );
   }
 
@@ -411,13 +415,34 @@ class _QuizSettingViewState extends State<QuizSettingView> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: AppColors.neonPurple,
+                  width: 1.5,
+                ),
               ),
             ),
+            style: const TextStyle(color: Colors.white),
           ),
         ),
         const SizedBox(width: 8),
-        const Text('님의', style: TextStyle(fontSize: 16)),
+        const Text(
+          '님의',
+          style: TextStyle(fontSize: 16, color: Colors.white70),
+        ),
         const SizedBox(width: 8),
         SizedBox(
           width: 120,
@@ -425,6 +450,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
             controller: _subTitleController,
             decoration: InputDecoration(
               hintText: '서브 타이틀',
+              hintStyle: const TextStyle(color: Colors.white38),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,
@@ -432,15 +458,37 @@ class _QuizSettingViewState extends State<QuizSettingView> {
               ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.black, width: 1),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  width: 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(
+                  color: AppColors.neonPurple,
+                  width: 1.5,
+                ),
               ),
             ),
+            style: const TextStyle(color: Colors.white),
           ),
         ),
         const SizedBox(width: 8),
         const Text(
           '문제 맞추기',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ],
     );
@@ -456,7 +504,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
             ElevatedButton(
               onPressed: _addItem,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
+                backgroundColor: AppColors.neonPurple,
                 foregroundColor: Colors.white,
                 elevation: 0,
               ),
@@ -466,7 +514,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
             ElevatedButton(
               onPressed: _removeAllItems,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade400,
+                backgroundColor: Colors.redAccent,
                 foregroundColor: Colors.white,
                 elevation: 0,
               ),
@@ -479,11 +527,19 @@ class _QuizSettingViewState extends State<QuizSettingView> {
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade400, width: 1),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.15),
+                width: 1,
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: _items.isEmpty
-                ? const Center(child: Text('추가 버튼을 눌러 문제를 생성해보세요.'))
+                ? const Center(
+                    child: Text(
+                      '추가 버튼을 눌러 문제를 생성해보세요.',
+                      style: TextStyle(color: Colors.white38),
+                    ),
+                  )
                 : ReorderableListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: _items.length,
@@ -512,29 +568,31 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   Widget _buildQuizListItem(QuizItemData item, int index) {
     return Card(
       key: ValueKey<String>(item.id),
+      color: Colors.white.withValues(alpha: 0.05),
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        side: BorderSide(color: Colors.grey.shade300),
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: ReorderableDragStartListener(
           index: index,
-          child: const Icon(Icons.menu, color: Colors.grey),
+          child: const Icon(Icons.menu, color: Colors.white38),
         ),
         title: Row(
           children: <Widget>[
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+                color: AppColors.neonPurple.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
                 item.typeName,
                 style: const TextStyle(
+                  color: AppColors.neonPurple,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
@@ -544,7 +602,10 @@ class _QuizSettingViewState extends State<QuizSettingView> {
             Expanded(
               child: Text(
                 'Q. ${item.title.isEmpty ? '(제목 없음)' : item.title}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -557,7 +618,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
             'A. ${item.answer.isEmpty ? '(정답 없음)' : item.answer.join(", ")}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: Colors.grey.shade700),
+            style: const TextStyle(color: Colors.white54),
           ),
         ),
         trailing: IconButton(
@@ -587,7 +648,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.grey.shade300,
+            color: Colors.white.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -611,7 +672,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.black,
+                        color: Colors.white,
                       ),
                       icon: const Icon(Icons.keyboard_arrow_down, size: 20),
                       items:
@@ -659,7 +720,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.grey.shade300,
+            color: Colors.white.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Column(
@@ -690,7 +751,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.black, width: 1),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -707,7 +768,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
+                        color: Colors.white12,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: DropdownButtonHideUnderline(
@@ -739,10 +800,10 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
+                      color: Colors.white12,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(Icons.play_arrow, color: Colors.grey),
+                    child: const Icon(Icons.play_arrow, color: Colors.white38),
                   ),
                 ],
               ),
@@ -770,7 +831,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.black,
+            color: Colors.white,
           ),
         ),
       ),
@@ -783,7 +844,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
       child: Container(
         height: 80,
         decoration: BoxDecoration(
-          color: Colors.grey.shade200,
+          color: Colors.white12,
           borderRadius: BorderRadius.circular(8),
           image: reward.imageFile != null
               ? DecorationImage(
@@ -797,7 +858,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                 child: Text(
                   '물품 사진',
                   style: TextStyle(
-                    color: Colors.black,
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -813,7 +874,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
       decoration: InputDecoration(
         hintText: '물품 이름',
         filled: true,
-        fillColor: Colors.grey.shade200,
+        fillColor: Colors.white12,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
@@ -832,8 +893,8 @@ class _QuizSettingViewState extends State<QuizSettingView> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border(top: BorderSide(color: Colors.grey.shade200)),
+          color: Colors.white.withValues(alpha: 0.07),
+          border: Border(top: BorderSide(color: Colors.white12)),
         ),
         child: Row(
           children: <Widget>[
@@ -846,11 +907,11 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Colors.white.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade300, width: 2),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 2),
                 ),
-                child: Icon(Icons.settings, color: Colors.grey.shade700),
+                child: Icon(Icons.settings, color: Colors.white60),
               ),
             ),
             const SizedBox(width: 16),
@@ -871,7 +932,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -896,9 +957,9 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                 padding: EdgeInsets.only(
                   bottom: MediaQuery.of(context).viewInsets.bottom,
                 ),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                decoration: BoxDecoration(
+                  color: AppColors.darkBg,
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                 ),
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(24.0),
@@ -910,7 +971,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 24),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
+                          color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -932,7 +993,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                             setState(() {});
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
+                            backgroundColor: AppColors.neonPurple,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -1170,7 +1231,7 @@ class _QuizEditFormState extends State<_QuizEditForm> {
           : BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
+        color: AppColors.darkBg,
         borderRadius: widget.isDesktop
             ? BorderRadius.zero
             : const BorderRadius.only(
@@ -1187,7 +1248,7 @@ class _QuizEditFormState extends State<_QuizEditForm> {
               height: 4,
               margin: const EdgeInsets.only(bottom: 24),
               decoration: BoxDecoration(
-                color: Colors.black26,
+                color: Colors.white24,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -1217,9 +1278,9 @@ class _QuizEditFormState extends State<_QuizEditForm> {
                     child: Container(
                       height: 120,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
+                        color: Colors.white12,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
                         image: _editingItem.imageFile != null
                             ? DecorationImage(
                                 image: NetworkImage(
@@ -1230,11 +1291,11 @@ class _QuizEditFormState extends State<_QuizEditForm> {
                             : null,
                       ),
                       child: _editingItem.imageFile == null
-                          ? Center(
+                          ? const Center(
                               child: Icon(
                                 Icons.add_photo_alternate,
                                 size: 40,
-                                color: Colors.grey.shade400,
+                                color: Colors.white24,
                               ),
                             )
                           : null,
@@ -1339,12 +1400,12 @@ class _QuizEditFormState extends State<_QuizEditForm> {
                                 }
                               });
                             },
-                            selectedColor: Colors.black,
+                            selectedColor: AppColors.neonPurple,
                             labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black,
+                              color: isSelected ? Colors.white : Colors.white38,
                               fontWeight: FontWeight.bold,
                             ),
-                            backgroundColor: Colors.white,
+                            backgroundColor: Colors.white.withValues(alpha: 0.07),
                           );
                         },
                       ),
@@ -1397,11 +1458,11 @@ class _QuizEditFormState extends State<_QuizEditForm> {
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
                               backgroundColor: _editingItem.answer.first == 'O'
-                                  ? Colors.black
-                                  : Colors.white,
+                                  ? AppColors.neonPurple
+                                  : Colors.white.withValues(alpha: 0.07),
                               foregroundColor: _editingItem.answer.first == 'O'
                                   ? Colors.white
-                                  : Colors.black,
+                                  : Colors.white38,
                             ),
                             onPressed: () => setState(() {
                               _editingItem.answer = <String>['O'];
@@ -1420,11 +1481,11 @@ class _QuizEditFormState extends State<_QuizEditForm> {
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
                               backgroundColor: _editingItem.answer.first == 'X'
-                                  ? Colors.black
-                                  : Colors.white,
+                                  ? AppColors.neonPurple
+                                  : Colors.white.withValues(alpha: 0.07),
                               foregroundColor: _editingItem.answer.first == 'X'
                                   ? Colors.white
-                                  : Colors.black,
+                                  : Colors.white38,
                             ),
                             onPressed: () => setState(() {
                               _editingItem.answer = <String>['X'];
@@ -1451,7 +1512,7 @@ class _QuizEditFormState extends State<_QuizEditForm> {
             child: ElevatedButton(
               onPressed: _save,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black,
+                backgroundColor: AppColors.neonPurple,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -1483,19 +1544,19 @@ class _QuizEditFormState extends State<_QuizEditForm> {
     return InputDecoration(
       hintText: hint,
       filled: true,
-      fillColor: Colors.white,
+      fillColor: Colors.white.withValues(alpha: 0.07),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: Colors.black),
+        borderSide: const BorderSide(color: AppColors.neonPurple),
       ),
     );
   }
