@@ -39,7 +39,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
   final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _subTitleController = TextEditingController();
   final TextEditingController _playCountController = TextEditingController(
-    text: '3',
+    text: '0',
   );
 
   TextEditingController? _modalNameController;
@@ -113,8 +113,8 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     });
     _playCountController.addListener(() {
       final int capsuleCount = context.read<GachaSettingBloc>().state.uiItems.length;
-      final int rawValue = int.tryParse(_playCountController.text) ?? 1;
-      if (capsuleCount > 0 && rawValue > capsuleCount) {
+      final int rawValue = int.tryParse(_playCountController.text) ?? 0;
+      if (rawValue > capsuleCount) {
         _playCountController.text = capsuleCount.toString();
         return;
       }
