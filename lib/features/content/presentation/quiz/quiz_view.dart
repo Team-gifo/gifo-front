@@ -5,6 +5,8 @@ import 'package:toastification/toastification.dart';
 
 import '../../../lobby/model/lobby_data.dart';
 import '../../application/quiz/quiz_bloc.dart';
+import '../../../../core/widgets/grid_background_painter.dart';
+import '../../../../core/constants/app_colors.dart';
 
 class QuizView extends StatefulWidget {
   final String code;
@@ -94,23 +96,33 @@ class _QuizViewState extends State<QuizView> {
           title: 'Happy Birthday, ${state.userName} | Gifo',
           color: Colors.black,
           child: Scaffold(
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.darkBg,
             appBar: _buildAppBar(state, size, isDesktop),
-          body: SafeArea(
-            child: _buildBody(context, isDesktop, currentQuiz, state),
-          ),
-          bottomNavigationBar: isDesktop
-              ? null
-              : SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24.0,
-                      vertical: 16.0,
+            body: SafeArea(
+              child: Stack(
+                children: <Widget>[
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: GridBackgroundPainter(),
                     ),
-                    child: _buildInputArea(currentQuiz, isMobile: true),
                   ),
-                ),
-        ));
+                  _buildBody(context, isDesktop, currentQuiz, state),
+                ],
+              ),
+            ),
+            bottomNavigationBar: isDesktop
+                ? null
+                : SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 16.0,
+                      ),
+                      child: _buildInputArea(currentQuiz, isMobile: true),
+                    ),
+                  ),
+          ),
+        );
       },
     );
   }
@@ -118,31 +130,36 @@ class _QuizViewState extends State<QuizView> {
   PreferredSizeWidget _buildAppBar(QuizState state, Size size, bool isDesktop) {
     return AppBar(
       automaticallyImplyLeading: false,
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.darkBg,
       elevation: 0,
       title: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: <Widget>[
-            Image.asset('assets/images/title_logo.png', height: 50),
+            Image.asset(
+              'assets/images/title_logo.png',
+              height: 50,
+              color: Colors.white,
+            ),
             const SizedBox(width: 16),
             if (size.width > 600)
               RichText(
                 text: TextSpan(
                   style: const TextStyle(
                     fontSize: 20,
-                    color: Colors.black,
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
+                    fontFamily: 'PFStardust',
                   ),
                   children: <InlineSpan>[
                     TextSpan(
                       text: state.userName,
-                      style: const TextStyle(color: Colors.blue),
+                      style: const TextStyle(color: AppColors.neonBlue),
                     ),
                     const TextSpan(text: '님의 '),
                     const TextSpan(
                       text: '살 떨리는',
-                      style: TextStyle(color: Colors.blue),
+                      style: TextStyle(color: AppColors.neonPurple),
                     ),
                     const TextSpan(text: ' 문제 맞추기'),
                   ],
@@ -154,8 +171,9 @@ class _QuizViewState extends State<QuizView> {
                   '${state.userName}님의 문제 맞추기',
                   style: const TextStyle(
                     fontSize: 16,
-                    color: Colors.black,
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
+                    fontFamily: 'PFStardust',
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -187,7 +205,12 @@ class _QuizViewState extends State<QuizView> {
         if (isDesktop) const SizedBox(height: 64),
         Text(
           'Q. ${currentQuiz.title}',
-          style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontFamily: 'PFStardust',
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 24),
@@ -195,14 +218,20 @@ class _QuizViewState extends State<QuizView> {
           '힌트 : $hintText',
           style: const TextStyle(
             fontSize: 18,
-            color: Colors.grey,
+            color: Colors.white70,
             fontWeight: FontWeight.w600,
+            fontFamily: 'PFStardust',
           ),
         ),
         const SizedBox(height: 16),
         Text(
           '남은 기회 : ${state.currentLives}번',
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.neonBlue,
+            fontFamily: 'PFStardust',
+          ),
         ),
         const SizedBox(height: 48),
         if (isDesktop) _buildInputArea(currentQuiz, isMobile: false),
@@ -247,13 +276,18 @@ class _QuizViewState extends State<QuizView> {
         children: <Widget>[
           Text(
             '맞힌 문제: ${state.correctCount}  /  남은 문제: $remain',
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white70,
+              fontFamily: 'PFStardust',
+            ),
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
             value: progressValue,
-            backgroundColor: Colors.grey.shade300,
-            color: Colors.greenAccent,
+            backgroundColor: Colors.white10,
+            color: AppColors.neonBlue,
             minHeight: 12,
             borderRadius: BorderRadius.circular(6),
           ),
@@ -275,18 +309,28 @@ class _QuizViewState extends State<QuizView> {
             children: quiz.options.map<Widget>((String opt) {
               final bool isSelected = state.userAnswer == opt;
               return ChoiceChip(
-                label: Text(opt, style: const TextStyle(fontSize: 16)),
+                label: Text(
+                  opt,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontFamily: 'PFStardust',
+                  ),
+                ),
                 selected: isSelected,
                 onSelected: (bool selected) {
                   context.read<QuizBloc>().add(
                     SetUserAnswer(selected ? opt : ''),
                   );
                 },
-                selectedColor: const Color(0xFFC7DEFF),
-                backgroundColor: Colors.grey.shade100,
+                selectedColor: AppColors.neonPurple,
+                backgroundColor: Colors.white12,
+                checkmarkColor: Colors.white,
                 labelStyle: TextStyle(
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? Colors.black : Colors.black87,
+                  color: isSelected ? Colors.white : Colors.white70,
+                ),
+                side: BorderSide(
+                  color: isSelected ? AppColors.pixelPurple : Colors.white24,
                 ),
               );
             }).toList(),
@@ -311,20 +355,28 @@ class _QuizViewState extends State<QuizView> {
         constraints: BoxConstraints(maxWidth: isMobile ? double.infinity : 400),
         child: TextField(
           controller: _textController,
+          style: const TextStyle(color: Colors.white, fontFamily: 'PFStardust'),
           onChanged: (String v) =>
               context.read<QuizBloc>().add(SetUserAnswer(v)),
           onSubmitted: (String _) =>
               context.read<QuizBloc>().add(const SubmitAnswer()),
           decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white.withValues(alpha: 0.05),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.grey),
+              borderSide: const BorderSide(color: Colors.white24),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.white24),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Colors.blue),
+              borderSide: const BorderSide(color: AppColors.neonBlue),
             ),
             hintText: '정답을 입력하세요',
+            hintStyle: const TextStyle(color: Colors.white38),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,
@@ -348,7 +400,7 @@ class _QuizViewState extends State<QuizView> {
               _textController.clear();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFC7DEFF),
+              backgroundColor: AppColors.neonBlue,
               foregroundColor: Colors.black,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -357,7 +409,11 @@ class _QuizViewState extends State<QuizView> {
             ),
             child: const Text(
               '정답 제출',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              style: TextStyle(
+                fontWeight: FontWeight.bold, 
+                fontSize: 18,
+                fontFamily: 'PFStardust',
+              ),
             ),
           ),
         ),
@@ -367,6 +423,8 @@ class _QuizViewState extends State<QuizView> {
 
   Widget _buildOXButton(String value, String currentAnswer) {
     final bool isSelected = currentAnswer == value;
+    final Color activeColor = value == 'O' ? AppColors.neonBlue : Colors.redAccent;
+    
     return InkWell(
       onTap: () => context.read<QuizBloc>().add(SetUserAnswer(value)),
       borderRadius: BorderRadius.circular(16),
@@ -375,15 +433,22 @@ class _QuizViewState extends State<QuizView> {
         height: 100,
         decoration: BoxDecoration(
           color: isSelected
-              ? (value == 'O' ? Colors.blue.shade100 : Colors.red.shade100)
-              : Colors.grey.shade100,
+              ? activeColor.withValues(alpha: 0.2)
+              : Colors.white10,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
-                ? (value == 'O' ? Colors.blue : Colors.red)
-                : Colors.grey.shade300,
+                ? activeColor
+                : Colors.white24,
             width: 2,
           ),
+          boxShadow: isSelected ? <BoxShadow>[
+            BoxShadow(
+              color: activeColor.withValues(alpha: 0.3),
+              blurRadius: 8,
+              spreadRadius: 2,
+            ),
+          ] : null,
         ),
         alignment: Alignment.center,
         child: Text(
@@ -391,9 +456,10 @@ class _QuizViewState extends State<QuizView> {
           style: TextStyle(
             fontSize: 48,
             fontWeight: FontWeight.bold,
+            fontFamily: 'PFStardust',
             color: isSelected
-                ? (value == 'O' ? Colors.blue : Colors.red)
-                : Colors.black45,
+                ? activeColor
+                : Colors.white38,
           ),
         ),
       ),
