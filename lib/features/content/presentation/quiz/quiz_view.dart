@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:toastification/toastification.dart';
-
 import '../../../lobby/model/lobby_data.dart';
 import '../../application/quiz/quiz_bloc.dart';
+import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/constants/app_colors.dart';
 
@@ -102,9 +102,7 @@ class _QuizViewState extends State<QuizView> {
               child: Stack(
                 children: <Widget>[
                   Positioned.fill(
-                    child: CustomPaint(
-                      painter: GridBackgroundPainter(),
-                    ),
+                    child: CustomPaint(painter: GridBackgroundPainter()),
                   ),
                   _buildBody(context, isDesktop, currentQuiz, state),
                 ],
@@ -142,7 +140,7 @@ class _QuizViewState extends State<QuizView> {
               color: Colors.white,
             ),
             const SizedBox(width: 16),
-            if (size.width > 600)
+            if (size.width >= AppBreakpoints.tablet)
               RichText(
                 text: TextSpan(
                   style: const TextStyle(
@@ -157,9 +155,9 @@ class _QuizViewState extends State<QuizView> {
                       style: const TextStyle(color: AppColors.neonBlue),
                     ),
                     const TextSpan(text: '님의 '),
-                    const TextSpan(
-                      text: '살 떨리는',
-                      style: TextStyle(color: AppColors.neonPurple),
+                    TextSpan(
+                      text: state.subTitle.isNotEmpty ? state.subTitle : '',
+                      style: const TextStyle(color: AppColors.neonPurple),
                     ),
                     const TextSpan(text: ' 문제 맞추기'),
                   ],
@@ -167,15 +165,30 @@ class _QuizViewState extends State<QuizView> {
               )
             else
               Expanded(
-                child: Text(
-                  '${state.userName}님의 문제 맞추기',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: 'PFStardust',
-                  ),
+                child: RichText(
                   overflow: TextOverflow.ellipsis,
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'PFStardust',
+                    ),
+                    children: <InlineSpan>[
+                      TextSpan(
+                        text: state.userName,
+                        style: const TextStyle(color: AppColors.neonBlue),
+                      ),
+                      const TextSpan(text: '님의 '),
+                      TextSpan(
+                        text: state.subTitle.isNotEmpty
+                            ? state.subTitle
+                            : '살 떨리는',
+                        style: const TextStyle(color: AppColors.neonPurple),
+                      ),
+                      const TextSpan(text: ' 문제 맞추기'),
+                    ],
+                  ),
                 ),
               ),
             if (isDesktop) ...<Widget>[
@@ -410,7 +423,7 @@ class _QuizViewState extends State<QuizView> {
             child: const Text(
               '정답 제출',
               style: TextStyle(
-                fontWeight: FontWeight.bold, 
+                fontWeight: FontWeight.bold,
                 fontSize: 18,
                 fontFamily: 'PFStardust',
               ),
@@ -423,8 +436,10 @@ class _QuizViewState extends State<QuizView> {
 
   Widget _buildOXButton(String value, String currentAnswer) {
     final bool isSelected = currentAnswer == value;
-    final Color activeColor = value == 'O' ? AppColors.neonBlue : Colors.redAccent;
-    
+    final Color activeColor = value == 'O'
+        ? AppColors.neonBlue
+        : Colors.redAccent;
+
     return InkWell(
       onTap: () => context.read<QuizBloc>().add(SetUserAnswer(value)),
       borderRadius: BorderRadius.circular(16),
@@ -437,18 +452,18 @@ class _QuizViewState extends State<QuizView> {
               : Colors.white10,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected
-                ? activeColor
-                : Colors.white24,
+            color: isSelected ? activeColor : Colors.white24,
             width: 2,
           ),
-          boxShadow: isSelected ? <BoxShadow>[
-            BoxShadow(
-              color: activeColor.withValues(alpha: 0.3),
-              blurRadius: 8,
-              spreadRadius: 2,
-            ),
-          ] : null,
+          boxShadow: isSelected
+              ? <BoxShadow>[
+                  BoxShadow(
+                    color: activeColor.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
         ),
         alignment: Alignment.center,
         child: Text(
@@ -457,9 +472,7 @@ class _QuizViewState extends State<QuizView> {
             fontSize: 48,
             fontWeight: FontWeight.bold,
             fontFamily: 'PFStardust',
-            color: isSelected
-                ? activeColor
-                : Colors.white38,
+            color: isSelected ? activeColor : Colors.white38,
           ),
         ),
       ),

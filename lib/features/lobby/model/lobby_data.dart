@@ -38,7 +38,7 @@ class LobbyData {
     } else if (code == 'quiz123') {
       return LobbyData(
         user: '김철수', // 퀴즈 맞추기 테스트 유저
-        subTitle: '문제를 풀고 선물을 확인해봐!',
+        subTitle: '살 떨리는',
         bgm: 'track_sweet_02',
         gallery: <GalleryItem>[],
         content: LobbyContent(quiz: _getDummyQuiz()),

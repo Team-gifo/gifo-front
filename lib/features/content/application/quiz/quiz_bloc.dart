@@ -22,6 +22,7 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
     emit(
       state.copyWith(
         userName: lobbyData.user,
+        subTitle: lobbyData.subTitle,
         quizContent: quiz,
         currentQuizIndex: 0,
         correctCount: 0,
