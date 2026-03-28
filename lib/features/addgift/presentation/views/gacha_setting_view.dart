@@ -870,6 +870,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                         totalPercent,
                                         remainPercent,
                                         isMobile,
+                                        gachaState.uiItems,
                                       ),
                                     ],
                                   ),
@@ -886,6 +887,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                         totalPercent,
                                         remainPercent,
                                         isMobile,
+                                        gachaState.uiItems,
                                       ),
                                     ),
                                   ),
@@ -1062,8 +1064,8 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     double totalPercent,
     double remainPercent,
     bool isMobile,
+    List<DefaultGachaItemData> uiItems,
   ) {
-    final List<DefaultGachaItemData> uiItems = context.read<GachaSettingBloc>().state.uiItems;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -1179,19 +1181,18 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
         ],
         const SizedBox(height: 24),
         if (isMobile)
-          _buildCapsuleListContainer(isMobile: true)
+          _buildCapsuleListContainer(isMobile: true, uiItems: uiItems)
         else
           Expanded(
             child: SingleChildScrollView(
-              child: _buildCapsuleListContainer(isMobile: false),
+              child: _buildCapsuleListContainer(isMobile: false, uiItems: uiItems),
             ),
           ),
       ],
     );
   }
 
-  Widget _buildCapsuleListContainer({required bool isMobile}) {
-    final List<DefaultGachaItemData> uiItems = context.read<GachaSettingBloc>().state.uiItems;
+  Widget _buildCapsuleListContainer({required bool isMobile, required List<DefaultGachaItemData> uiItems}) {
     return Container(
       width: double.infinity, // 부모 너비 가득
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
@@ -1496,42 +1497,42 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
               Row(
                 children: <Widget>[
                   Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white12,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          dropdownColor: const Color(0xFF1A1A1A),
-                          style: const TextStyle(color: Colors.white),
-                          iconEnabledColor: Colors.white38,
-                          value: context
-                              .read<GachaSettingBloc>()
-                              .state
-                              .selectedBgm,
-                          isExpanded: true,
-                          onChanged: (String? val) {
-                            if (val != null) {
-                              context.read<GachaSettingBloc>().add(
-                                UpdateBgm(val),
-                              );
-                            }
-                          },
-                          items: <String>['신나는 생일', '잔잔한 음악', '우리의 추억']
-                              .map(
-                                (String value) => DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(
-                                    value,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
+                    child: BlocBuilder<GachaSettingBloc, GachaSettingState>(
+                      builder: (BuildContext context, GachaSettingState state) =>
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.white12,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                dropdownColor: const Color(0xFF1A1A1A),
+                                style: const TextStyle(color: Colors.white),
+                                iconEnabledColor: Colors.white38,
+                                value: state.selectedBgm,
+                                isExpanded: true,
+                                onChanged: (String? val) {
+                                  if (val != null) {
+                                    context.read<GachaSettingBloc>().add(
+                                      UpdateBgm(val),
+                                    );
+                                  }
+                                },
+                                items: <String>['신나는 생일', '잔잔한 음악', '우리의 추억']
+                                    .map(
+                                      (String value) => DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(
+                                          value,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                            ),
+                          ),
                     ),
                   ),
                   const SizedBox(width: 8),

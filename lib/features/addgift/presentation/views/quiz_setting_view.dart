@@ -7,41 +7,50 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../application/gift_packaging_bloc.dart';
-import '../../model/gift_content.dart';
-import '../../model/quiz_content.dart';
+import '../../application/quiz_setting/quiz_setting_bloc.dart';
 import '../../model/quiz_setting_models.dart';
 
-class QuizSettingView extends StatefulWidget {
+class QuizSettingView extends StatelessWidget {
   const QuizSettingView({super.key});
 
   @override
-  State<QuizSettingView> createState() => _QuizSettingViewState();
+  Widget build(BuildContext context) {
+    return BlocProvider<QuizSettingBloc>(
+      create: (BuildContext ctx) =>
+          QuizSettingBloc(ctx.read<GiftPackagingBloc>()),
+      child: const _QuizSettingContent(),
+    );
+  }
 }
 
-class _QuizSettingViewState extends State<QuizSettingView> {
+class _QuizSettingContent extends StatefulWidget {
+  const _QuizSettingContent();
+
+  @override
+  State<_QuizSettingContent> createState() => _QuizSettingContentState();
+}
+
+class _QuizSettingContentState extends State<_QuizSettingContent> {
   final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _subTitleController = TextEditingController();
+  final TextEditingController _successRewardNameController =
+      TextEditingController();
+  final TextEditingController _failRewardNameController =
+      TextEditingController();
 
-  final List<QuizItemData> _items = <QuizItemData>[];
-
-  // 보상 관련 상태
-  final QuizRewardData _successReward = QuizRewardData(requiredCount: 1);
-  final QuizRewardData _failReward = QuizRewardData();
-
-  String _selectedBgm = '신나는 생일';
   bool _isSubmitting = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    final GiftPackagingState blocState = context.read<GiftPackagingBloc>().state;
-    // BLoC에 기존 입력된 받는 분 정보가 있다면 불러오기
-    if (blocState.receiverName.isNotEmpty) {
-      _userNameController.text = blocState.receiverName;
+    final GiftPackagingState packagingState =
+        context.read<GiftPackagingBloc>().state;
+    if (packagingState.receiverName.isNotEmpty) {
+      _userNameController.text = packagingState.receiverName;
     }
-    // 초기 생성된 랜덤 타이틀을 서브타이틀 필드에 세팅
-    if (blocState.subTitle.isNotEmpty) {
-      _subTitleController.text = blocState.subTitle;
+    if (packagingState.subTitle.isNotEmpty) {
+      _subTitleController.text = packagingState.subTitle;
     }
 
     _userNameController.addListener(() {
@@ -49,10 +58,32 @@ class _QuizSettingViewState extends State<QuizSettingView> {
         SetReceiverName(_userNameController.text),
       );
     });
-    // 서브타이틀 리스너 추가
     _subTitleController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetSubTitle(_subTitleController.text),
+      );
+    });
+    _successRewardNameController.addListener(() {
+      final QuizSettingState s = context.read<QuizSettingBloc>().state;
+      context.read<QuizSettingBloc>().add(
+        UpdateSuccessReward(
+          QuizRewardData(
+            requiredCount: s.successReward.requiredCount,
+            itemName: _successRewardNameController.text,
+            imageFile: s.successReward.imageFile,
+          ),
+        ),
+      );
+    });
+    _failRewardNameController.addListener(() {
+      final QuizSettingState s = context.read<QuizSettingBloc>().state;
+      context.read<QuizSettingBloc>().add(
+        UpdateFailReward(
+          QuizRewardData(
+            itemName: _failRewardNameController.text,
+            imageFile: s.failReward.imageFile,
+          ),
+        ),
       );
     });
   }
@@ -61,6 +92,8 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   void dispose() {
     _userNameController.dispose();
     _subTitleController.dispose();
+    _successRewardNameController.dispose();
+    _failRewardNameController.dispose();
     super.dispose();
   }
 
@@ -71,36 +104,84 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   }
 
   void _removeAllItems() {
-    setState(() {
-      _items.clear();
-      // 성공 기준 값도 문제가 없어지면 초기화하는 것이 좋을 수 있음
-      _successReward.requiredCount = 1;
-    });
+    final QuizSettingState s = context.read<QuizSettingBloc>().state;
+    context.read<QuizSettingBloc>().add(UpdateQuizItems(<QuizItemData>[]));
+    context.read<QuizSettingBloc>().add(
+      UpdateSuccessReward(
+        QuizRewardData(
+          requiredCount: 1,
+          itemName: s.successReward.itemName,
+          imageFile: s.successReward.imageFile,
+        ),
+      ),
+    );
+  }
+
+  void _removeItem(String itemId) {
+    final QuizSettingState s = context.read<QuizSettingBloc>().state;
+    final List<QuizItemData> updated =
+        s.uiItems.where((QuizItemData e) => e.id != itemId).toList();
+    context.read<QuizSettingBloc>().add(UpdateQuizItems(updated));
+    final int currentCount = s.successReward.requiredCount ?? 1;
+    if (updated.isEmpty) {
+      context.read<QuizSettingBloc>().add(
+        UpdateSuccessReward(
+          QuizRewardData(
+            requiredCount: 1,
+            itemName: s.successReward.itemName,
+            imageFile: s.successReward.imageFile,
+          ),
+        ),
+      );
+    } else if (currentCount > updated.length) {
+      context.read<QuizSettingBloc>().add(
+        UpdateSuccessReward(
+          QuizRewardData(
+            requiredCount: updated.length,
+            itemName: s.successReward.itemName,
+            imageFile: s.successReward.imageFile,
+          ),
+        ),
+      );
+    }
   }
 
   void _onReorder(int oldIndex, int newIndex) {
-    setState(() {
-      if (newIndex > oldIndex) {
-        newIndex -= 1;
-      }
-      final QuizItemData item = _items.removeAt(oldIndex);
-      _items.insert(newIndex, item);
-    });
+    final List<QuizItemData> items =
+        List<QuizItemData>.from(context.read<QuizSettingBloc>().state.uiItems);
+    if (newIndex > oldIndex) {
+      newIndex -= 1;
+    }
+    final QuizItemData item = items.removeAt(oldIndex);
+    items.insert(newIndex, item);
+    context.read<QuizSettingBloc>().add(UpdateQuizItems(items));
   }
 
   // --- [이미지 픽커 유틸] ---
 
   Future<void> _pickImageForReward(bool isSuccessReward) async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() {
-        if (isSuccessReward) {
-          _successReward.imageFile = image;
-        } else {
-          _failReward.imageFile = image;
-        }
-      });
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (!mounted || image == null) return;
+    final QuizSettingState s = context.read<QuizSettingBloc>().state;
+    if (isSuccessReward) {
+      context.read<QuizSettingBloc>().add(
+        UpdateSuccessReward(
+          QuizRewardData(
+            requiredCount: s.successReward.requiredCount,
+            itemName: s.successReward.itemName,
+            imageFile: image,
+          ),
+        ),
+      );
+    } else {
+      context.read<QuizSettingBloc>().add(
+        UpdateFailReward(
+          QuizRewardData(
+            itemName: s.failReward.itemName,
+            imageFile: image,
+          ),
+        ),
+      );
     }
   }
 
@@ -162,7 +243,6 @@ class _QuizSettingViewState extends State<QuizSettingView> {
   }
 
   void _showEditModal(QuizItemData item, {bool isNew = false}) {
-    // 깊은 복사본을 만들어 에디터에서 사용
     final QuizItemData editingItem = QuizItemData(
       id: item.id,
       type: item.type,
@@ -182,22 +262,22 @@ class _QuizSettingViewState extends State<QuizSettingView> {
       item: editingItem,
       isDesktop: !isMobile,
       onSave: (QuizItemData updatedItem) {
-        setState(() {
-          if (isNew) {
-            _items.add(updatedItem);
-            if (_items.isNotEmpty &&
-                _successReward.requiredCount! < _items.length) {
-              // _successReward.requiredCount = _items.length;
-            }
-          } else {
-            final int index = _items.indexWhere(
-              (QuizItemData e) => e.id == updatedItem.id,
-            );
-            if (index != -1) {
-              _items[index] = updatedItem;
-            }
+        final List<QuizItemData> current =
+            context.read<QuizSettingBloc>().state.uiItems;
+        if (isNew) {
+          context.read<QuizSettingBloc>().add(
+            UpdateQuizItems(<QuizItemData>[...current, updatedItem]),
+          );
+        } else {
+          final int index =
+              current.indexWhere((QuizItemData e) => e.id == updatedItem.id);
+          if (index != -1) {
+            final List<QuizItemData> updated =
+                List<QuizItemData>.from(current);
+            updated[index] = updatedItem;
+            context.read<QuizSettingBloc>().add(UpdateQuizItems(updated));
           }
-        });
+        }
         Navigator.pop(context);
       },
     );
@@ -225,43 +305,54 @@ class _QuizSettingViewState extends State<QuizSettingView> {
         barrierLabel: 'Dismiss',
         barrierColor: Colors.black54,
         transitionDuration: const Duration(milliseconds: 300),
-        pageBuilder:
-            (
-              BuildContext context,
-              Animation<double> animation,
-              Animation<double> secondaryAnimation,
-            ) {
-              return SafeArea(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Material(
-                    color: Colors.transparent,
-                    child: SizedBox(
-                      width: 500,
-                      height: double.infinity,
-                      child: form,
-                    ),
-                  ),
+        pageBuilder: (
+          BuildContext context,
+          Animation<double> animation,
+          Animation<double> secondaryAnimation,
+        ) {
+          return SafeArea(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Material(
+                color: Colors.transparent,
+                child: SizedBox(
+                  width: 500,
+                  height: double.infinity,
+                  child: form,
                 ),
-              );
-            },
-        transitionBuilder:
-            (
-              BuildContext context,
-              Animation<double> animation,
-              Animation<double> secondaryAnimation,
-              Widget child,
-            ) {
-              return SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(1, 0),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              );
-            },
+              ),
+            ),
+          );
+        },
+        transitionBuilder: (
+          BuildContext context,
+          Animation<double> animation,
+          Animation<double> secondaryAnimation,
+          Widget child,
+        ) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(1, 0),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
+          );
+        },
       );
     }
+  }
+
+  // --- [포장 완료] ---
+
+  void _completePackage() {
+    final GiftPackagingBloc packagingBloc = context.read<GiftPackagingBloc>();
+    context.read<QuizSettingBloc>().add(
+      SubmitQuizSetting(
+        receiverName: _userNameController.text.trim(),
+        subTitle: _subTitleController.text.trim(),
+        gallery: packagingBloc.state.gallery,
+      ),
+    );
   }
 
   // --- [빌더] ---
@@ -289,83 +380,102 @@ class _QuizSettingViewState extends State<QuizSettingView> {
           setState(() => _isSubmitting = true);
         }
       },
-      child: Title(
-      title: '선물 포장하기 - Gifo',
-      color: AppColors.darkBg,
-      child: Scaffold(
-        backgroundColor: AppColors.darkBg,
-        appBar: AppBar(
-        toolbarHeight: 68,
-        backgroundColor: AppColors.darkBg,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: isMobile ? null : _buildTitleBar(),
-        actions: <Widget>[_buildStepIndicator()],
-      ),
-      body: Stack(
-        children: <Widget>[
-          Positioned.fill(
-            child: CustomPaint(painter: GridBackgroundPainter()),
-          ),
-          SafeArea(
-            child: isMobile
-                ? Column(
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.all(24.0),
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: _buildTitleBar(),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                          child: _buildItemsSection(isMobile),
-                        ),
-                      ),
-                    ],
-                  )
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      Expanded(
-                        flex: 7,
-                        child: Padding(
-                          padding: const EdgeInsets.all(40.0),
-                          child: _buildItemsSection(isMobile),
-                        ),
-                      ),
-                      Container(
-                        width: 1,
-                        color: Colors.white.withValues(alpha: 0.1),
-                      ),
-                      Expanded(
-                        flex: 3,
-                        child: Padding(
-                          padding: const EdgeInsets.all(40.0),
-                          child: Column(
+      child: BlocBuilder<QuizSettingBloc, QuizSettingState>(
+        builder: (BuildContext context, QuizSettingState quizState) {
+          return Title(
+            title: '선물 포장하기 - Gifo',
+            color: AppColors.darkBg,
+            child: Scaffold(
+              backgroundColor: AppColors.darkBg,
+              appBar: AppBar(
+                toolbarHeight: 68,
+                backgroundColor: AppColors.darkBg,
+                surfaceTintColor: Colors.transparent,
+                elevation: 0,
+                iconTheme: const IconThemeData(color: Colors.white),
+                title: isMobile ? null : _buildTitleBar(),
+                actions: <Widget>[_buildStepIndicator()],
+              ),
+              body: Stack(
+                children: <Widget>[
+                  Positioned.fill(
+                    child: CustomPaint(painter: GridBackgroundPainter()),
+                  ),
+                  SafeArea(
+                    child: isMobile
+                        ? Column(
+                            children: <Widget>[
+                              Padding(
+                                padding: const EdgeInsets.all(24.0),
+                                child: SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: _buildTitleBar(),
+                                ),
+                              ),
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24.0,
+                                  ),
+                                  child: _buildItemsSection(
+                                    isMobile,
+                                    quizState,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : Row(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: <Widget>[
                               Expanded(
-                                child: SingleChildScrollView(
-                                  child: _buildSettingsSection(isMobile: false),
+                                flex: 7,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(40.0),
+                                  child: _buildItemsSection(
+                                    isMobile,
+                                    quizState,
+                                  ),
                                 ),
                               ),
-                          const SizedBox(height: 24),
-                          _buildCompleteButton(),
-                        ],
-                      ),
-                    ),
+                              Container(
+                                width: 1,
+                                color: Colors.white.withValues(alpha: 0.1),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(40.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: <Widget>[
+                                      Expanded(
+                                        child: SingleChildScrollView(
+                                          child: _buildSettingsSection(
+                                            quizState,
+                                            isMobile: false,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 24),
+                                      _buildCompleteButton(),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
                 ],
               ),
-          ),
-        ],
+              bottomNavigationBar:
+                  isMobile ? _buildMobileBottomBar() : null,
+            ),
+          );
+        },
       ),
-      bottomNavigationBar: isMobile ? _buildMobileBottomBar() : null,
-    )));
+    );
   }
 
   Widget _buildStepIndicator() {
@@ -514,7 +624,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
     );
   }
 
-  Widget _buildItemsSection(bool isMobile) {
+  Widget _buildItemsSection(bool isMobile, QuizSettingState quizState) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -553,7 +663,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
               ),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: _items.isEmpty
+            child: quizState.uiItems.isEmpty
                 ? const Center(
                     child: Text(
                       '추가 버튼을 눌러 문제를 생성해보세요.',
@@ -562,19 +672,22 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                   )
                 : ReorderableListView.builder(
                     padding: const EdgeInsets.all(16),
-                    itemCount: _items.length,
+                    itemCount: quizState.uiItems.length,
                     onReorder: _onReorder,
                     buildDefaultDragHandles: false,
-                    proxyDecorator:
-                        (Widget child, int index, Animation<double> animation) {
-                          return Material(
-                            color: Colors.transparent,
-                            elevation: 0,
-                            child: child,
-                          );
-                        },
+                    proxyDecorator: (
+                      Widget child,
+                      int index,
+                      Animation<double> animation,
+                    ) {
+                      return Material(
+                        color: Colors.transparent,
+                        elevation: 0,
+                        child: child,
+                      );
+                    },
                     itemBuilder: (BuildContext context, int index) {
-                      final QuizItemData item = _items[index];
+                      final QuizItemData item = quizState.uiItems[index];
                       return _buildQuizListItem(item, index);
                     },
                   ),
@@ -643,23 +756,17 @@ class _QuizSettingViewState extends State<QuizSettingView> {
         ),
         trailing: IconButton(
           icon: const Icon(Icons.close, size: 24, color: Colors.red),
-          onPressed: () {
-            setState(() {
-              _items.removeWhere((QuizItemData e) => e.id == item.id);
-              if (_items.isEmpty) {
-                _successReward.requiredCount = 1;
-              } else if (_successReward.requiredCount! > _items.length) {
-                _successReward.requiredCount = _items.length;
-              }
-            });
-          },
+          onPressed: () => _removeItem(item.id),
         ),
         onTap: () => _showEditModal(item),
       ),
     );
   }
 
-  Widget _buildSettingsSection({required bool isMobile}) {
+  Widget _buildSettingsSection(
+    QuizSettingState quizState, {
+    required bool isMobile,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -679,48 +786,70 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                 children: <Widget>[
                   const Text(
                     '맞춘 문제가 ',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   DropdownButtonHideUnderline(
                     child: DropdownButton<int>(
-                      value: _items.isEmpty
+                      value: quizState.uiItems.isEmpty
                           ? 1
-                          : (_successReward.requiredCount! > _items.length
-                                ? _items.length
-                                : _successReward.requiredCount),
+                          : (quizState.successReward.requiredCount! >
+                                    quizState.uiItems.length
+                                ? quizState.uiItems.length
+                                : quizState.successReward.requiredCount),
                       alignment: Alignment.center,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
-                      icon: const Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.white38),
-                      items:
-                          List<int>.generate(
-                                _items.isEmpty ? 1 : _items.length,
-                                (int index) => index + 1,
-                              )
-                              .map(
-                                (int value) => DropdownMenuItem<int>(
-                                  value: value,
-                                  child: Text('$value개'),
-                                ),
-                              )
-                              .toList(),
-                      onChanged: _items.isEmpty
+                      icon: const Icon(
+                        Icons.keyboard_arrow_down,
+                        size: 20,
+                        color: Colors.white38,
+                      ),
+                      items: List<int>.generate(
+                            quizState.uiItems.isEmpty
+                                ? 1
+                                : quizState.uiItems.length,
+                            (int index) => index + 1,
+                          )
+                          .map(
+                            (int value) => DropdownMenuItem<int>(
+                              value: value,
+                              child: Text('$value개'),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: quizState.uiItems.isEmpty
                           ? null
                           : (int? newVal) {
                               if (newVal != null) {
-                                setState(() {
-                                  _successReward.requiredCount = newVal;
-                                });
+                                context.read<QuizSettingBloc>().add(
+                                  UpdateSuccessReward(
+                                    QuizRewardData(
+                                      requiredCount: newVal,
+                                      itemName:
+                                          quizState.successReward.itemName,
+                                      imageFile:
+                                          quizState.successReward.imageFile,
+                                    ),
+                                  ),
+                                );
                               }
                             },
                     ),
                   ),
                   const Text(
                     ' 일 때',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ],
               ),
@@ -728,9 +857,9 @@ class _QuizSettingViewState extends State<QuizSettingView> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  _buildRewardImagePicker(true, _successReward),
+                  _buildRewardImagePicker(true, quizState),
                   const SizedBox(height: 16),
-                  _buildRewardNameInput(true, _successReward),
+                  _buildRewardNameInput(isSuccess: true),
                 ],
               ),
             ],
@@ -748,15 +877,19 @@ class _QuizSettingViewState extends State<QuizSettingView> {
             children: <Widget>[
               const Text(
                 '그 외 (실패 보상 등)',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
-                  _buildRewardImagePicker(false, _failReward),
+                  _buildRewardImagePicker(false, quizState),
                   const SizedBox(height: 16),
-                  _buildRewardNameInput(false, _failReward),
+                  _buildRewardNameInput(isSuccess: false),
                 ],
               ),
             ],
@@ -765,13 +898,20 @@ class _QuizSettingViewState extends State<QuizSettingView> {
         const SizedBox(height: 40),
         const Text(
           'BGM 설정',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
         const SizedBox(height: 8),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.white.withValues(alpha: 0.12), width: 1),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.12),
+              width: 1,
+            ),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -793,15 +933,17 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
-                          value: _selectedBgm,
+                          value: quizState.selectedBgm,
                           isExpanded: true,
                           dropdownColor: const Color(0xFF1A1A1A),
                           style: const TextStyle(color: Colors.white),
                           iconEnabledColor: Colors.white38,
                           onChanged: (String? val) {
-                            setState(() {
-                              _selectedBgm = val!;
-                            });
+                            if (val != null) {
+                              context.read<QuizSettingBloc>().add(
+                                UpdateQuizBgm(val),
+                              );
+                            }
                           },
                           items: <String>['신나는 생일', '잔잔한 음악', '우리의 추억']
                               .map(
@@ -843,7 +985,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
       child: ElevatedButton(
         onPressed: _isSubmitting ? null : _completePackage,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF6DE1F1), // 하늘색 톤
+          backgroundColor: const Color(0xFF6DE1F1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -861,7 +1003,10 @@ class _QuizSettingViewState extends State<QuizSettingView> {
     );
   }
 
-  Widget _buildRewardImagePicker(bool isSuccess, QuizRewardData reward) {
+  Widget _buildRewardImagePicker(bool isSuccess, QuizSettingState quizState) {
+    final XFile? imageFile = isSuccess
+        ? quizState.successReward.imageFile
+        : quizState.failReward.imageFile;
     return InkWell(
       onTap: () => _pickImageForReward(isSuccess),
       child: Container(
@@ -869,14 +1014,14 @@ class _QuizSettingViewState extends State<QuizSettingView> {
         decoration: BoxDecoration(
           color: Colors.white12,
           borderRadius: BorderRadius.circular(8),
-          image: reward.imageFile != null
+          image: imageFile != null
               ? DecorationImage(
-                  image: NetworkImage(reward.imageFile!.path),
+                  image: NetworkImage(imageFile.path),
                   fit: BoxFit.cover,
                 )
               : null,
         ),
-        child: reward.imageFile == null
+        child: imageFile == null
             ? const Center(
                 child: Text(
                   '물품 사진',
@@ -891,9 +1036,11 @@ class _QuizSettingViewState extends State<QuizSettingView> {
     );
   }
 
-  Widget _buildRewardNameInput(bool isSuccess, QuizRewardData reward) {
+  Widget _buildRewardNameInput({required bool isSuccess}) {
     return TextFormField(
-      initialValue: reward.itemName,
+      controller: isSuccess
+          ? _successRewardNameController
+          : _failRewardNameController,
       decoration: InputDecoration(
         hintText: '물품 이름',
         filled: true,
@@ -903,11 +1050,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
           borderSide: BorderSide.none,
         ),
       ),
-      onChanged: (String val) {
-        setState(() {
-          reward.itemName = val;
-        });
-      },
+      style: const TextStyle(color: Colors.white),
     );
   }
 
@@ -923,7 +1066,7 @@ class _QuizSettingViewState extends State<QuizSettingView> {
           children: <Widget>[
             InkWell(
               onTap: () {
-                _showMobileSettingsModal(context);
+                _showMobileSettingsModal();
               },
               borderRadius: BorderRadius.circular(16),
               child: Container(
@@ -932,9 +1075,12 @@ class _QuizSettingViewState extends State<QuizSettingView> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 2),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    width: 2,
+                  ),
                 ),
-                child: Icon(Icons.settings, color: Colors.white60),
+                child: const Icon(Icons.settings, color: Colors.white60),
               ),
             ),
             const SizedBox(width: 16),
@@ -967,157 +1113,86 @@ class _QuizSettingViewState extends State<QuizSettingView> {
     );
   }
 
-  void _showMobileSettingsModal(BuildContext context) {
+  void _showMobileSettingsModal() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter modalSetState) {
-            return SafeArea(
-              child: Container(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.darkBg,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 24),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const Text(
-                        '세팅',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildSettingsSection(isMobile: true),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            setState(() {});
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.neonPurple,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: const Text(
-                            '닫기',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+      builder: (BuildContext modalContext) {
+        return BlocProvider<QuizSettingBloc>.value(
+          value: context.read<QuizSettingBloc>(),
+          child: BlocBuilder<QuizSettingBloc, QuizSettingState>(
+            builder: (BuildContext innerCtx, QuizSettingState quizState) {
+              return SafeArea(
+                child: Container(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(innerCtx).viewInsets.bottom,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.darkBg,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
+                  ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 24),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(2),
                           ),
                         ),
-                      ),
-                    ],
+                        const Text(
+                          '세팅',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        _buildSettingsSection(quizState, isMobile: true),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(innerCtx);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.neonPurple,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: const Text(
+                              '닫기',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         );
       },
     );
-  }
-
-  void _completePackage() {
-    final GiftPackagingBloc bloc = context.read<GiftPackagingBloc>();
-
-    // 서브타이틀, BGM 저장
-    bloc.add(SetSubTitle(_subTitleController.text.trim()));
-    bloc.add(SetBgm(_selectedBgm));
-
-    // 로컬 QuizItemData -> freezed QuizItemModel 변환
-    final List<QuizItemModel> quizItems = _items.asMap().entries.map((
-      MapEntry<int, QuizItemData> entry,
-    ) {
-      final QuizItemData item = entry.value;
-      // 퀸즈 타입 문자열 변환
-      String typeStr;
-      switch (item.type) {
-        case QuizType.multipleChoice:
-          typeStr = 'multiple_choice';
-        case QuizType.ox:
-          typeStr = 'ox';
-        case QuizType.subjective:
-          typeStr = 'subjective';
-      }
-
-      // 객관식의 경우 인덱스 기반 answer를 실제 텍스트로 변환
-      List<String> answerTexts = item.answer;
-      if (item.type == QuizType.multipleChoice) {
-        answerTexts = item.answer.map((String idxStr) {
-          final int? idx = int.tryParse(idxStr);
-          if (idx != null && idx < item.options.length) {
-            return item.options[idx];
-          }
-          return idxStr;
-        }).toList();
-      }
-
-      return QuizItemModel(
-        quizId: entry.key + 1,
-        type: typeStr,
-        title: item.title,
-        imageUrl: item.imageFile?.path,
-        description: item.description.isEmpty ? null : item.description,
-        hint: item.hint.isEmpty ? null : item.hint,
-        options: item.options,
-        answer: answerTexts,
-        playLimit: item.playLimit,
-      );
-    }).toList();
-
-    final QuizContent quizContent = QuizContent(
-      successReward: QuizSuccessReward(
-        requiredCount: _successReward.requiredCount ?? 1,
-        itemName: _successReward.itemName,
-        imageUrl: _successReward.imageFile?.path ?? '',
-      ),
-      failReward: QuizFailReward(
-        itemName: _failReward.itemName,
-        imageUrl: _failReward.imageFile?.path ?? '',
-      ),
-      list: quizItems,
-    );
-
-    bloc.add(SetQuizContent(quizContent));
-    // 모든 데이터를 SubmitPackage 이벤트에 직접 담아 전달
-    bloc.add(
-      SubmitPackage(
-        receiverName: _userNameController.text.trim(),
-        subTitle: _subTitleController.text.trim(),
-        bgm: _selectedBgm,
-        gallery: bloc.state.gallery,
-        content: GiftContent(quiz: quizContent),
-      ),
-    );
-
   }
 }
 
@@ -1302,7 +1377,9 @@ class _QuizEditFormState extends State<_QuizEditForm> {
                       decoration: BoxDecoration(
                         color: Colors.white12,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.15),
+                        ),
                         image: _editingItem.imageFile != null
                             ? DecorationImage(
                                 image: NetworkImage(
@@ -1408,8 +1485,8 @@ class _QuizEditFormState extends State<_QuizEditForm> {
                       children: List<Widget>.generate(
                         _optionControllers.length,
                         (int index) {
-                          final bool isSelected = _selectedMultipleChoiceAnswers
-                              .contains(index);
+                          final bool isSelected =
+                              _selectedMultipleChoiceAnswers.contains(index);
                           return ChoiceChip(
                             label: Text('${index + 1}번'),
                             selected: isSelected,
@@ -1424,10 +1501,12 @@ class _QuizEditFormState extends State<_QuizEditForm> {
                             },
                             selectedColor: AppColors.neonPurple,
                             labelStyle: TextStyle(
-                              color: isSelected ? Colors.white : Colors.white38,
+                              color:
+                                  isSelected ? Colors.white : Colors.white38,
                               fontWeight: FontWeight.bold,
                             ),
-                            backgroundColor: Colors.white.withValues(alpha: 0.07),
+                            backgroundColor:
+                                Colors.white.withValues(alpha: 0.07),
                           );
                         },
                       ),
@@ -1479,12 +1558,14 @@ class _QuizEditFormState extends State<_QuizEditForm> {
                         Expanded(
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
-                              backgroundColor: _editingItem.answer.first == 'O'
-                                  ? AppColors.neonPurple
-                                  : Colors.white.withValues(alpha: 0.07),
-                              foregroundColor: _editingItem.answer.first == 'O'
-                                  ? Colors.white
-                                  : Colors.white38,
+                              backgroundColor:
+                                  _editingItem.answer.first == 'O'
+                                      ? AppColors.neonPurple
+                                      : Colors.white.withValues(alpha: 0.07),
+                              foregroundColor:
+                                  _editingItem.answer.first == 'O'
+                                      ? Colors.white
+                                      : Colors.white38,
                             ),
                             onPressed: () => setState(() {
                               _editingItem.answer = <String>['O'];
@@ -1502,12 +1583,14 @@ class _QuizEditFormState extends State<_QuizEditForm> {
                         Expanded(
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
-                              backgroundColor: _editingItem.answer.first == 'X'
-                                  ? AppColors.neonPurple
-                                  : Colors.white.withValues(alpha: 0.07),
-                              foregroundColor: _editingItem.answer.first == 'X'
-                                  ? Colors.white
-                                  : Colors.white38,
+                              backgroundColor:
+                                  _editingItem.answer.first == 'X'
+                                      ? AppColors.neonPurple
+                                      : Colors.white.withValues(alpha: 0.07),
+                              foregroundColor:
+                                  _editingItem.answer.first == 'X'
+                                      ? Colors.white
+                                      : Colors.white38,
                             ),
                             onPressed: () => setState(() {
                               _editingItem.answer = <String>['X'];
