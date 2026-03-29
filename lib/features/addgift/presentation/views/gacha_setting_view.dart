@@ -12,6 +12,10 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../application/gacha_setting/gacha_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
+import '../widgets/gacha/gacha_capsule_item.dart';
+import '../widgets/gacha/gacha_mobile_bottom_bar.dart';
+import '../widgets/gacha/gacha_settings_panel.dart';
+import '../widgets/step_indicator.dart';
 
 class GachaSettingView extends StatelessWidget {
   const GachaSettingView({super.key});
@@ -848,7 +852,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                 },
                         ),
                         title: _buildTitleBar(),
-                        actions: <Widget>[if (!isMobile) _buildStepIndicator()],
+                        actions: <Widget>[if (!isMobile) const StepIndicator(activeStep: 3)],
                       ),
                       body: Stack(
                         children: <Widget>[
@@ -899,8 +903,11 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                     flex: 4,
                                     child: Padding(
                                       padding: const EdgeInsets.all(40.0),
-                                      child: _buildSettingsSection(
+                                      child: GachaSettingsPanel(
                                         isMobile: false,
+                                        playCountController: _playCountController,
+                                        canComplete: _canComplete(),
+                                        onComplete: _completePackage,
                                       ),
                                     ),
                                   ),
@@ -911,9 +918,13 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                       ),
                       // 모바일인 경우 하단 네비게이션 적용 (톱니바퀴 모달 + 완료버튼)
                       bottomNavigationBar: isMobile
-                          ? _buildMobileBottomBar(
-                              totalPercent,
-                              gachaState.uiItems.length,
+                          ? GachaMobileBottomBar(
+                              totalPercent: totalPercent,
+                              itemCount: gachaState.uiItems.length,
+                              canComplete: _canComplete(),
+                              onComplete: _completePackage,
+                              onShowSettings: () =>
+                                  _showMobileSettingsModal(context),
                             )
                           : null,
                     ),
@@ -1206,7 +1217,27 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
         runSpacing: 32,
         children: <Widget>[
           for (int i = 0; i < uiItems.length; i++)
-            _buildCapsuleItem(uiItems[i], isMobile),
+            GachaCapsuleItem(
+              item: uiItems[i],
+              isMobile: isMobile,
+              isHovered: _hoveredItemId == uiItems[i].id,
+              isSelected: _selectedItemId == uiItems[i].id,
+              onTap: () => _showEditModal(context, uiItems[i]),
+              onRemove: () {
+                context.read<GachaSettingBloc>().add(
+                  RemoveGachaItem(uiItems[i].id),
+                );
+                setState(() {
+                  _hoveredItemId = null;
+                });
+              },
+              onHoverEnter: () => setState(() {
+                _hoveredItemId = uiItems[i].id;
+              }),
+              onHoverExit: () => setState(() {
+                _hoveredItemId = null;
+              }),
+            ),
           // 추가하기 점선 원
           InkWell(
             onTap: () => context.read<GachaSettingBloc>().add(
@@ -1242,540 +1273,6 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildCapsuleItem(DefaultGachaItemData item, bool isMobile) {
-    final double? percentValue = double.tryParse(item.percentStr);
-    final bool needsEdit =
-        item.itemName.trim().isEmpty ||
-        percentValue == null ||
-        percentValue < 0.01 ||
-        percentValue > 100.0;
-
-    final double size = isMobile ? 80.0 : 96.0;
-    final double halfSize = size / 2;
-    final double iconSize = isMobile ? 42.0 : 50.0;
-    final double titleFontSize = isMobile ? 14.0 : 16.0;
-    final double percentFontSize = isMobile ? 12.0 : 14.0;
-
-    return MouseRegion(
-      onEnter: (_) {
-        setState(() {
-          _hoveredItemId = item.id;
-        });
-      },
-      onExit: (_) {
-        setState(() {
-          _hoveredItemId = null;
-        });
-      },
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: <Widget>[
-          InkWell(
-            onTap: () => _showEditModal(context, item),
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            hoverColor: Colors.transparent,
-            customBorder: const CircleBorder(),
-            child: SizedBox(
-              width: size, // 아이템 영역 고정 (오버플로우 방지)
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Container(
-                    width: size,
-                    height: size,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: _selectedItemId == item.id
-                            ? Colors.orange
-                            : Colors.black,
-                        width: _selectedItemId == item.id ? 3 : 2,
-                        strokeAlign: BorderSide.strokeAlignOutside,
-                      ), // 선택 시 주황색 굵은 선으로 변경
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      children: <Widget>[
-                        // 가운데 아이템 이미지 (배경으로 깔림)
-                        Center(
-                          child: item.imageFile != null
-                              ? Image.network(
-                                  item.imageFile!.path,
-                                  width: size,
-                                  height: size,
-                                  fit: BoxFit.cover,
-                                )
-                              : Icon(
-                                  Icons.question_mark,
-                                  size: iconSize,
-                                  color: Colors.black87,
-                                ),
-                        ),
-                        // 상단 (흰색, 반투명)
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: halfSize,
-                          child: Container(
-                            color: Colors.white.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        // 하단 랜덤 색상 반형 디자인 (반투명하게 덮어짐)
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          height: halfSize,
-                          child: Container(
-                            color: item.color.withValues(alpha: 0.7),
-                          ),
-                        ),
-                        // 가운데 분리선
-                        Align(
-                          alignment: Alignment.center,
-                          child: Container(height: 1, color: Colors.black),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    item.itemName.isEmpty ? '제목 없음' : item.itemName,
-                    style: TextStyle(
-                      fontSize: titleFontSize,
-                      fontWeight: FontWeight.bold,
-                      color: item.itemName.isEmpty ? Colors.white38 : Colors.white,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    item.percentOpen ? '(${item.percentStr}%)' : '(미공개)',
-                    style: TextStyle(
-                      fontSize: percentFontSize,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          if (needsEdit)
-            Positioned(
-              top: -6,
-              left: -6,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.orange,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                padding: const EdgeInsets.all(4),
-                child: const Icon(
-                  Icons.priority_high,
-                  color: Colors.white,
-                  size: 16,
-                ),
-              ),
-            ),
-          if (_hoveredItemId == item.id)
-            Positioned(
-              top: -6,
-              right: -6,
-              child: GestureDetector(
-                onTap: () {
-                  context.read<GachaSettingBloc>().add(
-                    RemoveGachaItem(item.id),
-                  );
-                  setState(() {
-                    _hoveredItemId = null;
-                  });
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade400,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                  padding: const EdgeInsets.all(4),
-                  child: const Icon(Icons.close, color: Colors.white, size: 16),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingsSection({required bool isMobile}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      mainAxisSize: MainAxisSize.min, // Spacer로 인한 에러를 막기 위해 최소 사이즈 적용
-      children: <Widget>[
-        if (!isMobile) const SizedBox(height: 24),
-        Row(
-          children: <Widget>[
-            const Icon(Icons.casino, size: 20, color: Colors.white),
-            const SizedBox(width: 8),
-            const Expanded(
-              child: Text(
-                '뽑기 가능 횟수',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            const Spacer(),
-            SizedBox(
-              width: 70,
-              child: TextFormField(
-                controller: _playCountController,
-                textAlign: TextAlign.right,
-                keyboardType: TextInputType.number,
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white12,
-                  isDense: true,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFF6DE1F1), width: 1.5),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2), width: 1),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Color(0xFF6DE1F1), width: 1.5),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Text(
-              '회',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        BlocBuilder<GachaSettingBloc, GachaSettingState>(
-          builder: (BuildContext context, GachaSettingState state) => Text(
-            '최대 ${state.uiItems.length}회 설정 가능 (캡슐 개수 기준)',
-            style: const TextStyle(fontSize: 12, color: Colors.white38),
-            textAlign: TextAlign.end,
-          ),
-        ),
-        const SizedBox(height: 40),
-        const Row(
-          children: <Widget>[
-            Icon(Icons.music_note, size: 20, color: Colors.white),
-            SizedBox(width: 8),
-            Text(
-              'BGM 설정',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: BlocBuilder<GachaSettingBloc, GachaSettingState>(
-                      builder: (BuildContext context, GachaSettingState state) =>
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: Colors.white12,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                dropdownColor: const Color(0xFF1A1A1A),
-                                style: const TextStyle(color: Colors.white),
-                                iconEnabledColor: Colors.white38,
-                                value: state.selectedBgm,
-                                isExpanded: true,
-                                onChanged: (String? val) {
-                                  if (val != null) {
-                                    context.read<GachaSettingBloc>().add(
-                                      UpdateBgm(val),
-                                    );
-                                  }
-                                },
-                                items: <String>['신나는 생일', '잔잔한 음악', '우리의 추억']
-                                    .map(
-                                      (String value) => DropdownMenuItem<String>(
-                                        value: value,
-                                        child: Text(
-                                          value,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                              ),
-                            ),
-                          ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white12,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.play_arrow,
-                      color: Colors.white38,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        if (!isMobile) ...<Widget>[
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
-            ),
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  '⚠️ 포장 완료 조건',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: Colors.deepOrange,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  '• 캡슐 최소 1개 이상 생성',
-                  style: TextStyle(fontSize: 16, color: Colors.white54),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-                Text(
-                  '• 상단 이름 및 서브타이틀 입력',
-                  style: TextStyle(fontSize: 16, color: Colors.white54),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-                Text(
-                  '• 뽑기 가능 횟수 최소 1회 이상',
-                  style: TextStyle(fontSize: 16, color: Colors.white54),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-                Text(
-                  '• 미완성 캡슐 없음',
-                  style: TextStyle(fontSize: 16, color: Colors.white54),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-                Text(
-                  '• 전체 확률 100% 충족',
-                  style: TextStyle(fontSize: 16, color: Colors.white54),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          // 포장 완료 버튼 (데스크톱 최하단 고정)
-          SizedBox(
-            height: 60,
-            child: ElevatedButton(
-              onPressed: _canComplete()
-                  ? () {
-                      _completePackage();
-                    }
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _canComplete()
-                    ? const Color(0xFF6DE1F1)
-                    : Colors.grey.shade300,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                '포장 완료',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: _canComplete() ? Colors.black : Colors.grey.shade500,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
-  // 모바일 전용 하단 고정 네비게이션 바
-  Widget _buildMobileBottomBar(double totalPercent, int itemCount) {
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.07),
-          border: const Border(top: BorderSide(color: Colors.white12)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                const Tooltip(
-                  triggerMode: TooltipTriggerMode.tap,
-                  showDuration: Duration(seconds: 4),
-                  margin: EdgeInsets.symmetric(horizontal: 24),
-                  padding: EdgeInsets.all(12),
-                  textStyle: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    height: 1.5,
-                  ),
-                  message:
-                      '⚠️ 포장 완료 조건\n'
-                      '• 캡슐 최소 1개 이상 생성\n'
-                      '• 상단 닉네임 및 서브타이틀 입력\n'
-                      '• 뽑기 가능 횟수 최소 1 이상\n'
-                      '• 미완성 캡슐 없음\n'
-                      '• 전체 확률 100% 충족',
-                  child: Padding(
-                    padding: EdgeInsets.only(right: 8),
-                    child: Icon(
-                      Icons.info_outline,
-                      size: 20,
-                      color: Colors.white38,
-                    ),
-                  ),
-                ),
-                RichText(
-                  text: TextSpan(
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'PFStardust',
-                      color: Colors.white,
-                    ),
-                    children: <InlineSpan>[
-                      const TextSpan(text: '전체 확률 : '),
-                      TextSpan(
-                        text: '${totalPercent.toStringAsFixed(2)}%',
-                        style: TextStyle(
-                          color:
-                              (totalPercent >= 99.99 && totalPercent <= 100.01)
-                              ? Colors.green
-                              : Colors.red,
-                        ),
-                      ),
-                      const TextSpan(text: ' / 100.00%'),
-                      const TextSpan(text: ' [ '),
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.middle,
-                        child: Image.asset(
-                          'assets/images/gacha.png',
-                          width: 28,
-                          height: 28,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' : $itemCount개 ]',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: <Widget>[
-                InkWell(
-                  onTap: () {
-                    _showMobileSettingsModal(context);
-                  },
-                  borderRadius: BorderRadius.circular(16),
-                  child: Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 2),
-                    ),
-                    child: const Icon(Icons.settings, color: Colors.white60),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: SizedBox(
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: _canComplete()
-                          ? () {
-                              _completePackage();
-                            }
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _canComplete()
-                            ? const Color(0xFF6DE1F1)
-                            : Colors.grey.shade300,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        '포장 완료',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: _canComplete()
-                              ? Colors.black
-                              : Colors.grey.shade500,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1825,7 +1322,12 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                         ],
                       ),
                       const SizedBox(height: 24),
-                      _buildSettingsSection(isMobile: true),
+                      GachaSettingsPanel(
+                        isMobile: true,
+                        playCountController: _playCountController,
+                        canComplete: _canComplete(),
+                        onComplete: _completePackage,
+                      ),
                       Row(
                         children: <Widget>[
                           Expanded(
@@ -1895,53 +1397,6 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     );
   }
 
-  Widget _buildStepIndicator() {
-    return Padding(
-      padding: const EdgeInsets.only(right: 20.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          _buildCircle(isActive: true, number: '1'),
-          _buildLine(isActive: true),
-          _buildCircle(isActive: true, number: '2'),
-          _buildLine(isActive: true),
-          _buildCircle(isActive: true, number: '3'),
-        ],
-      ),
-    );
-  }
-
-  // 인디케이터 원형 위젯
-  Widget _buildCircle({required bool isActive, required String number}) {
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: isActive ? AppColors.neonPurple : Colors.white12,
-        border: isActive ? null : Border.all(color: Colors.white24),
-      ),
-      child: Center(
-        child: Text(
-          number,
-          style: TextStyle(
-            color: isActive ? Colors.white : Colors.white38,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 인디케이터 연결 선 위젯
-  Widget _buildLine({required bool isActive}) {
-    return Container(
-      width: 16,
-      height: 2,
-      color: isActive ? AppColors.neonPurple.withValues(alpha: 0.5) : Colors.white12,
-    );
-  }
 }
 
 // 점선 그리기 (빈 아이템용)

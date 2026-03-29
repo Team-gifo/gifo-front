@@ -6,6 +6,7 @@ import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../widgets/addgift_scaffold.dart';
+import '../widgets/step_indicator.dart';
 
 class ReceiverNameView extends StatefulWidget {
   const ReceiverNameView({super.key});
@@ -45,7 +46,7 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
           surfaceTintColor: Colors.transparent,
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.white),
-          actions: <Widget>[_buildStepIndicator()],
+          actions: <Widget>[const StepIndicator(activeStep: 1)],
         ),
         bottomNavigationBar: _buildBottomButton(),
         body: SafeArea(
@@ -236,52 +237,4 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
     );
   }
 
-  Widget _buildStepIndicator() {
-    return Padding(
-      padding: const EdgeInsets.only(right: 20.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          _buildCircle(isActive: true, number: '1'),
-          _buildLine(),
-          _buildCircle(isActive: false, number: '2'),
-          _buildLine(),
-          _buildCircle(isActive: false, number: '3'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCircle({required bool isActive, required String number}) {
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: isActive ? AppColors.neonPurple : Colors.white12,
-        border: isActive
-            ? null
-            : Border.all(color: Colors.white24, width: 1),
-      ),
-      child: Center(
-        child: Text(
-          number,
-          style: TextStyle(
-            fontFamily: 'WantedSans',
-            color: isActive ? Colors.white : Colors.white38,
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLine() {
-    return Container(
-      width: 16,
-      height: 2,
-      color: Colors.white12,
-    );
-  }
 }

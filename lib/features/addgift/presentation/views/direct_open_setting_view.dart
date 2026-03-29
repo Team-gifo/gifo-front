@@ -8,6 +8,8 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../application/direct_open_setting/direct_open_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
+import '../widgets/direct_open/after_open_card.dart';
+import '../widgets/direct_open/before_open_card.dart';
 
 class DirectOpenSettingView extends StatelessWidget {
   const DirectOpenSettingView({super.key});
@@ -383,9 +385,19 @@ class _DirectOpenSettingContentState
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           if (isMobile) ...<Widget>[
-            _buildBeforeOpenCard(isMobile: isMobile, state: state),
+            BeforeOpenCard(
+                isMobile: isMobile,
+                imageFile: state.beforeImageFile,
+                descController: _beforeDescController,
+                onPickImage: () => _pickImage(true),
+              ),
             const SizedBox(height: 24),
-            _buildAfterOpenCard(isMobile: isMobile, state: state),
+            AfterOpenCard(
+                isMobile: isMobile,
+                imageFile: state.afterImageFile,
+                nameController: _afterNameController,
+                onPickImage: () => _pickImage(false),
+              ),
           ] else ...<Widget>[
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
