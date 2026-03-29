@@ -11,6 +11,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../application/memory_gallery_setting/memory_gallery_setting_bloc.dart';
+import '../widgets/step_indicator.dart';
 
 class MemoryGallerySettingView extends StatelessWidget {
   const MemoryGallerySettingView({super.key});
@@ -232,7 +233,7 @@ class _MemoryGallerySettingViewState
               },
             ),
             // 데스크톱에서만 appbar에 진행도 표시
-            actions: <Widget>[if (!isMobile) _buildStepIndicator()],
+            actions: <Widget>[if (!isMobile) const StepIndicator(activeStep: 2)],
           ),
           body: Stack(
             children: <Widget>[
@@ -1129,54 +1130,6 @@ class _MemoryGallerySettingViewState
     );
   }
 
-  Widget _buildStepIndicator() {
-    return Padding(
-      padding: const EdgeInsets.only(right: 20.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          _buildCircle(isActive: true, number: '1'),
-          _buildLine(isActive: true),
-          _buildCircle(isActive: true, number: '2'),
-          _buildLine(isActive: false),
-          _buildCircle(isActive: false, number: '3'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCircle({required bool isActive, required String number}) {
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: isActive ? AppColors.neonPurple : Colors.white12,
-        border: isActive ? null : Border.all(color: Colors.white24),
-      ),
-      child: Center(
-        child: Text(
-          number,
-          style: TextStyle(
-            fontFamily: 'WantedSans',
-            color: isActive ? Colors.white : Colors.white38,
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLine({required bool isActive}) {
-    return Container(
-      width: 16,
-      height: 2,
-      color: isActive
-          ? AppColors.neonPurple.withValues(alpha: 0.5)
-          : Colors.white12,
-    );
-  }
 }
 
 // ------------------------------------------------------------------
