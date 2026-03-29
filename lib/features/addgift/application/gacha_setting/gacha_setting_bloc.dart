@@ -62,8 +62,9 @@ class GachaSettingBloc extends Bloc<GachaSettingEvent, GachaSettingState> {
     );
   }
 
-  // 새 캡슐 아이템 추가: 로컬 uiItems에 추가 후 GiftPackagingBloc에 동기화
+  // 새 캡슐 아이템 추가: 로컬 uiItems에 추가 후 GiftPackagingBloc에 동기화 (최대 10개 제한)
   void _onAddItem(AddGachaItem event, Emitter<GachaSettingState> emit) {
+    if (state.uiItems.length >= 10) return;
     final DefaultGachaItemData newItem = DefaultGachaItemData(
       id: state.nextId,
       color: event.color,

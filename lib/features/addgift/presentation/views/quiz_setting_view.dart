@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
+import '../../../../core/widgets/packaging_loading_overlay.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../application/quiz_setting/quiz_setting_bloc.dart';
 import '../../model/quiz_setting_models.dart';
@@ -164,9 +165,14 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
   // --- [이미지 픽커 유틸] ---
 
   Future<void> _pickImageForReward(bool isSuccessReward) async {
+    final QuizSettingState s = context.read<QuizSettingBloc>().state;
+    // 이미지가 없는 보상 슬롯에서 한도(10개) 도달 시 피커를 열지 않음
+    final bool alreadyHasImage = isSuccessReward
+        ? s.successReward.imageFile != null
+        : s.failReward.imageFile != null;
+    if (!alreadyHasImage && s.imageCount >= 10) return;
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (!mounted || image == null) return;
-    final QuizSettingState s = context.read<QuizSettingBloc>().state;
     if (isSuccessReward) {
       context.read<QuizSettingBloc>().add(
         UpdateSuccessReward(
@@ -262,9 +268,13 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
 
     final bool isMobile = MediaQuery.sizeOf(context).width < 800;
 
+    final bool isImageLimitReached =
+        context.read<QuizSettingBloc>().state.imageCount >= 10;
+
     final Widget form = QuizEditForm(
       item: editingItem,
       isDesktop: !isMobile,
+      isImageLimitReached: isImageLimitReached,
       onSave: (QuizItemData updatedItem) {
         final List<QuizItemData> current =
             context.read<QuizSettingBloc>().state.uiItems;
@@ -389,7 +399,9 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
           return Title(
             title: '선물 포장하기 - Gifo',
             color: AppColors.darkBg,
-            child: Scaffold(
+            child: PopScope(
+              canPop: !_isSubmitting,
+              child: Scaffold(
               backgroundColor: AppColors.darkBg,
               appBar: AppBar(
                 toolbarHeight: 68,
@@ -475,10 +487,13 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                             ],
                           ),
                   ),
+                  // 로딩 오버레이: 전송 중 터치 차단 + 프로그레스 표시
+                  if (_isSubmitting) const PackagingLoadingOverlay(),
                 ],
               ),
               bottomNavigationBar:
                   isMobile ? _buildMobileBottomBar() : null,
+            ),
             ),
           );
         },

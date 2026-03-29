@@ -13,7 +13,11 @@ abstract class GiftRequest with _$GiftRequest {
     @Default('') String user,
     @JsonKey(name: 'sub_title') @Default('') String subTitle,
     @Default('') String bgm,
+    @Default('') String password,
+    @JsonKey(name: 'sender_name') @Default('') String senderName,
     @Default(<GalleryItem>[]) List<GalleryItem> gallery,
+    @JsonKey(name: 'uploaded_bgm_urls') @Default(<String>[]) List<String> uploadedBgmUrls,
+    @JsonKey(name: 'expired_at', includeIfNull: false) String? expiredAt,
     required GiftContent content,
   }) = _GiftRequest;
 

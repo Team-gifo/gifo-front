@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
+import '../../../../core/widgets/packaging_loading_overlay.dart';
 import '../../application/gacha_setting/gacha_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../widgets/gacha/gacha_capsule_item.dart';
@@ -929,67 +930,13 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                     ),
 
                     // 로딩 오버레이: 전송 중 터치 차단 + 프로그레스 표시
-                    if (isLoading) _buildLoadingOverlay(),
+                    if (isLoading) const PackagingLoadingOverlay(),
                   ],
                 ),
               ));
             },
           );
         },
-      ),
-    );
-  }
-
-  // 반투명 검정 오버레이 위에 프로그레스 인디케이터와 안내 문구를 표시합니다.
-  Widget _buildLoadingOverlay() {
-    return Positioned.fill(
-      child: ColoredBox(
-        color: Colors.black.withValues(alpha: 0.55),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 40),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: <BoxShadow>[
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: const Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                SizedBox(
-                  width: 52,
-                  height: 52,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 4,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF6DE1F1),
-                    ),
-                  ),
-                ),
-                SizedBox(height: 24),
-                Text(
-                  '선물을 포장하고 있어요...',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  '잠시만 기다려 주세요.',
-                  style: TextStyle(fontSize: 13, color: Colors.black45),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

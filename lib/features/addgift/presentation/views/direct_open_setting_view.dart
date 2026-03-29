@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
+import '../../../../core/widgets/packaging_loading_overlay.dart';
 import '../../application/direct_open_setting/direct_open_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../widgets/direct_open/after_open_card.dart';
@@ -40,6 +41,8 @@ class _DirectOpenSettingContentState
   final TextEditingController _afterNameController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
+
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -123,17 +126,22 @@ class _DirectOpenSettingContentState
           isPackageComplete = true;
           context.replace('/addgift/package-complete');
         } else if (packagingState.submitStatus == SubmitStatus.failure) {
+          setState(() => _isSubmitting = false);
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('서버 전송에 실패했습니다. 다시 시도해 주세요.'),
               backgroundColor: Colors.red,
             ),
           );
+        } else if (packagingState.submitStatus == SubmitStatus.loading) {
+          setState(() => _isSubmitting = true);
         }
       },
       child: BlocBuilder<DirectOpenSettingBloc, DirectOpenSettingState>(
         builder: (BuildContext context, DirectOpenSettingState directOpenState) {
-          return Scaffold(
+          return PopScope(
+            canPop: !_isSubmitting,
+            child: Scaffold(
             backgroundColor: AppColors.darkBg,
             appBar: AppBar(
               toolbarHeight: 68,
@@ -222,10 +230,13 @@ class _DirectOpenSettingContentState
                           ],
                         ),
                 ),
+                // 로딩 오버레이: 전송 중 터치 차단 + 프로그레스 표시
+                if (_isSubmitting) const PackagingLoadingOverlay(),
               ],
             ),
             bottomNavigationBar:
                 isMobile ? _buildMobileBottomBar(directOpenState) : null,
+          ),
           );
         },
       ),

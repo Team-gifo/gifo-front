@@ -8,12 +8,15 @@ class QuizEditForm extends StatefulWidget {
   final QuizItemData item;
   final ValueChanged<QuizItemData> onSave;
   final bool isDesktop;
+  // 이미지 업로드 한도(10개) 도달 여부 — true이면 이미 이미지가 없는 항목에서 피커 비활성화
+  final bool isImageLimitReached;
 
   const QuizEditForm({
     super.key,
     required this.item,
     required this.onSave,
     this.isDesktop = false,
+    this.isImageLimitReached = false,
   });
 
   @override
@@ -120,6 +123,8 @@ class _QuizEditFormState extends State<QuizEditForm> {
   }
 
   Future<void> _pickImage() async {
+    // 이미지가 없는 상태에서 한도에 도달했으면 피커를 열지 않음
+    if (_editingItem.imageFile == null && widget.isImageLimitReached) return;
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {

@@ -15,4 +15,12 @@ abstract class AddGiftApi {
   Future<HttpResponse<dynamic>> createGift(
     @Body() Map<String, dynamic> request,
   );
+
+  // 이미지 업로드 (type: MEMORY | GIFT | QUIZ)
+  @POST('/api/images')
+  @MultiPart()
+  Future<HttpResponse<dynamic>> uploadImage(
+    @Query('type') String type,
+    @Part(name: 'file') MultipartFile file,
+  );
 }
