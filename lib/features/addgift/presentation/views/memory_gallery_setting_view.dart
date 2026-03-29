@@ -11,6 +11,9 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../application/memory_gallery_setting/memory_gallery_setting_bloc.dart';
+import '../widgets/memory_gallery/memory_desktop_card.dart';
+import '../widgets/memory_gallery/memory_edit_form.dart';
+import '../widgets/memory_gallery/memory_mobile_card.dart';
 import '../widgets/step_indicator.dart';
 
 class MemoryGallerySettingView extends StatelessWidget {
@@ -108,7 +111,7 @@ class _MemoryGallerySettingViewState
         ),
         builder: (BuildContext modalContext) => BlocProvider.value(
           value: memoryBloc,
-          child: _MemoryEditForm(
+          child: MemoryEditForm(
             itemId: itemData.id,
             onPickImage: () => _pickImage(itemData.id),
           ),
@@ -141,7 +144,7 @@ class _MemoryGallerySettingViewState
                     height: double.infinity,
                     child: BlocProvider.value(
                       value: memoryBloc,
-                      child: _MemoryEditForm(
+                      child: MemoryEditForm(
                         itemId: itemData.id,
                         onPickImage: () => _pickImage(itemData.id),
                       ),
@@ -468,12 +471,28 @@ class _MemoryGallerySettingViewState
                           }
                           final MemoryGalleryItemData item =
                               galleryState.uiItems[index];
-                          return _buildDesktopCard(
+                          return MemoryDesktopCard(
                             key: ValueKey<int>(item.id),
                             index: index,
                             itemData: item,
-                            selectedItemId: galleryState.selectedItemId,
-                            hoveredItemId: galleryState.hoveredItemId,
+                            isIncomplete: _isItemIncomplete(item),
+                            isSelected: galleryState.selectedItemId == item.id,
+                            isHovered: galleryState.hoveredItemId == item.id,
+                            onTap: () => _showEditModal(context, item),
+                            onRemove: () {
+                              context.read<MemoryGallerySettingBloc>().add(
+                                RemoveMemoryItem(item.id),
+                              );
+                              context.read<MemoryGallerySettingBloc>().add(
+                                const ClearHoverMemoryItem(),
+                              );
+                            },
+                            onHoverEnter: () => context
+                                .read<MemoryGallerySettingBloc>()
+                                .add(HoverMemoryItem(item.id)),
+                            onHoverExit: () => context
+                                .read<MemoryGallerySettingBloc>()
+                                .add(const ClearHoverMemoryItem()),
                           );
                         },
                       ),
@@ -488,179 +507,6 @@ class _MemoryGallerySettingViewState
     );
   }
 
-  // 데스크톱 카드: Column 정렬 (이미지 상단, 텍스트 하단), 그리드 셀에 맞춰짐
-  Widget _buildDesktopCard({
-    required Key key,
-    required int index,
-    required MemoryGalleryItemData itemData,
-    required int? selectedItemId,
-    required int? hoveredItemId,
-  }) {
-    final bool isIncomplete = _isItemIncomplete(itemData);
-    final bool isHovered = hoveredItemId == itemData.id;
-
-    return MouseRegion(
-      key: key,
-      onEnter: (_) => context.read<MemoryGallerySettingBloc>().add(
-        HoverMemoryItem(itemData.id),
-      ),
-      onExit: (_) => context.read<MemoryGallerySettingBloc>().add(
-        const ClearHoverMemoryItem(),
-      ),
-      child: ReorderableDragStartListener(
-        index: index,
-        child: Container(
-          // Grid의 여백을 활용하므로 별도의 외부 bottom margin은 주지 않음
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: <Widget>[
-              // 배경 (카드 본체)
-              Positioned.fill(
-                child: Material(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    side: BorderSide(
-                      color: selectedItemId == itemData.id
-                          ? AppColors.neonPurple
-                          : Colors.white24,
-                      width: selectedItemId == itemData.id ? 2.5 : 1.0,
-                    ),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: () => _showEditModal(context, itemData),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0,
-                        vertical: 24.0,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          // 썸네일 이미지
-                          Expanded(
-                            child: Container(
-                              width: double.infinity,
-                              clipBehavior: Clip.antiAlias,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                              child: itemData.imageFile != null
-                                  ? Image.network(
-                                      itemData.imageFile!.path,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Icon(
-                                      Icons.photo,
-                                      size: 40,
-                                      color: Colors.grey.shade300,
-                                    ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          // 하단 텍스트 영역
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                itemData.title.isEmpty
-                                    ? '제목 없음'
-                                    : itemData.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontFamily: 'WantedSans',
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: itemData.title.isEmpty
-                                      ? Colors.white38
-                                      : Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                itemData.description.isEmpty
-                                    ? '설명 없음'
-                                    : itemData.description,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontFamily: 'WantedSans',
-                                  fontSize: 14,
-                                  height: 1.5,
-                                  color: itemData.description.isEmpty
-                                      ? Colors.white38
-                                      : Colors.white70,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // 불완전 아이템 경고 아이콘 (좌측 상단, Stack 최상단)
-              if (isIncomplete)
-                Positioned(
-                  top: -6,
-                  left: -6,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.orange,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
-                    ),
-                    padding: const EdgeInsets.all(4),
-                    child: const Icon(
-                      Icons.priority_high,
-                      color: Colors.white,
-                      size: 16,
-                    ),
-                  ),
-                ),
-
-              // hover 시 삭제 버튼 (우측 상단 튀어나오게, 드래그 무시하기 위해 제어)
-              if (isHovered)
-                Positioned(
-                  top: -6,
-                  right: -6,
-                  child: GestureDetector(
-                    onTap: () {
-                      context.read<MemoryGallerySettingBloc>().add(
-                        RemoveMemoryItem(itemData.id),
-                      );
-                      context.read<MemoryGallerySettingBloc>().add(
-                        const ClearHoverMemoryItem(),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade400,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      padding: const EdgeInsets.all(4),
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 데스크톱 추가 카드 (리스트 마지막 자리에 배치, 전체 너비)
   Widget _buildDesktopAddCard() {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
@@ -878,12 +724,17 @@ class _MemoryGallerySettingViewState
                   itemBuilder: (BuildContext context, int index) {
                     final MemoryGalleryItemData item =
                         galleryState.uiItems[index];
-                    return _buildMobileCard(
+                    return MemoryMobileCard(
                       key: ValueKey<int>(item.id),
                       index: index,
                       itemData: item,
-                      selectedItemId: galleryState.selectedItemId,
-                      itemCount: galleryState.uiItems.length,
+                      isIncomplete: _isItemIncomplete(item),
+                      isSelected: galleryState.selectedItemId == item.id,
+                      onTap: () => _showEditModal(context, item),
+                      onRemove: () =>
+                          context.read<MemoryGallerySettingBloc>().add(
+                            RemoveMemoryItem(item.id),
+                          ),
                     );
                   },
                 ),
@@ -891,151 +742,6 @@ class _MemoryGallerySettingViewState
             ),
           ),
       ],
-    );
-  }
-
-  // 모바일 카드 (기존 형태 유지)
-  Widget _buildMobileCard({
-    required Key key,
-    required int index,
-    required MemoryGalleryItemData itemData,
-    required int? selectedItemId,
-    required int itemCount,
-  }) {
-    final bool isIncomplete = _isItemIncomplete(itemData);
-
-    return Container(
-      key: key,
-      margin: const EdgeInsets.only(bottom: 16.0),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: <Widget>[
-          Material(
-            color: Colors.white.withValues(alpha: 0.05),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
-              side: BorderSide(
-                color: selectedItemId == itemData.id
-                    ? AppColors.neonPurple
-                    : Colors.white24,
-                width: selectedItemId == itemData.id ? 2.0 : 1.0,
-              ),
-            ),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () => _showEditModal(context, itemData),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 16.0,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    ReorderableDragStartListener(
-                      index: index,
-                      child: const Padding(
-                        padding: EdgeInsets.fromLTRB(0, 8, 12, 8),
-                        child: Icon(Icons.drag_handle, color: Colors.grey),
-                      ),
-                    ),
-                    Container(
-                      width: 80,
-                      height: 80,
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8F9FA),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: itemData.imageFile != null
-                          ? Image.network(
-                              itemData.imageFile!.path,
-                              fit: BoxFit.cover,
-                            )
-                          : Icon(
-                              Icons.photo,
-                              size: 30,
-                              color: Colors.grey.shade300,
-                            ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            itemData.title.isEmpty ? '제목 없음' : itemData.title,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontFamily: 'WantedSans',
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: itemData.title.isEmpty
-                                  ? Colors.white38
-                                  : Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            itemData.description.isEmpty
-                                ? '설명 없음'
-                                : itemData.description,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontFamily: 'WantedSans',
-                              fontSize: 13,
-                              color: itemData.description.isEmpty
-                                  ? Colors.white38
-                                  : Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        color: Colors.grey,
-                        size: 20,
-                      ),
-                      onPressed: () {
-                        context.read<MemoryGallerySettingBloc>().add(
-                          RemoveMemoryItem(itemData.id),
-                        );
-                      },
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // 불완전 아이템 경고 아이콘: Stack 마지막에 배치하여 드래그 테두리보다 위에 표시
-          if (isIncomplete)
-            Positioned(
-              top: -6,
-              left: -6,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.orange,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                padding: const EdgeInsets.all(4),
-                child: const Icon(
-                  Icons.priority_high,
-                  color: Colors.white,
-                  size: 16,
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 
@@ -1130,375 +836,4 @@ class _MemoryGallerySettingViewState
     );
   }
 
-}
-
-// ------------------------------------------------------------------
-// 편집 모달 전용 위젯 (BlocBuilder로 실시간 상태 반영)
-// ------------------------------------------------------------------
-class _MemoryEditForm extends StatelessWidget {
-  final int itemId;
-  final VoidCallback onPickImage;
-
-  const _MemoryEditForm({required this.itemId, required this.onPickImage});
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<MemoryGallerySettingBloc, MemoryGallerySettingState>(
-      builder: (BuildContext context, MemoryGallerySettingState state) {
-        final MemoryGalleryItemData? itemData = state.uiItems
-            .where((MemoryGalleryItemData item) => item.id == itemId)
-            .firstOrNull;
-
-        if (itemData == null) return const SizedBox.shrink();
-
-        final bool isTitleValid = itemData.title.trim().isNotEmpty;
-        final bool isDescriptionValid = itemData.description.trim().isNotEmpty;
-        final bool hasImage = itemData.imageFile != null;
-
-        return SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.only(
-                    left: 32.0,
-                    right: 32.0,
-                    top: 32.0,
-                    bottom: MediaQuery.viewInsetsOf(context).bottom + 32.0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: <Widget>[
-                      // 헤더: 제목 + 닫기 버튼
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: <Widget>[
-                          const SizedBox(width: 24),
-                          const Text(
-                            '추억 상세 설정',
-                            style: TextStyle(
-                              fontFamily: 'WantedSans',
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.close, color: Colors.white70),
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-
-                      // 제목 입력 영역
-                      const Text(
-                        '제목',
-                        style: TextStyle(
-                          fontFamily: 'WantedSans',
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        key: ValueKey<String>('title_$itemId'),
-                        initialValue: itemData.title,
-                        style: const TextStyle(color: Colors.white),
-                        onChanged: (String val) {
-                          context.read<MemoryGallerySettingBloc>().add(
-                            UpdateMemoryItemTitle(itemId, val),
-                          );
-                        },
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.07),
-                          hintText: '제목을 입력해주세요',
-                          hintStyle: const TextStyle(color: Colors.white38),
-                          suffixIcon: itemData.title.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear, size: 20),
-                                  onPressed: () {
-                                    context
-                                        .read<MemoryGallerySettingBloc>()
-                                        .add(UpdateMemoryItemTitle(itemId, ''));
-                                  },
-                                )
-                              : null,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isTitleValid
-                                  ? const Color(0xFF6DE1F1)
-                                  : Colors.red,
-                              width: 1.5,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isTitleValid
-                                  ? Colors.white24
-                                  : Colors.red,
-                              width: isTitleValid ? 1.0 : 1.5,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isTitleValid
-                                  ? AppColors.neonPurple
-                                  : Colors.red,
-                              width: 1.5,
-                            ),
-                          ),
-                          errorText: !isTitleValid
-                              ? '제목은 최소 1글자 이상이어야 합니다.'
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // 이미지 선택 영역
-                      const Text(
-                        '이미지',
-                        style: TextStyle(
-                          fontFamily: 'WantedSans',
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      if (!hasImage)
-                        InkWell(
-                          onTap: onPickImage,
-                          child: Container(
-                            height: 120,
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.07),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.white24,
-                                width: 1,
-                              ),
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.add_photo_alternate,
-                                size: 40,
-                                color: Colors.white38,
-                              ),
-                            ),
-                          ),
-                        )
-                      else
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            Container(
-                              constraints: const BoxConstraints(maxHeight: 500),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.white24,
-                                  width: 1,
-                                ),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.network(
-                                  itemData.imageFile!.path,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: <Widget>[
-                                OutlinedButton.icon(
-                                  onPressed: onPickImage,
-                                  icon: const Icon(Icons.edit, size: 16),
-                                  label: const Text('수정'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: AppColors.neonBlue,
-                                    side: BorderSide(
-                                      color: AppColors.neonBlue,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                OutlinedButton.icon(
-                                  onPressed: () {
-                                    context
-                                        .read<MemoryGallerySettingBloc>()
-                                        .add(RemoveMemoryItemImage(itemId));
-                                  },
-                                  icon: const Icon(Icons.delete, size: 16),
-                                  label: const Text('삭제'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.redAccent,
-                                    side: const BorderSide(
-                                      color: Colors.redAccent,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      const SizedBox(height: 8),
-
-                      // 부적절한 콘텐츠 주의 안내 (gacha_setting_view와 동일한 형식)
-                      const Text(
-                        '- 부적절한 제목이나 이미지는 신고 대상이 될 수 있으며, 관련 책임은 등록 주체에게 있음을 알려드립니다.',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // 설명 입력 영역
-                      const Text(
-                        '설명',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        key: ValueKey<String>('desc_$itemId'),
-                        initialValue: itemData.description,
-                        maxLines: 4,
-                        style: const TextStyle(color: Colors.white),
-                        onChanged: (String val) {
-                          context.read<MemoryGallerySettingBloc>().add(
-                            UpdateMemoryItemDescription(itemId, val),
-                          );
-                        },
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.07),
-                          hintText: '설명을 입력해주세요',
-                          hintStyle: const TextStyle(color: Colors.white38),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isDescriptionValid
-                                  ? AppColors.neonPurple
-                                  : Colors.red,
-                              width: 1.5,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isDescriptionValid
-                                  ? Colors.white24
-                                  : Colors.red,
-                              width: isDescriptionValid ? 1.0 : 1.5,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: isDescriptionValid
-                                  ? AppColors.neonPurple
-                                  : Colors.red,
-                              width: 1.5,
-                            ),
-                          ),
-                          errorText: !isDescriptionValid
-                              ? '설명은 최소 1글자 이상이어야 합니다.'
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                    ],
-                  ),
-                ),
-              ),
-
-              // 하단 버튼 영역 (삭제 + 닫기)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 32,
-                  vertical: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A2E),
-                  border: Border(
-                    top: BorderSide(
-                      color: Colors.white.withValues(alpha: 0.1),
-                    ),
-                  ),
-                ),
-                child: Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          context.read<MemoryGallerySettingBloc>().add(
-                            RemoveMemoryItem(itemId),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          foregroundColor: Colors.redAccent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: const BorderSide(
-                              color: Colors.redAccent,
-                              width: 1.5,
-                            ),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          '삭제',
-                          style: TextStyle(
-                            fontFamily: 'WantedSans',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.neonPurple,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          '닫기',
-                          style: TextStyle(
-                            fontFamily: 'WantedSans',
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 }

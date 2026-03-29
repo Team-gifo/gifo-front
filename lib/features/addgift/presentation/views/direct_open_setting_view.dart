@@ -403,231 +403,25 @@ class _DirectOpenSettingContentState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Expanded(
-                  child: _buildBeforeOpenCard(isMobile: isMobile, state: state),
+                  child: BeforeOpenCard(
+                    isMobile: isMobile,
+                    imageFile: state.beforeImageFile,
+                    descController: _beforeDescController,
+                    onPickImage: () => _pickImage(true),
+                  ),
                 ),
                 const SizedBox(width: 32),
                 Expanded(
-                  child: _buildAfterOpenCard(isMobile: isMobile, state: state),
+                  child: AfterOpenCard(
+                    isMobile: isMobile,
+                    imageFile: state.afterImageFile,
+                    nameController: _afterNameController,
+                    onPickImage: () => _pickImage(false),
+                  ),
                 ),
               ],
             ),
           ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBeforeOpenCard({
-    bool isMobile = true,
-    required DirectOpenSettingState state,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          const Text(
-            '개봉 전',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-          InkWell(
-            onTap: () => _pickImage(true),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              width: isMobile ? 200 : 280,
-              height: isMobile ? 200 : 280,
-              decoration: BoxDecoration(
-                color: Colors.white12,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 2,
-                ),
-                image: state.beforeImageFile != null
-                    ? DecorationImage(
-                        image: NetworkImage(state.beforeImageFile!.path),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: state.beforeImageFile == null
-                  ? const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(
-                          Icons.card_giftcard,
-                          size: 64,
-                          color: Colors.white38,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          '상자 이미지 변경',
-                          style: TextStyle(
-                            color: Colors.white38,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    )
-                  : null,
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              '설명란 문구',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _beforeDescController,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: '상자 하단에 보여질 설명을 입력해주세요.',
-              hintStyle: const TextStyle(color: Colors.white38),
-              filled: true,
-              fillColor: Colors.white12,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.15),
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.15),
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.pixelPurple),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAfterOpenCard({
-    bool isMobile = true,
-    required DirectOpenSettingState state,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          const Text(
-            '개봉 후',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 16),
-          InkWell(
-            onTap: () => _pickImage(false),
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              width: isMobile ? 200 : 280,
-              height: isMobile ? 200 : 280,
-              decoration: BoxDecoration(
-                color: Colors.white12,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 2,
-                ),
-                image: state.afterImageFile != null
-                    ? DecorationImage(
-                        image: NetworkImage(state.afterImageFile!.path),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-              ),
-              child: state.afterImageFile == null
-                  ? const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(
-                          Icons.image,
-                          size: 64,
-                          color: Colors.white38,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          '물품 사진 등록',
-                          style: TextStyle(
-                            color: Colors.white38,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    )
-                  : null,
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Text(
-              '물품 이름',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _afterNameController,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: '상품 이름을 기입해주세요.',
-              hintStyle: const TextStyle(color: Colors.white38),
-              filled: true,
-              fillColor: Colors.white12,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.15),
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.15),
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.pixelPurple),
-              ),
-            ),
-          ),
         ],
       ),
     );
