@@ -145,6 +145,7 @@ class _QuizViewState extends State<QuizView> {
         ],
       ),
       child: AppBar(
+        toolbarHeight: isMobileOrSmall ? 64.0 : 72.0,
         primary: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -427,8 +428,14 @@ class _QuizViewState extends State<QuizView> {
         builder: (BuildContext context, QuizState state) {
           return Column(
             mainAxisSize: MainAxisSize.min,
-            children: quiz.options.map<Widget>((String opt) {
+            children: quiz.options.asMap().entries.map<Widget>((
+              MapEntry<int, String> entry,
+            ) {
+              final int index = entry.key;
+              final String opt = entry.value;
               final bool isSelected = state.userAnswer == opt;
+              final String bullet = isSelected ? 'A.' : '${index + 1}.';
+
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
                 child: SizedBox(
@@ -466,7 +473,7 @@ class _QuizViewState extends State<QuizView> {
                           const SizedBox(width: 8),
                         ],
                         Text(
-                          'A. $opt',
+                          '$bullet $opt',
                           style: TextStyle(
                             fontWeight: isSelected
                                 ? FontWeight.bold
