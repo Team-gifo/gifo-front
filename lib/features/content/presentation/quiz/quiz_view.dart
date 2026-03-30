@@ -276,7 +276,7 @@ class _QuizViewState extends State<QuizView> {
             fontSize: 26,
             fontWeight: FontWeight.bold,
             color: Colors.white,
-            fontFamily: 'PFStardust',
+            fontFamily: 'WantedSans',
           ),
           textAlign: TextAlign.center,
         ),
@@ -308,15 +308,16 @@ class _QuizViewState extends State<QuizView> {
             ),
           ),
         ],
-        if (!(size.width < AppBreakpoints.tablet && currentQuiz.hint.isEmpty)) ...<Widget>[
+        if (!(size.width < AppBreakpoints.tablet &&
+            currentQuiz.hint.isEmpty)) ...<Widget>[
           const SizedBox(height: 32),
           Text(
-            '힌트 : $hintText',
+            'Hint : $hintText',
             style: const TextStyle(
               fontSize: 18,
               color: Colors.white70,
               fontWeight: FontWeight.w600,
-              fontFamily: 'PFStardust',
+              fontFamily: 'WantedSans',
             ),
           ),
         ],
@@ -448,9 +449,7 @@ class _QuizViewState extends State<QuizView> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       side: BorderSide(
-                        color: isSelected
-                            ? AppColors.neonPurple
-                            : Colors.transparent,
+                        color: isSelected ? AppColors.neonPurple : Colors.grey,
                         width: 2,
                       ),
                       elevation: 0,
@@ -467,14 +466,14 @@ class _QuizViewState extends State<QuizView> {
                           const SizedBox(width: 8),
                         ],
                         Text(
-                          opt,
+                          'A. $opt',
                           style: TextStyle(
                             fontWeight: isSelected
                                 ? FontWeight.bold
                                 : FontWeight.w500,
                             color: isSelected ? Colors.white : Colors.black,
                             fontSize: 16,
-                            fontFamily: 'PFStardust',
+                            fontFamily: 'WantedSans',
                           ),
                         ),
                       ],
@@ -504,7 +503,7 @@ class _QuizViewState extends State<QuizView> {
         constraints: BoxConstraints(maxWidth: isMobile ? double.infinity : 400),
         child: TextField(
           controller: _textController,
-          style: const TextStyle(color: Colors.white, fontFamily: 'PFStardust'),
+          style: const TextStyle(color: Colors.white, fontFamily: 'WantedSans'),
           onChanged: (String v) =>
               context.read<QuizBloc>().add(SetUserAnswer(v)),
           onSubmitted: (String _) =>
@@ -525,7 +524,10 @@ class _QuizViewState extends State<QuizView> {
               borderSide: const BorderSide(color: AppColors.neonBlue),
             ),
             hintText: '정답을 입력하세요',
-            hintStyle: const TextStyle(color: Colors.white38),
+            hintStyle: const TextStyle(
+              color: Colors.white38,
+              fontFamily: 'WantedSans',
+            ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,
