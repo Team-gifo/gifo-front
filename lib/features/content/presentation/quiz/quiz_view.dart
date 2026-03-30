@@ -118,17 +118,6 @@ class _QuizViewState extends State<QuizView> {
                 ],
               ),
             ),
-            bottomNavigationBar: isDesktop
-                ? null
-                : SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24.0,
-                        vertical: 16.0,
-                      ),
-                      child: _buildInputArea(currentQuiz, isMobile: true),
-                    ),
-                  ),
           ),
         );
       },
@@ -155,12 +144,15 @@ class _QuizViewState extends State<QuizView> {
           ),
         ],
       ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: isMobileOrSmall ? 16.0 : 32.0,
-          vertical: isMobileOrSmall ? 12.0 : 14.0,
-        ),
-        child: Row(
+      child: AppBar(
+        primary: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        titleSpacing: isMobileOrSmall ? 16.0 : 32.0,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
             Image.asset(
               'assets/images/title_logo.png',
@@ -192,7 +184,7 @@ class _QuizViewState extends State<QuizView> {
                 ),
               )
             else
-              Expanded(
+              Flexible(
                 child: RichText(
                   overflow: TextOverflow.ellipsis,
                   text: TextSpan(
@@ -219,12 +211,30 @@ class _QuizViewState extends State<QuizView> {
                   ),
                 ),
               ),
-            if (size.width >= AppBreakpoints.desktop) ...<Widget>[
-              const Spacer(),
-              _buildProgress(state, isMobile: false),
-            ],
           ],
         ),
+        actions: <Widget>[
+          if (size.width >= AppBreakpoints.desktop)
+            Padding(
+              padding: const EdgeInsets.only(right: 32.0),
+              child: Center(child: _buildProgress(state, isMobile: false)),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.only(right: 16.0),
+              child: Center(
+                child: Text(
+                  '${state.currentQuizIndex + 1} / ${state.quizContent!.list.length}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'WantedSans',
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -236,7 +246,7 @@ class _QuizViewState extends State<QuizView> {
     QuizState state,
   ) {
     final Size size = MediaQuery.of(context).size;
-    
+
     // 화면 크기별 이미지 사이즈 동적 할당
     double imgMaxWidth;
     double imgMaxHeight;
@@ -298,16 +308,18 @@ class _QuizViewState extends State<QuizView> {
             ),
           ),
         ],
-        const SizedBox(height: 32),
-        Text(
-          '힌트 : $hintText',
-          style: const TextStyle(
-            fontSize: 18,
-            color: Colors.white70,
-            fontWeight: FontWeight.w600,
-            fontFamily: 'PFStardust',
+        if (!(size.width < AppBreakpoints.tablet && currentQuiz.hint.isEmpty)) ...<Widget>[
+          const SizedBox(height: 32),
+          Text(
+            '힌트 : $hintText',
+            style: const TextStyle(
+              fontSize: 18,
+              color: Colors.white70,
+              fontWeight: FontWeight.w600,
+              fontFamily: 'PFStardust',
+            ),
           ),
-        ),
+        ],
         const SizedBox(height: 16),
         Text(
           '남은 기회 : ${state.currentLives}번',
@@ -318,29 +330,54 @@ class _QuizViewState extends State<QuizView> {
             fontFamily: 'PFStardust',
           ),
         ),
-        const SizedBox(height: 48),
-        if (isDesktop) _buildInputArea(currentQuiz, isMobile: false),
       ],
     );
 
-    return Column(
-      children: <Widget>[
-        if (!isDesktop)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24.0, 24.0, 24.0, 0),
-            child: _buildProgress(state, isMobile: true),
-          ),
-        Expanded(
-          child: Center(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: content,
+    if (isDesktop) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 48.0),
+                  child: content,
+                ),
               ),
             ),
           ),
-        ),
-      ],
+          Container(width: 1, color: Colors.white10, height: double.infinity),
+          Expanded(
+            child: Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 48.0),
+                  child: _buildInputArea(currentQuiz, isMobile: false),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return SingleChildScrollView(
+      child: Column(
+        children: <Widget>[
+          const SizedBox(height: 64),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: content,
+          ),
+          const SizedBox(height: 48),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: _buildInputArea(currentQuiz, isMobile: true),
+          ),
+          const SizedBox(height: 64),
+        ],
+      ),
     );
   }
 
@@ -387,35 +424,62 @@ class _QuizViewState extends State<QuizView> {
     if (quiz.type == 'multiple_choice') {
       content = BlocBuilder<QuizBloc, QuizState>(
         builder: (BuildContext context, QuizState state) {
-          return Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            alignment: WrapAlignment.center,
+          return Column(
+            mainAxisSize: MainAxisSize.min,
             children: quiz.options.map<Widget>((String opt) {
               final bool isSelected = state.userAnswer == opt;
-              return ChoiceChip(
-                label: Text(
-                  opt,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontFamily: 'PFStardust',
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12.0),
+                child: SizedBox(
+                  width: isMobile ? double.infinity : 400,
+                  height: 60,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      context.read<QuizBloc>().add(
+                        SetUserAnswer(isSelected ? '' : opt),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isSelected
+                          ? AppColors.neonPurple
+                          : Colors.white,
+                      foregroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      side: BorderSide(
+                        color: isSelected
+                            ? AppColors.neonPurple
+                            : Colors.transparent,
+                        width: 2,
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        if (isSelected) ...<Widget>[
+                          const Icon(
+                            Icons.check_circle,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          opt,
+                          style: TextStyle(
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                            color: isSelected ? Colors.white : Colors.black,
+                            fontSize: 16,
+                            fontFamily: 'PFStardust',
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                selected: isSelected,
-                onSelected: (bool selected) {
-                  context.read<QuizBloc>().add(
-                    SetUserAnswer(selected ? opt : ''),
-                  );
-                },
-                selectedColor: AppColors.neonPurple,
-                backgroundColor: Colors.white12,
-                checkmarkColor: Colors.white,
-                labelStyle: TextStyle(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? Colors.white : Colors.white70,
-                ),
-                side: BorderSide(
-                  color: isSelected ? AppColors.pixelPurple : Colors.white24,
                 ),
               );
             }).toList(),
