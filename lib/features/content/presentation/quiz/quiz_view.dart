@@ -97,14 +97,24 @@ class _QuizViewState extends State<QuizView> {
           color: Colors.black,
           child: Scaffold(
             backgroundColor: AppColors.darkBg,
-            appBar: _buildAppBar(state, size, isDesktop),
             body: SafeArea(
               child: Stack(
                 children: <Widget>[
                   Positioned.fill(
                     child: CustomPaint(painter: GridBackgroundPainter()),
                   ),
-                  _buildBody(context, isDesktop, currentQuiz, state),
+                  // 메인 콘텐츠 영역
+                  Positioned.fill(
+                    top: size.width < AppBreakpoints.tablet ? 64 : 72,
+                    child: _buildBody(context, isDesktop, currentQuiz, state),
+                  ),
+                  // 상단 Custom AppBar
+                  Positioned(
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    child: _buildAppBar(state, size),
+                  ),
                 ],
               ),
             ),
@@ -125,18 +135,36 @@ class _QuizViewState extends State<QuizView> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar(QuizState state, Size size, bool isDesktop) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: AppColors.darkBg,
-      elevation: 0,
-      title: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+  Widget _buildAppBar(QuizState state, Size size) {
+    final bool isMobileOrSmall = size.width < AppBreakpoints.tablet;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.darkBg.withValues(alpha: 0.8),
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.neonPurple.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.neonPurple.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: isMobileOrSmall ? 16.0 : 32.0,
+          vertical: isMobileOrSmall ? 12.0 : 14.0,
+        ),
         child: Row(
           children: <Widget>[
             Image.asset(
               'assets/images/title_logo.png',
-              height: 50,
+              height: isMobileOrSmall ? 40 : 48,
               color: Colors.white,
             ),
             const SizedBox(width: 16),
@@ -147,12 +175,12 @@ class _QuizViewState extends State<QuizView> {
                     fontSize: 20,
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
-                    fontFamily: 'PFStardust',
+                    fontFamily: 'WantedSans',
                   ),
                   children: <InlineSpan>[
                     TextSpan(
                       text: state.userName,
-                      style: const TextStyle(color: AppColors.neonBlue),
+                      style: const TextStyle(color: AppColors.neonPurple),
                     ),
                     const TextSpan(text: '님의 '),
                     TextSpan(
@@ -169,10 +197,10 @@ class _QuizViewState extends State<QuizView> {
                   overflow: TextOverflow.ellipsis,
                   text: TextSpan(
                     style: const TextStyle(
-                      fontSize: 16,
+                      fontSize: 15,
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontFamily: 'PFStardust',
+                      fontFamily: 'WantedSans',
                     ),
                     children: <InlineSpan>[
                       TextSpan(
@@ -191,10 +219,9 @@ class _QuizViewState extends State<QuizView> {
                   ),
                 ),
               ),
-            if (isDesktop) ...<Widget>[
+            if (size.width >= AppBreakpoints.desktop) ...<Widget>[
               const Spacer(),
               _buildProgress(state, isMobile: false),
-              const SizedBox(width: 16),
             ],
           ],
         ),
@@ -300,7 +327,7 @@ class _QuizViewState extends State<QuizView> {
           LinearProgressIndicator(
             value: progressValue,
             backgroundColor: Colors.white10,
-            color: AppColors.neonBlue,
+            color: AppColors.neonPurple,
             minHeight: 12,
             borderRadius: BorderRadius.circular(6),
           ),

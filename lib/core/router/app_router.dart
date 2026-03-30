@@ -47,21 +47,22 @@ class _ErrorRedirectPageState extends State<_ErrorRedirectPage> {
     // 위젯이 완전히 렌더링된 이후에 이동 (build 중 context 사용 방지)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      
+
       final GoRouterState routerState = GoRouterState.of(context);
       final String currentPath = routerState.uri.path;
-      
+
       // sitemap.xml, robots.txt 등 정적 파일 요청이나 개발망 경로가 강제로 플러터로 넘어온 경우
       // '잘못된 초대코드' 토스트가 뜨는 것을 방지
-      final bool isStaticFile = currentPath.endsWith('.xml') || 
-                           currentPath.endsWith('.txt') || 
-                           currentPath.endsWith('.png') ||
-                           currentPath.endsWith('.json');
-                           
+      final bool isStaticFile =
+          currentPath.endsWith('.xml') ||
+          currentPath.endsWith('.txt') ||
+          currentPath.endsWith('.png') ||
+          currentPath.endsWith('.json');
+
       if (!isStaticFile) {
         _shouldShowInvalidCodeToast = true;
       }
-      
+
       GoRouter.of(context).go('/');
     });
   }
@@ -74,7 +75,7 @@ class _ErrorRedirectPageState extends State<_ErrorRedirectPage> {
 }
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/gift/code/quiz123',
   // 정의되지 않은 경로로 접근하면 _ErrorRedirectPage로 처리
   errorBuilder: (BuildContext context, GoRouterState state) =>
       const _ErrorRedirectPage(),
