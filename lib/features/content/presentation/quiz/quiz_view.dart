@@ -434,27 +434,37 @@ class _QuizViewState extends State<QuizView> {
         SizedBox(
           width: isMobile ? double.infinity : 400,
           height: 60,
-          child: ElevatedButton(
-            onPressed: () {
-              context.read<QuizBloc>().add(const SubmitAnswer());
-              _textController.clear();
+          child: BlocBuilder<QuizBloc, QuizState>(
+            builder: (BuildContext context, QuizState state) {
+              final bool canSubmit = state.userAnswer.trim().isNotEmpty;
+
+              return ElevatedButton(
+                onPressed: canSubmit
+                    ? () {
+                        context.read<QuizBloc>().add(const SubmitAnswer());
+                        _textController.clear();
+                      }
+                    : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.neonBlue,
+                  disabledBackgroundColor: Colors.white12,
+                  foregroundColor: Colors.black,
+                  disabledForegroundColor: Colors.white38,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  '정답 제출',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    fontFamily: 'PFStardust',
+                  ),
+                ),
+              );
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.neonBlue,
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 0,
-            ),
-            child: const Text(
-              '정답 제출',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                fontFamily: 'PFStardust',
-              ),
-            ),
           ),
         ),
       ],
