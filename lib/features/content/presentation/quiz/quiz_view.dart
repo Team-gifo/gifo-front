@@ -235,6 +235,27 @@ class _QuizViewState extends State<QuizView> {
     QuizItem currentQuiz,
     QuizState state,
   ) {
+    final Size size = MediaQuery.of(context).size;
+    
+    // 화면 크기별 이미지 사이즈 동적 할당
+    double imgMaxWidth;
+    double imgMaxHeight;
+    double imgMinHeight;
+
+    if (size.width >= AppBreakpoints.desktop) {
+      imgMaxWidth = 600;
+      imgMaxHeight = 350;
+      imgMinHeight = 250;
+    } else if (size.width >= AppBreakpoints.tablet) {
+      imgMaxWidth = 500;
+      imgMaxHeight = 280;
+      imgMinHeight = 200;
+    } else {
+      imgMaxWidth = double.infinity;
+      imgMaxHeight = 220;
+      imgMinHeight = 150;
+    }
+
     final String hintText = currentQuiz.hint.isEmpty
         ? '제공되지 않음'
         : currentQuiz.hint;
@@ -253,7 +274,36 @@ class _QuizViewState extends State<QuizView> {
           ),
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 24),
+        if (currentQuiz.imageUrl.isNotEmpty) ...<Widget>[
+          const SizedBox(height: 32),
+          Container(
+            constraints: BoxConstraints(
+              maxWidth: imgMaxWidth,
+              maxHeight: imgMaxHeight,
+              minHeight: imgMinHeight,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: AppColors.neonPurple.withValues(alpha: 0.3),
+              ),
+              boxShadow: <BoxShadow>[
+                BoxShadow(
+                  color: AppColors.neonPurple.withValues(alpha: 0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: currentQuiz.imageUrl.startsWith('http')
+                  ? Image.network(currentQuiz.imageUrl, fit: BoxFit.cover)
+                  : Image.asset(currentQuiz.imageUrl, fit: BoxFit.cover),
+            ),
+          ),
+        ],
+        const SizedBox(height: 32),
         Text(
           '힌트 : $hintText',
           style: const TextStyle(
