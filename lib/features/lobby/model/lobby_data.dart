@@ -109,7 +109,7 @@ class LobbyData {
           quizId: 3,
           type: 'ox',
           title: '나는 아침형 인간이다.',
-          imageUrl: 'assets/images/item/quiz_sample.jpg',
+          imageUrl: 'assets/images/item/quiz_sample_2.jpg',
           description: '진실 혹은 거짓!',
           hint: '',
           options: <String>[],

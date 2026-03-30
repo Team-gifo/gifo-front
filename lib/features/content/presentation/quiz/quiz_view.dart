@@ -240,20 +240,16 @@ class _QuizViewState extends State<QuizView> {
     // 화면 크기별 이미지 사이즈 동적 할당
     double imgMaxWidth;
     double imgMaxHeight;
-    double imgMinHeight;
 
     if (size.width >= AppBreakpoints.desktop) {
       imgMaxWidth = 600;
       imgMaxHeight = 350;
-      imgMinHeight = 250;
     } else if (size.width >= AppBreakpoints.tablet) {
       imgMaxWidth = 500;
       imgMaxHeight = 280;
-      imgMinHeight = 200;
     } else {
       imgMaxWidth = double.infinity;
       imgMaxHeight = 220;
-      imgMinHeight = 150;
     }
 
     final String hintText = currentQuiz.hint.isEmpty
@@ -280,7 +276,6 @@ class _QuizViewState extends State<QuizView> {
             constraints: BoxConstraints(
               maxWidth: imgMaxWidth,
               maxHeight: imgMaxHeight,
-              minHeight: imgMinHeight,
             ),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
@@ -298,8 +293,8 @@ class _QuizViewState extends State<QuizView> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: currentQuiz.imageUrl.startsWith('http')
-                  ? Image.network(currentQuiz.imageUrl, fit: BoxFit.cover)
-                  : Image.asset(currentQuiz.imageUrl, fit: BoxFit.cover),
+                  ? Image.network(currentQuiz.imageUrl, fit: BoxFit.contain)
+                  : Image.asset(currentQuiz.imageUrl, fit: BoxFit.contain),
             ),
           ),
         ],
