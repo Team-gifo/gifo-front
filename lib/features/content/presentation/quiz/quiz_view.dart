@@ -35,7 +35,7 @@ class _QuizViewState extends State<QuizView> {
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
-    final bool isDesktop = size.width > 900;
+    final bool isDesktop = size.width >= AppBreakpoints.desktop;
 
     return BlocConsumer<QuizBloc, QuizState>(
       // 퀴즈 완료 시 결과 화면으로 이동
@@ -205,7 +205,7 @@ class _QuizViewState extends State<QuizView> {
                     children: <InlineSpan>[
                       TextSpan(
                         text: state.userName,
-                        style: const TextStyle(color: AppColors.neonBlue),
+                        style: const TextStyle(color: AppColors.neonPurple),
                       ),
                       const TextSpan(text: '님의 '),
                       TextSpan(
@@ -311,11 +311,11 @@ class _QuizViewState extends State<QuizView> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: isMobile
-            ? CrossAxisAlignment.start
+            ? CrossAxisAlignment.center
             : CrossAxisAlignment.end,
         children: <Widget>[
           Text(
-            '맞힌 문제: ${state.correctCount}  /  남은 문제: $remain',
+            '맞힌 문제 : ${state.correctCount}  /  남은 문제 : $remain',
             style: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
