@@ -75,7 +75,7 @@ class _ErrorRedirectPageState extends State<_ErrorRedirectPage> {
 }
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/gift/code/quiz123',
+  initialLocation: '/',
   // 정의되지 않은 경로로 접근하면 _ErrorRedirectPage로 처리
   errorBuilder: (BuildContext context, GoRouterState state) =>
       const _ErrorRedirectPage(),
