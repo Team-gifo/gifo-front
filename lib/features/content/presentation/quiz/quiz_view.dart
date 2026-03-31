@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:toastification/toastification.dart';
 import '../../../lobby/model/lobby_data.dart';
 import '../../application/quiz/quiz_bloc.dart';
 import '../../../../core/constants/app_breakpoints.dart';
@@ -17,19 +16,65 @@ class QuizView extends StatefulWidget {
   State<QuizView> createState() => _QuizViewState();
 }
 
-class _QuizViewState extends State<QuizView> {
+class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
+
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fadeAnimation;
+
+  bool _showAnimation = false;
+  bool _isCorrect = false;
 
   @override
   void initState() {
     super.initState();
     context.read<QuizBloc>().add(InitQuiz(widget.code));
+
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.6, curve: Curves.elasticOut),
+      ),
+    );
+
+    _fadeAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
+      ),
+    );
   }
 
   @override
   void dispose() {
+    _animationController.dispose();
     _textController.dispose();
     super.dispose();
+  }
+
+  void _triggerAnswerAnimation(bool isCorrect) {
+    if (!mounted) return;
+    
+    _textController.clear(); // 정답 제출 시 확실히 초기화
+    
+    setState(() {
+      _showAnimation = true;
+      _isCorrect = isCorrect;
+    });
+
+    _animationController.forward(from: 0.0).then((_) {
+      if (mounted) {
+        setState(() {
+          _showAnimation = false;
+        });
+      }
+    });
   }
 
   @override
@@ -55,17 +100,9 @@ class _QuizViewState extends State<QuizView> {
           );
         }
 
-        // 오답 시 토스트 표시 (기회가 남아있을 때만)
-        if (state.isLastAnswerCorrect == false && !state.isFinished) {
-          toastification.show(
-            context: context,
-            type: ToastificationType.error,
-            style: ToastificationStyle.flatColored,
-            title: const Text('오답입니다!'),
-            description: const Text('다시 한번 화면을 보고 도전해보세요.'),
-            alignment: Alignment.topCenter,
-            autoCloseDuration: const Duration(seconds: 3),
-          );
+        // 제출 시 (정답/오답) 애니메이션 효과 실행
+        if (state.isLastAnswerCorrect != null) {
+          _triggerAnswerAnimation(state.isLastAnswerCorrect!);
         }
       },
       builder: (BuildContext context, QuizState state) {
@@ -115,6 +152,39 @@ class _QuizViewState extends State<QuizView> {
                     right: 0,
                     child: _buildAppBar(state, size),
                   ),
+                  if (_showAnimation)
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: Center(
+                          child: FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: ScaleTransition(
+                              scale: _scaleAnimation,
+                              child: Text(
+                                _isCorrect ? 'O' : 'X',
+                                style: TextStyle(
+                                  fontSize: 160,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'PFStardust',
+                                  color: _isCorrect
+                                      ? AppColors.neonBlue
+                                      : Colors.redAccent,
+                                  shadows: <Shadow>[
+                                    Shadow(
+                                      color: (_isCorrect
+                                              ? AppColors.neonBlue
+                                              : Colors.redAccent)
+                                          .withValues(alpha: 0.5),
+                                      blurRadius: 20,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

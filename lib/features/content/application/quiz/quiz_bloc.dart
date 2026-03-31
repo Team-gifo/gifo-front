@@ -102,7 +102,11 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
         }
       } else {
         emit(
-          state.copyWith(currentLives: newLives, isLastAnswerCorrect: false),
+          state.copyWith(
+            currentLives: newLives, 
+            isLastAnswerCorrect: false,
+            userAnswer: '',
+          ),
         );
       }
     }
