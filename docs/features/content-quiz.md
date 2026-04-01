@@ -88,7 +88,8 @@ QuizBloc.add(SubmitAnswer())
     ↓ 정답 확인
     ↓ isLastAnswerCorrect 갱신 → BlocListener에서 O/X 애니메이션 트리거
     ↓ 다음 문제 이동 or 완료
-UI(BlocListener): isFinished == true → 결과 화면 이동
+UI(BlocListener): isFinished == true → 결과 화면 렌더링 준비
+UI: isFinished 상태에 따라 기존 뷰를 페이드아웃 하고 ResultView 인라인 렌더링
 ```
 
 ---
@@ -178,11 +179,9 @@ if (state.isLastAnswerCorrect != null) {
 
 ## 결과 판정
 
-모든 문제 완료 시 (`isFinished: true`) → `/content/result` 이동
-- 성공: `correctCount >= successReward.requiredCount`
-- 실패: 그 미만
+모든 문제 완료 시 (`isFinished: true`) → `ResultView` 인라인 렌더링
 
 ResultView로 전달하는 데이터:
-- 성공/실패에 따른 보상 아이템 이름, 이미지 URL, 사용자 이름
+- 성공/실패에 따른 보상 아이템 이름, 이미지 URL, 사용자 이름, 초대 코드
 
 자세한 로직: [business-logic/quiz-logic.md](../business-logic/quiz-logic.md)

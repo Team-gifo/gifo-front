@@ -72,6 +72,7 @@ Future<void> _onSubmitPackage(
 | `QuizBloc` | `lib/features/content/application/quiz/quiz_bloc.dart` | 퀴즈 진행 및 채점 |
 | `UnboxingBloc` | `lib/features/content/application/unboxing/unboxing_bloc.dart` | 바로 오픈 선물 수령 |
 | `ContentBloc` | `lib/features/content/application/content_bloc.dart` | 공용 컨텐츠 데이터 홀더 |
+| `ResultBloc` | `lib/features/content/application/result/result_bloc.dart` | 결과 화면 스크린샷 캡쳐 → DownloadBloc 위임 |
 
 ### 로비
 

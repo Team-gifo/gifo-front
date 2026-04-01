@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 
+import '../../../../core/blocs/download/download_bloc.dart';
 import '../../application/unboxing/unboxing_bloc.dart';
+import '../result/result_view.dart';
 
 class UnboxingView extends StatefulWidget {
   final String code;
@@ -28,20 +29,23 @@ class _UnboxingViewState extends State<UnboxingView> {
     final bool isDesktop = size.width > 900;
 
     return BlocConsumer<UnboxingBloc, UnboxingState>(
-      // 선물 수령 완료 시 결과 화면으로 이동
       listener: (BuildContext context, UnboxingState state) {
-        if (state.isReceived && state.unboxingContent != null) {
-          context.push(
-            '/content/result',
-            extra: <String, dynamic>{
-              'itemName': state.unboxingContent!.afterOpen.itemName,
-              'imageUrl': state.unboxingContent!.afterOpen.imageUrl,
-              'userName': state.userName,
-            },
-          );
-        }
+        // 수령 완료 상태는 builder에서 처리하므로 listener는 비워둔다
       },
       builder: (BuildContext context, UnboxingState state) {
+        // URL 유지한 채 결과 화면을 인라인으로 렌더링
+        if (state.isReceived && state.unboxingContent != null) {
+          return BlocProvider<DownloadBloc>(
+            create: (_) => DownloadBloc(),
+            child: ResultView(
+              itemName: state.unboxingContent!.afterOpen.itemName,
+              imageUrl: state.unboxingContent!.afterOpen.imageUrl,
+              userName: state.userName,
+              inviteCode: widget.code,
+            ),
+          );
+        }
+
         if (state.unboxingContent == null) {
           return Title(
             title: 'Happy Birthday, ${state.userName} | Gifo',

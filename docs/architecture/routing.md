@@ -14,7 +14,6 @@
 /content/gacha                 → GachaView (캡슐 뽑기)
 /content/quiz                  → QuizView (퀴즈)
 /content/unboxing              → UnboxingView (바로 오픈)
-/content/result                → ResultView (결과)
 
 ShellRoute (GiftPackagingBloc 공유)
   /addgift                     → ReceiverNameView (Step 1)
@@ -60,11 +59,6 @@ GoRoute(path: '/gift/code/:code', ...)
 ```dart
 // 전달
 context.go('/content/gacha', extra: code);
-context.go('/content/result', extra: {
-  'itemName': item.itemName,
-  'imageUrl': item.imageUrl,
-  'userName': state.userName,
-});
 
 // 수신
 final code = state.extra as String? ?? 'helloworld';

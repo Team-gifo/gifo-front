@@ -16,7 +16,6 @@ import '../../features/content/application/quiz/quiz_bloc.dart';
 import '../../features/content/application/unboxing/unboxing_bloc.dart';
 import '../../features/content/presentation/gacha/gacha_view.dart';
 import '../../features/content/presentation/quiz/quiz_view.dart';
-import '../../features/content/presentation/result/result_view.dart';
 import '../../features/content/presentation/unboxing/unboxing_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
 import '../../features/lobby/application/lobby_bloc.dart';
@@ -196,25 +195,6 @@ final GoRouter appRouter = GoRouter(
           child: BlocProvider<UnboxingBloc>(
             create: (BuildContext context) => UnboxingBloc(),
             child: UnboxingView(code: code),
-          ),
-        );
-      },
-    ),
-    // 콘텐츠 진행 - 공용 결과창 화면
-    GoRoute(
-      path: '/content/result',
-      pageBuilder: (BuildContext context, GoRouterState state) {
-        final Map<String, dynamic>? extra =
-            state.extra as Map<String, dynamic>?;
-        final String itemName = extra?['itemName'] as String? ?? '결과 없음';
-        final String imageUrl =
-            extra?['imageUrl'] as String? ?? 'assets/images/title_logo.png';
-        final String userName = extra?['userName'] as String? ?? '';
-        return NoTransitionPage(
-          child: ResultView(
-            itemName: itemName,
-            imageUrl: imageUrl,
-            userName: userName,
           ),
         );
       },

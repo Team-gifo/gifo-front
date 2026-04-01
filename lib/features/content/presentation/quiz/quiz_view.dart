@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/blocs/download/download_bloc.dart';
+import '../../../../core/constants/app_breakpoints.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../lobby/model/lobby_data.dart';
 import '../../application/quiz/quiz_bloc.dart';
-import '../../../../core/constants/app_breakpoints.dart';
-import '../../../../core/widgets/grid_background_painter.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../result/result_view.dart';
 
 class QuizView extends StatefulWidget {
   final String code;
@@ -16,7 +19,8 @@ class QuizView extends StatefulWidget {
   State<QuizView> createState() => _QuizViewState();
 }
 
-class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin {
+class _QuizViewState extends State<QuizView>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
 
   late AnimationController _animationController;
@@ -33,7 +37,7 @@ class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin
 
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1500),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -60,9 +64,9 @@ class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin
 
   void _triggerAnswerAnimation(bool isCorrect) {
     if (!mounted) return;
-    
+
     _textController.clear(); // 정답 제출 시 확실히 초기화
-    
+
     setState(() {
       _showAnimation = true;
       _isCorrect = isCorrect;
@@ -83,29 +87,30 @@ class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin
     final bool isDesktop = size.width >= AppBreakpoints.desktop;
 
     return BlocConsumer<QuizBloc, QuizState>(
-      // 퀴즈 완료 시 결과 화면으로 이동
       listener: (BuildContext context, QuizState state) {
-        if (state.isFinished && state.quizContent != null) {
-          final RewardItem reward = state.isSuccess
-              ? state.quizContent!.successReward
-              : state.quizContent!.failReward;
-
-          context.go(
-            '/content/result',
-            extra: <String, dynamic>{
-              'itemName': reward.itemName,
-              'imageUrl': reward.imageUrl,
-              'userName': state.userName,
-            },
-          );
-        }
-
         // 제출 시 (정답/오답) 애니메이션 효과 실행
         if (state.isLastAnswerCorrect != null) {
           _triggerAnswerAnimation(state.isLastAnswerCorrect!);
         }
       },
       builder: (BuildContext context, QuizState state) {
+        // 퀴즈 완료 시 URL 유지한 채 결과 화면을 인라인으로 렌더링
+        if (state.isFinished && state.quizContent != null) {
+          final RewardItem reward = state.isSuccess
+              ? state.quizContent!.successReward
+              : state.quizContent!.failReward;
+
+          return BlocProvider<DownloadBloc>(
+            create: (_) => DownloadBloc(),
+            child: ResultView(
+              itemName: reward.itemName,
+              imageUrl: reward.imageUrl,
+              userName: state.userName,
+              inviteCode: widget.code,
+            ),
+          );
+        }
+
         if (state.quizContent == null) {
           return Title(
             title: 'Happy Birthday, ${state.userName} | Gifo',
@@ -171,10 +176,11 @@ class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin
                                       : Colors.redAccent,
                                   shadows: <Shadow>[
                                     Shadow(
-                                      color: (_isCorrect
-                                              ? AppColors.neonBlue
-                                              : Colors.redAccent)
-                                          .withValues(alpha: 0.5),
+                                      color:
+                                          (_isCorrect
+                                                  ? AppColors.neonBlue
+                                                  : Colors.redAccent)
+                                              .withValues(alpha: 0.5),
                                       blurRadius: 20,
                                     ),
                                   ],
@@ -225,10 +231,23 @@ class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Image.asset(
-              'assets/images/title_logo.png',
-              height: isMobileOrSmall ? 40 : 48,
-              color: Colors.white,
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () async {
+                  final Uri homeUri = Uri.base.resolve('/');
+                  if (await canLaunchUrl(homeUri)) {
+                    await launchUrl(homeUri, webOnlyWindowName: '_blank');
+                  } else {
+                    if (context.mounted) context.go('/');
+                  }
+                },
+                child: Image.asset(
+                  'assets/images/title_logo.png',
+                  height: isMobileOrSmall ? 40 : 48,
+                  color: Colors.white,
+                ),
+              ),
             ),
             const SizedBox(width: 16),
             if (size.width >= AppBreakpoints.tablet)
