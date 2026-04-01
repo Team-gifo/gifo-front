@@ -230,55 +230,55 @@ final GoRouter appRouter = GoRouter(
         // 선물 포장 - 진입 화면 (mode=ai면 AI 소개, 아니면 직접 입력)
         GoRoute(
           path: '/addgift',
-          builder: (BuildContext context, GoRouterState state) {
+          pageBuilder: (BuildContext context, GoRouterState state) {
             final String? mode = state.uri.queryParameters['mode'];
             if (mode == 'ai') {
-              return const AiIntroView();
+              return const NoTransitionPage<void>(child: AiIntroView());
             }
-            return const ReceiverNameView();
+            return const NoTransitionPage<void>(child: ReceiverNameView());
           },
         ),
         // 선물 포장 - 추억 공유 여부 선택 화면
         GoRoute(
           path: '/addgift/memory-decision',
-          builder: (BuildContext context, GoRouterState state) =>
-              const MemoryDecisionView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: MemoryDecisionView()),
         ),
         // 선물 포장 - 추억 갤러리 셋팅 화면 (추억 저장하는 공간)
         GoRoute(
           path: '/addgift/memory-gallery',
-          builder: (BuildContext context, GoRouterState state) =>
-              const MemoryGallerySettingView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: MemoryGallerySettingView()),
         ),
         // 선물 포장 - 선물 전달 방식(오픈 콘텐츠) 선택 화면
         GoRoute(
           path: '/addgift/delivery-method',
-          builder: (BuildContext context, GoRouterState state) =>
-              const GiftDeliveryMethodView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: GiftDeliveryMethodView()),
         ),
         // 선물 포장 - 가차(캡슐 뽑기) 세팅 화면
         GoRoute(
           path: '/addgift/gacha-setting',
-          builder: (BuildContext context, GoRouterState state) =>
-              const GachaSettingView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: GachaSettingView()),
         ),
         // 선물 포장 - 퀴즈 세팅 화면
         GoRoute(
           path: '/addgift/quiz-setting',
-          builder: (BuildContext context, GoRouterState state) =>
-              const QuizSettingView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: QuizSettingView()),
         ),
         // 선물 포장 - 바로 오픈 세팅 화면
         GoRoute(
           path: '/addgift/direct-open-setting',
-          builder: (BuildContext context, GoRouterState state) =>
-              const DirectOpenSettingView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: DirectOpenSettingView()),
         ),
         // 선물 포장 - 등록 완료 화면
         GoRoute(
           path: '/addgift/package-complete',
-          builder: (BuildContext context, GoRouterState state) =>
-              const PackageCompleteView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: PackageCompleteView()),
         ),
       ],
     ),
