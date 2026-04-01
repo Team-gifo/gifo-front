@@ -138,10 +138,10 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
       final Map<String, dynamic> jsonMap = request.toJson();
 
       // null content 필드 제거 (Freezed는 nullable 필드를 null로 직렬화하므로)
-      final Map<String, dynamic>? contentMap =
-          jsonMap['content'] as Map<String, dynamic>?;
+      final Map<String, dynamic>? contentMap = _toJsonMap(jsonMap['content']);
       if (contentMap != null) {
         contentMap.removeWhere((String key, dynamic value) => value == null);
+        jsonMap['content'] = contentMap;
       }
 
       final String prettyJson = const JsonEncoder.withIndent(

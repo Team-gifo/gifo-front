@@ -7,6 +7,8 @@ part 'gacha_content.g.dart';
 
 @freezed
 abstract class GachaContent with _$GachaContent {
+  // ignore: invalid_annotation_target
+  @JsonSerializable(explicitToJson: true)
   const factory GachaContent({
     @JsonKey(name: 'play_count') @Default(3) int playCount,
     @Default(<GachaItem>[]) List<GachaItem> list,

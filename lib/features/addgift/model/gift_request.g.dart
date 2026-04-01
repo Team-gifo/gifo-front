@@ -33,8 +33,8 @@ Map<String, dynamic> _$GiftRequestToJson(_GiftRequest instance) =>
       'bgm': instance.bgm,
       'password': instance.password,
       'sender_name': instance.senderName,
-      'gallery': instance.gallery,
+      'gallery': instance.gallery.map((e) => e.toJson()).toList(),
       'uploaded_bgm_urls': instance.uploadedBgmUrls,
       'expired_at': ?instance.expiredAt,
-      'content': instance.content,
+      'content': instance.content.toJson(),
     };

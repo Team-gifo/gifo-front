@@ -9,6 +9,8 @@ part 'gift_request.g.dart';
 // 서버에 전송할 최상위 요청 모델
 @freezed
 abstract class GiftRequest with _$GiftRequest {
+  // ignore: invalid_annotation_target
+  @JsonSerializable(explicitToJson: true)
   const factory GiftRequest({
     @Default('') String user,
     @JsonKey(name: 'sub_title') @Default('') String subTitle,
@@ -16,7 +18,9 @@ abstract class GiftRequest with _$GiftRequest {
     @Default('') String password,
     @JsonKey(name: 'sender_name') @Default('') String senderName,
     @Default(<GalleryItem>[]) List<GalleryItem> gallery,
-    @JsonKey(name: 'uploaded_bgm_urls') @Default(<String>[]) List<String> uploadedBgmUrls,
+    @JsonKey(name: 'uploaded_bgm_urls')
+    @Default(<String>[])
+    List<String> uploadedBgmUrls,
     @JsonKey(name: 'expired_at', includeIfNull: false) String? expiredAt,
     required GiftContent content,
   }) = _GiftRequest;

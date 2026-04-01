@@ -225,8 +225,8 @@ return $default(_that.beforeOpen,_that.afterOpen);case _:
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _UnboxingContent implements UnboxingContent {
   const _UnboxingContent({@JsonKey(name: 'before_open') required this.beforeOpen, @JsonKey(name: 'after_open') required this.afterOpen});
   factory _UnboxingContent.fromJson(Map<String, dynamic> json) => _$UnboxingContentFromJson(json);

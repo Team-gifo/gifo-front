@@ -223,8 +223,8 @@ return $default(_that.user,_that.subTitle,_that.bgm,_that.password,_that.senderN
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _GiftRequest implements GiftRequest {
   const _GiftRequest({this.user = '', @JsonKey(name: 'sub_title') this.subTitle = '', this.bgm = '', this.password = '', @JsonKey(name: 'sender_name') this.senderName = '', final  List<GalleryItem> gallery = const <GalleryItem>[], @JsonKey(name: 'uploaded_bgm_urls') final  List<String> uploadedBgmUrls = const <String>[], @JsonKey(name: 'expired_at', includeIfNull: false) this.expiredAt, required this.content}): _gallery = gallery,_uploadedBgmUrls = uploadedBgmUrls;
   factory _GiftRequest.fromJson(Map<String, dynamic> json) => _$GiftRequestFromJson(json);
