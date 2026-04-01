@@ -49,8 +49,9 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
   @override
   void initState() {
     super.initState();
-    final GiftPackagingState packagingState =
-        context.read<GiftPackagingBloc>().state;
+    final GiftPackagingState packagingState = context
+        .read<GiftPackagingBloc>()
+        .state;
     if (packagingState.receiverName.isNotEmpty) {
       _userNameController.text = packagingState.receiverName;
     }
@@ -124,8 +125,9 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
 
   void _removeItem(String itemId) {
     final QuizSettingState s = context.read<QuizSettingBloc>().state;
-    final List<QuizItemData> updated =
-        s.uiItems.where((QuizItemData e) => e.id != itemId).toList();
+    final List<QuizItemData> updated = s.uiItems
+        .where((QuizItemData e) => e.id != itemId)
+        .toList();
     context.read<QuizSettingBloc>().add(UpdateQuizItems(updated));
     final int currentCount = s.successReward.requiredCount ?? 1;
     if (updated.isEmpty) {
@@ -152,8 +154,9 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
   }
 
   void _onReorder(int oldIndex, int newIndex) {
-    final List<QuizItemData> items =
-        List<QuizItemData>.from(context.read<QuizSettingBloc>().state.uiItems);
+    final List<QuizItemData> items = List<QuizItemData>.from(
+      context.read<QuizSettingBloc>().state.uiItems,
+    );
     if (newIndex > oldIndex) {
       newIndex -= 1;
     }
@@ -186,10 +189,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
     } else {
       context.read<QuizSettingBloc>().add(
         UpdateFailReward(
-          QuizRewardData(
-            itemName: s.failReward.itemName,
-            imageFile: image,
-          ),
+          QuizRewardData(itemName: s.failReward.itemName, imageFile: image),
         ),
       );
     }
@@ -276,23 +276,25 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
       isDesktop: !isMobile,
       isImageLimitReached: isImageLimitReached,
       onSave: (QuizItemData updatedItem) {
-        final List<QuizItemData> current =
-            context.read<QuizSettingBloc>().state.uiItems;
+        final List<QuizItemData> current = context
+            .read<QuizSettingBloc>()
+            .state
+            .uiItems;
         if (isNew) {
           context.read<QuizSettingBloc>().add(
             UpdateQuizItems(<QuizItemData>[...current, updatedItem]),
           );
         } else {
-          final int index =
-              current.indexWhere((QuizItemData e) => e.id == updatedItem.id);
+          final int index = current.indexWhere(
+            (QuizItemData e) => e.id == updatedItem.id,
+          );
           if (index != -1) {
-            final List<QuizItemData> updated =
-                List<QuizItemData>.from(current);
+            final List<QuizItemData> updated = List<QuizItemData>.from(current);
             updated[index] = updatedItem;
             context.read<QuizSettingBloc>().add(UpdateQuizItems(updated));
           }
         }
-        Navigator.pop(context);
+        Navigator.of(context, rootNavigator: !isMobile).pop();
       },
     );
 
@@ -315,43 +317,46 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
     } else {
       showGeneralDialog(
         context: context,
+        useRootNavigator: true,
         barrierDismissible: true,
         barrierLabel: 'Dismiss',
         barrierColor: Colors.black54,
         transitionDuration: const Duration(milliseconds: 300),
-        pageBuilder: (
-          BuildContext context,
-          Animation<double> animation,
-          Animation<double> secondaryAnimation,
-        ) {
-          return SafeArea(
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Material(
-                color: Colors.transparent,
-                child: SizedBox(
-                  width: 500,
-                  height: double.infinity,
-                  child: form,
+        pageBuilder:
+            (
+              BuildContext context,
+              Animation<double> animation,
+              Animation<double> secondaryAnimation,
+            ) {
+              return SafeArea(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: SizedBox(
+                      width: 500,
+                      height: double.infinity,
+                      child: form,
+                    ),
+                  ),
                 ),
-              ),
-            ),
-          );
-        },
-        transitionBuilder: (
-          BuildContext context,
-          Animation<double> animation,
-          Animation<double> secondaryAnimation,
-          Widget child,
-        ) {
-          return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(1, 0),
-              end: Offset.zero,
-            ).animate(animation),
-            child: child,
-          );
-        },
+              );
+            },
+        transitionBuilder:
+            (
+              BuildContext context,
+              Animation<double> animation,
+              Animation<double> secondaryAnimation,
+              Widget child,
+            ) {
+              return SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(1, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              );
+            },
       );
     }
   }
@@ -360,6 +365,10 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
 
   void _completePackage() {
     final GiftPackagingBloc packagingBloc = context.read<GiftPackagingBloc>();
+    final QuizSettingState quizState = context.read<QuizSettingBloc>().state;
+    debugPrint(
+      '[QuizSettingView] 포장 완료 클릭 - 문제수=${quizState.uiItems.length}, 이미지수=${quizState.imageCount}, 받는이="${_userNameController.text.trim()}"',
+    );
     context.read<QuizSettingBloc>().add(
       SubmitQuizSetting(
         receiverName: _userNameController.text.trim(),
@@ -402,98 +411,101 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
             child: PopScope(
               canPop: !_isSubmitting,
               child: Scaffold(
-              backgroundColor: AppColors.darkBg,
-              appBar: AppBar(
-                toolbarHeight: 68,
                 backgroundColor: AppColors.darkBg,
-                surfaceTintColor: Colors.transparent,
-                elevation: 0,
-                iconTheme: const IconThemeData(color: Colors.white),
-                title: isMobile ? null : _buildTitleBar(),
-                actions: <Widget>[const StepIndicator(activeStep: 3)],
-              ),
-              body: Stack(
-                children: <Widget>[
-                  Positioned.fill(
-                    child: CustomPaint(painter: GridBackgroundPainter()),
-                  ),
-                  SafeArea(
-                    child: isMobile
-                        ? Column(
-                            children: <Widget>[
-                              Padding(
-                                padding: const EdgeInsets.all(24.0),
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: _buildTitleBar(),
-                                ),
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24.0,
-                                  ),
-                                  child: _buildItemsSection(
-                                    isMobile,
-                                    quizState,
+                appBar: AppBar(
+                  toolbarHeight: 68,
+                  backgroundColor: AppColors.darkBg,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  iconTheme: const IconThemeData(color: Colors.white),
+                  title: isMobile ? null : _buildTitleBar(),
+                  actions: const <Widget>[StepIndicator(activeStep: 3)],
+                ),
+                body: Stack(
+                  children: <Widget>[
+                    Positioned.fill(
+                      child: CustomPaint(painter: GridBackgroundPainter()),
+                    ),
+                    SafeArea(
+                      child: isMobile
+                          ? Column(
+                              children: <Widget>[
+                                Padding(
+                                  padding: const EdgeInsets.all(24.0),
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: _buildTitleBar(),
                                   ),
                                 ),
-                              ),
-                            ],
-                          )
-                        : Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: <Widget>[
-                              Expanded(
-                                flex: 7,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(40.0),
-                                  child: _buildItemsSection(
-                                    isMobile,
-                                    quizState,
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24.0,
+                                    ),
+                                    child: _buildItemsSection(
+                                      isMobile,
+                                      quizState,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Container(
-                                width: 1,
-                                color: Colors.white.withValues(alpha: 0.1),
-                              ),
-                              Expanded(
-                                flex: 3,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(40.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: <Widget>[
-                                      Expanded(
-                                        child: SingleChildScrollView(
-                                          child: QuizSettingsPanel(
-                                            quizState: quizState,
-                                            isMobile: false,
-                                            successRewardNameController: _successRewardNameController,
-                                            failRewardNameController: _failRewardNameController,
-                                            onPickSuccessRewardImage: () => _pickImageForReward(true),
-                                            onPickFailRewardImage: () => _pickImageForReward(false),
+                              ],
+                            )
+                          : Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: <Widget>[
+                                Expanded(
+                                  flex: 7,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(40.0),
+                                    child: _buildItemsSection(
+                                      isMobile,
+                                      quizState,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  width: 1,
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                ),
+                                Expanded(
+                                  flex: 3,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(40.0),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: <Widget>[
+                                        Expanded(
+                                          child: SingleChildScrollView(
+                                            child: QuizSettingsPanel(
+                                              quizState: quizState,
+                                              isMobile: false,
+                                              successRewardNameController:
+                                                  _successRewardNameController,
+                                              failRewardNameController:
+                                                  _failRewardNameController,
+                                              onPickSuccessRewardImage: () =>
+                                                  _pickImageForReward(true),
+                                              onPickFailRewardImage: () =>
+                                                  _pickImageForReward(false),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      _buildCompleteButton(),
-                                    ],
+                                        const SizedBox(height: 24),
+                                        _buildCompleteButton(),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                  ),
-                  // 로딩 오버레이: 전송 중 터치 차단 + 프로그레스 표시
-                  if (_isSubmitting) const PackagingLoadingOverlay(),
-                ],
+                              ],
+                            ),
+                    ),
+                    // 로딩 오버레이: 전송 중 터치 차단 + 프로그레스 표시
+                    if (_isSubmitting) const PackagingLoadingOverlay(),
+                  ],
+                ),
+                bottomNavigationBar: isMobile ? _buildMobileBottomBar() : null,
               ),
-              bottomNavigationBar:
-                  isMobile ? _buildMobileBottomBar() : null,
-            ),
             ),
           );
         },
@@ -543,10 +555,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
           ),
         ),
         const SizedBox(width: 8),
-        const Text(
-          '님의',
-          style: TextStyle(fontSize: 16, color: Colors.white70),
-        ),
+        const Text('님의', style: TextStyle(fontSize: 16, color: Colors.white70)),
         const SizedBox(width: 8),
         SizedBox(
           width: 120,
@@ -649,17 +658,14 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                     itemCount: quizState.uiItems.length,
                     onReorder: _onReorder,
                     buildDefaultDragHandles: false,
-                    proxyDecorator: (
-                      Widget child,
-                      int index,
-                      Animation<double> animation,
-                    ) {
-                      return Material(
-                        color: Colors.transparent,
-                        elevation: 0,
-                        child: child,
-                      );
-                    },
+                    proxyDecorator:
+                        (Widget child, int index, Animation<double> animation) {
+                          return Material(
+                            color: Colors.transparent,
+                            elevation: 0,
+                            child: child,
+                          );
+                        },
                     itemBuilder: (BuildContext context, int index) {
                       final QuizItemData item = quizState.uiItems[index];
                       return QuizListItem(
@@ -676,7 +682,6 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
       ],
     );
   }
-
 
   Widget _buildCompleteButton() {
     return SizedBox(
@@ -708,7 +713,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.07),
-          border: Border(top: BorderSide(color: Colors.white12)),
+          border: const Border(top: BorderSide(color: Colors.white12)),
         ),
         child: Row(
           children: <Widget>[
@@ -776,9 +781,9 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                   padding: EdgeInsets.only(
                     bottom: MediaQuery.of(innerCtx).viewInsets.bottom,
                   ),
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.darkBg,
-                    borderRadius: const BorderRadius.vertical(
+                    borderRadius: BorderRadius.vertical(
                       top: Radius.circular(24),
                     ),
                   ),
@@ -808,10 +813,13 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                         QuizSettingsPanel(
                           quizState: quizState,
                           isMobile: true,
-                          successRewardNameController: _successRewardNameController,
+                          successRewardNameController:
+                              _successRewardNameController,
                           failRewardNameController: _failRewardNameController,
-                          onPickSuccessRewardImage: () => _pickImageForReward(true),
-                          onPickFailRewardImage: () => _pickImageForReward(false),
+                          onPickSuccessRewardImage: () =>
+                              _pickImageForReward(true),
+                          onPickFailRewardImage: () =>
+                              _pickImageForReward(false),
                         ),
                         const SizedBox(height: 16),
                         SizedBox(

@@ -174,13 +174,14 @@ class _QuizEditFormState extends State<QuizEditForm> {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 24),
                   _buildSectionTitle('제목 (질문)'),
-                  TextField(
+                  _buildDarkTextField(
                     controller: _titleController,
-                    decoration: _inputDecoration('질문을 입력하세요'),
+                    hint: '질문을 입력하세요',
                   ),
                   const SizedBox(height: 16),
                   _buildSectionTitle('이미지 (선택)'),
@@ -216,15 +217,15 @@ class _QuizEditFormState extends State<QuizEditForm> {
                   ),
                   const SizedBox(height: 16),
                   _buildSectionTitle('설명'),
-                  TextField(
+                  _buildDarkTextField(
                     controller: _descController,
-                    decoration: _inputDecoration('문제에 대한 설명을 입력하세요'),
+                    hint: '문제에 대한 설명을 입력하세요',
                   ),
                   const SizedBox(height: 16),
                   _buildSectionTitle('힌트'),
-                  TextField(
+                  _buildDarkTextField(
                     controller: _hintController,
-                    decoration: _inputDecoration('문제에 대한 힌트를 입력하세요'),
+                    hint: '문제에 대한 힌트를 입력하세요',
                   ),
                   const SizedBox(height: 24),
 
@@ -237,13 +238,14 @@ class _QuizEditFormState extends State<QuizEditForm> {
                         padding: const EdgeInsets.only(bottom: 8.0),
                         child: Row(
                           children: <Widget>[
-                            Text('${entry.key + 1}. '),
+                            Text(
+                              '${entry.key + 1}. ',
+                              style: const TextStyle(color: Colors.white70),
+                            ),
                             Expanded(
-                              child: TextField(
+                              child: _buildDarkTextField(
                                 controller: entry.value,
-                                decoration: _inputDecoration(
-                                  '선택지 ${entry.key + 1}',
-                                ),
+                                hint: '선택지 ${entry.key + 1}',
                               ),
                             ),
                             IconButton(
@@ -288,6 +290,9 @@ class _QuizEditFormState extends State<QuizEditForm> {
                           _optionControllers.add(TextEditingController());
                         });
                       },
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.neonPurpleLight,
+                      ),
                       icon: const Icon(Icons.add),
                       label: const Text('선택지 추가'),
                     ),
@@ -299,8 +304,8 @@ class _QuizEditFormState extends State<QuizEditForm> {
                       children: List<Widget>.generate(
                         _optionControllers.length,
                         (int index) {
-                          final bool isSelected =
-                              _selectedMultipleChoiceAnswers.contains(index);
+                          final bool isSelected = _selectedMultipleChoiceAnswers
+                              .contains(index);
                           return ChoiceChip(
                             label: Text('${index + 1}번'),
                             selected: isSelected,
@@ -315,12 +320,12 @@ class _QuizEditFormState extends State<QuizEditForm> {
                             },
                             selectedColor: AppColors.neonPurple,
                             labelStyle: TextStyle(
-                              color:
-                                  isSelected ? Colors.white : Colors.white38,
+                              color: isSelected ? Colors.white : Colors.white38,
                               fontWeight: FontWeight.bold,
                             ),
-                            backgroundColor:
-                                Colors.white.withValues(alpha: 0.07),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.07,
+                            ),
                           );
                         },
                       ),
@@ -336,9 +341,9 @@ class _QuizEditFormState extends State<QuizEditForm> {
                         child: Row(
                           children: <Widget>[
                             Expanded(
-                              child: TextField(
+                              child: _buildDarkTextField(
                                 controller: entry.value,
-                                decoration: _inputDecoration('정답 형태 입력'),
+                                hint: '정답 형태 입력',
                               ),
                             ),
                             IconButton(
@@ -362,6 +367,9 @@ class _QuizEditFormState extends State<QuizEditForm> {
                           _answerControllers.add(TextEditingController());
                         });
                       },
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.neonPurpleLight,
+                      ),
                       icon: const Icon(Icons.add),
                       label: const Text('정답 형태 추가'),
                     ),
@@ -372,14 +380,12 @@ class _QuizEditFormState extends State<QuizEditForm> {
                         Expanded(
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
-                              backgroundColor:
-                                  _editingItem.answer.first == 'O'
-                                      ? AppColors.neonPurple
-                                      : Colors.white.withValues(alpha: 0.07),
-                              foregroundColor:
-                                  _editingItem.answer.first == 'O'
-                                      ? Colors.white
-                                      : Colors.white38,
+                              backgroundColor: _editingItem.answer.first == 'O'
+                                  ? AppColors.neonPurple
+                                  : Colors.white.withValues(alpha: 0.07),
+                              foregroundColor: _editingItem.answer.first == 'O'
+                                  ? Colors.white
+                                  : Colors.white38,
                             ),
                             onPressed: () => setState(() {
                               _editingItem.answer = <String>['O'];
@@ -397,14 +403,12 @@ class _QuizEditFormState extends State<QuizEditForm> {
                         Expanded(
                           child: OutlinedButton(
                             style: OutlinedButton.styleFrom(
-                              backgroundColor:
-                                  _editingItem.answer.first == 'X'
-                                      ? AppColors.neonPurple
-                                      : Colors.white.withValues(alpha: 0.07),
-                              foregroundColor:
-                                  _editingItem.answer.first == 'X'
-                                      ? Colors.white
-                                      : Colors.white38,
+                              backgroundColor: _editingItem.answer.first == 'X'
+                                  ? AppColors.neonPurple
+                                  : Colors.white.withValues(alpha: 0.07),
+                              foregroundColor: _editingItem.answer.first == 'X'
+                                  ? Colors.white
+                                  : Colors.white38,
                             ),
                             onPressed: () => setState(() {
                               _editingItem.answer = <String>['X'];
@@ -454,14 +458,31 @@ class _QuizEditFormState extends State<QuizEditForm> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         title,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.white70,
+        ),
       ),
+    );
+  }
+
+  Widget _buildDarkTextField({
+    required TextEditingController controller,
+    required String hint,
+  }) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: Colors.white),
+      cursorColor: AppColors.neonPurple,
+      decoration: _inputDecoration(hint),
     );
   }
 
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
+      hintStyle: const TextStyle(color: Colors.white38),
       filled: true,
       fillColor: Colors.white.withValues(alpha: 0.07),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
