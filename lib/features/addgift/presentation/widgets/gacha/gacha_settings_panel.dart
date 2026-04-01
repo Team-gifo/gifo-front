@@ -236,6 +236,7 @@ class GachaSettingsPanel extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor:
                     canComplete ? const Color(0xFF6DE1F1) : Colors.grey.shade300,
+                disabledBackgroundColor: Colors.grey.shade800,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),

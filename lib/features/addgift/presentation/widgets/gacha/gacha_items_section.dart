@@ -143,22 +143,11 @@ class GachaItemsSection extends StatelessWidget {
         ],
         const SizedBox(height: 24),
         if (isMobile)
-          _CapsuleListContainer(
-            isMobile: true,
-            uiItems: uiItems,
-            hoveredItemId: hoveredItemId,
-            selectedItemId: selectedItemId,
-            onAddItem: onAddItem,
-            onTapItem: onTapItem,
-            onRemoveItem: onRemoveItem,
-            onHoverEnter: onHoverEnter,
-            onHoverExit: onHoverExit,
-          )
-        else
-          Expanded(
-            child: SingleChildScrollView(
-              child: _CapsuleListContainer(
-                isMobile: false,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              _CapsuleListContainer(
+                isMobile: true,
                 uiItems: uiItems,
                 hoveredItemId: hoveredItemId,
                 selectedItemId: selectedItemId,
@@ -167,6 +156,45 @@ class GachaItemsSection extends StatelessWidget {
                 onRemoveItem: onRemoveItem,
                 onHoverEnter: onHoverEnter,
                 onHoverExit: onHoverExit,
+              ),
+              const Padding(
+                padding: EdgeInsets.only(top: 12),
+                child: Center(
+                  child: Text(
+                    '캡슐은 최대 10개까지만 추가가 가능합니다',
+                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                  ),
+                ),
+              ),
+            ],
+          )
+        else
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  _CapsuleListContainer(
+                    isMobile: false,
+                    uiItems: uiItems,
+                    hoveredItemId: hoveredItemId,
+                    selectedItemId: selectedItemId,
+                    onAddItem: onAddItem,
+                    onTapItem: onTapItem,
+                    onRemoveItem: onRemoveItem,
+                    onHoverEnter: onHoverEnter,
+                    onHoverExit: onHoverExit,
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.only(top: 12),
+                    child: Center(
+                      child: Text(
+                        '캡슐은 최대 10개까지만 추가가 가능합니다',
+                        style: TextStyle(color: Colors.white54, fontSize: 13),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

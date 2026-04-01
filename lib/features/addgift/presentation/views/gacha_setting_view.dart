@@ -431,8 +431,9 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                             if (!isMobile) const StepIndicator(activeStep: 3),
                           ],
                         ),
-                        body: Stack(
-                          children: <Widget>[
+                        body: SizedBox.expand(
+                          child: Stack(
+                            children: <Widget>[
                             Positioned.fill(
                               child: CustomPaint(
                                 painter: GridBackgroundPainter(),
@@ -553,6 +554,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                             ),
                           ],
                         ),
+                      ),
                         // 모바일인 경우 하단 네비게이션 적용 (톱니바퀴 모달 + 완료버튼)
                         bottomNavigationBar: isMobile
                             ? GachaMobileBottomBar(
