@@ -1,3 +1,4 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -39,7 +40,7 @@ class ResultView extends StatelessWidget {
   }
 }
 
-class _ResultBody extends StatelessWidget {
+class _ResultBody extends StatefulWidget {
   final String itemName;
   final String imageUrl;
   final String userName;
@@ -53,28 +54,68 @@ class _ResultBody extends StatelessWidget {
   });
 
   @override
+  State<_ResultBody> createState() => _ResultBodyState();
+}
+
+class _ResultBodyState extends State<_ResultBody>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+  bool _showText = false;
+  bool _showButtons = false;
+  bool _showConfetti = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500), // 다소 빠른 속도
+    );
+    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    );
+
+    // 딜레이 없이 즉시 이미지 팝업 애니메이션 시작
+    _animationController.forward().then((_) {
+      // 크기가 다 커진 후 타이핑 애니메이션 플래그 활성화
+      if (mounted) {
+        setState(() {
+          _showText = true;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isDesktop = screenWidth >= AppBreakpoints.desktop;
     final bool isTablet = screenWidth >= AppBreakpoints.tablet;
 
     return Title(
-      title: 'Happy Birthday, $userName | Gifo',
+      title: 'Happy Birthday, ${widget.userName} | Gifo',
       color: Colors.black,
       child: Scaffold(
         backgroundColor: AppColors.darkBg,
-        appBar: _buildAppBar(),
         body: Stack(
           children: <Widget>[
             // 그리드 배경
             Positioned.fill(
               child: CustomPaint(painter: GridBackgroundPainter()),
             ),
-            // 상단 색종이 효과
-            const Align(
-              alignment: Alignment.topCenter,
-              child: SharedConfettiWidget(autoPlay: true),
-            ),
+            // 상단 색종이 효과 (타이핑 끝난 후 터짐)
+            if (_showConfetti)
+              const Align(
+                alignment: Alignment.topCenter,
+                child: SharedConfettiWidget(autoPlay: true),
+              ),
             // 메인 콘텐츠
             SafeArea(
               child: SingleChildScrollView(
@@ -91,15 +132,22 @@ class _ResultBody extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
-                          _buildCongratsBadge(),
+                          _buildLogoAndCongrats(isTablet),
                           SizedBox(height: isDesktop ? 48 : 32),
                           _buildItemImage(isDesktop, isTablet),
                           SizedBox(height: isDesktop ? 40 : 28),
                           _buildItemNameCard(isDesktop),
                           SizedBox(height: isDesktop ? 48 : 36),
-                          _buildActionRow(context),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 600),
+                            child: _showButtons
+                                ? _buildActionRow(context)
+                                : const SizedBox(
+                                    height: 56,
+                                    width: double.infinity,
+                                  ),
+                          ),
                           const SizedBox(height: 24),
-                          _buildHomeButton(context),
                         ],
                       ),
                     ),
@@ -113,84 +161,64 @@ class _ResultBody extends StatelessWidget {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      title: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Image.asset('assets/images/title_logo.png', height: 40),
-      ),
-    );
-  }
-
-  // 상단 축하 뱃지 위젯
-  Widget _buildCongratsBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF130E1F),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: AppColors.neonPurple.withValues(alpha: 0.4),
+  // 상단 로고 및 축하 메시지
+  Widget _buildLogoAndCongrats(bool isTabletOrLarger) {
+    return Column(
+      children: <Widget>[
+        Image.asset(
+          'assets/images/title_logo.png',
+          height: 60,
+          color: Colors.white,
         ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: AppColors.neonPurple.withValues(alpha: 0.2),
-            blurRadius: 16,
-            spreadRadius: 2,
+        const SizedBox(height: 16),
+        Text(
+          '생일 축하드립니다!',
+          style: TextStyle(
+            fontFamily: 'PFStardust',
+            fontSize: isTabletOrLarger ? 38 : 24,
+            color: Colors.white.withValues(alpha: 0.9),
+            letterSpacing: 1,
+            shadows: <Shadow>[
+              Shadow(
+                color: AppColors.neonPurple.withValues(alpha: 0.5),
+                blurRadius: 10,
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          const Icon(
-            Icons.celebration_rounded,
-            color: AppColors.neonPurple,
-            size: 18,
-          ),
-          const SizedBox(width: 10),
-          Text(
-            '생일 축하드립니다!',
-            style: TextStyle(
-              fontFamily: 'PFStardust',
-              fontSize: 16,
-              color: Colors.white.withValues(alpha: 0.9),
-              letterSpacing: 1,
-            ),
-          ),
-        ],
-      ),
+          textAlign: TextAlign.center,
+        ),
+      ],
     );
   }
 
   Widget _buildItemImage(bool isDesktop, bool isTablet) {
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: isDesktop ? 480 : (isTablet ? 380 : 300),
-        maxWidth: isDesktop ? 560 : (isTablet ? 440 : double.infinity),
-      ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: AppColors.neonPurple.withValues(alpha: 0.4),
-          width: 1.5,
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: Container(
+        constraints: BoxConstraints(
+          maxHeight: isDesktop ? 480 : (isTablet ? 380 : 300),
+          maxWidth: isDesktop ? 560 : (isTablet ? 440 : double.infinity),
         ),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: AppColors.neonPurple.withValues(alpha: 0.15),
-            blurRadius: 32,
-            spreadRadius: 4,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.neonPurple.withValues(alpha: 0.4),
+            width: 1.5,
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(19),
-        child: imageUrl.startsWith('http')
-            ? Image.network(imageUrl, fit: BoxFit.contain)
-            : Image.asset(imageUrl, fit: BoxFit.contain),
+          boxShadow: <BoxShadow>[
+            BoxShadow(
+              color: AppColors.neonPurple.withValues(alpha: 0.15),
+              blurRadius: 32,
+              spreadRadius: 4,
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(19),
+          child: widget.imageUrl.startsWith('http')
+              ? Image.network(widget.imageUrl, fit: BoxFit.contain)
+              : Image.asset(widget.imageUrl, fit: BoxFit.contain),
+        ),
       ),
     );
   }
@@ -203,9 +231,7 @@ class _ResultBody extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF130E1F),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.neonPurple.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: <Widget>[
@@ -220,22 +246,41 @@ class _ResultBody extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            itemName,
-            style: TextStyle(
-              fontFamily: 'PFStardust',
-              fontSize: isDesktop ? 30 : 22,
-              color: Colors.white,
-              letterSpacing: 1,
-              shadows: <Shadow>[
-                Shadow(
-                  color: AppColors.neonPurple.withValues(alpha: 0.5),
-                  blurRadius: 12,
+          if (_showText)
+            AnimatedTextKit(
+              animatedTexts: <AnimatedText>[
+                TyperAnimatedText(
+                  widget.itemName,
+                  speed: const Duration(milliseconds: 80),
+                  textStyle: TextStyle(
+                    fontFamily: 'PFStardust',
+                    fontSize: isDesktop ? 30 : 22,
+                    color: Colors.white,
+                    letterSpacing: 1,
+                    shadows: <Shadow>[
+                      Shadow(
+                        color: AppColors.neonPurple.withValues(alpha: 0.5),
+                        blurRadius: 12,
+                      ),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
                 ),
               ],
-            ),
-            textAlign: TextAlign.center,
-          ),
+              isRepeatingAnimation: false,
+              displayFullTextOnTap: true,
+              onFinished: () {
+                if (mounted) {
+                  setState(() {
+                    _showButtons = true;
+                    _showConfetti = true;
+                  });
+                }
+              },
+            )
+          else
+            // 빈 공간 확보 (점프 방지)
+            SizedBox(height: isDesktop ? 35 : 26),
         ],
       ),
     );
@@ -247,39 +292,21 @@ class _ResultBody extends StatelessWidget {
       children: <Widget>[
         Expanded(
           child: _ShareButton(
-            userName: userName,
-            inviteCode: inviteCode,
-            itemName: itemName,
+            userName: widget.userName,
+            inviteCode: widget.inviteCode,
+            itemName: widget.itemName,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _DownloadButton(
-            itemName: itemName,
-            imageUrl: imageUrl,
-            userName: userName,
-            inviteCode: inviteCode,
+            itemName: widget.itemName,
+            imageUrl: widget.imageUrl,
+            userName: widget.userName,
+            inviteCode: widget.inviteCode,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildHomeButton(BuildContext context) {
-    return TextButton(
-      onPressed: () => context.go('/'),
-      style: TextButton.styleFrom(
-        foregroundColor: Colors.white38,
-      ),
-      child: const Text(
-        '홈으로 돌아가기',
-        style: TextStyle(
-          fontFamily: 'WantedSans',
-          fontSize: 14,
-          decoration: TextDecoration.underline,
-          decorationColor: Colors.white38,
-        ),
-      ),
     );
   }
 }
@@ -389,14 +416,14 @@ class _DownloadButton extends StatelessWidget {
               onTap: isLoading
                   ? null
                   : () => context.read<ResultBloc>().add(
-                        DownloadGifticonEvent(
-                          context: context,
-                          itemName: itemName,
-                          imageUrl: imageUrl,
-                          userName: userName,
-                          inviteCode: inviteCode,
-                        ),
+                      DownloadGifticonEvent(
+                        context: context,
+                        itemName: itemName,
+                        imageUrl: imageUrl,
+                        userName: userName,
+                        inviteCode: inviteCode,
                       ),
+                    ),
               borderRadius: BorderRadius.circular(14),
               child: Ink(
                 decoration: BoxDecoration(
