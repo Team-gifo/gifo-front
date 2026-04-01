@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +9,8 @@ import '../../../../core/constants/app_colors.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../model/gacha_content.dart';
 import '../widgets/addgift_scaffold.dart';
+import '../widgets/gift_delivery/gift_delivery_main_text.dart';
+import '../widgets/gift_delivery/gift_delivery_options_grid.dart';
 import '../widgets/step_indicator.dart';
 
 class GiftDeliveryMethodView extends StatelessWidget {
@@ -34,7 +38,7 @@ class GiftDeliveryMethodView extends StatelessWidget {
               }
             },
           ),
-          actions: <Widget>[const StepIndicator(activeStep: 3)],
+          actions: const <Widget>[StepIndicator(activeStep: 3)],
         ),
         body: SafeArea(
           child: LayoutBuilder(
@@ -52,13 +56,19 @@ class GiftDeliveryMethodView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
-                        Expanded(
-                          child: _buildMainText(TextAlign.left),
+                        const Expanded(
+                          child: GiftDeliveryMainText(
+                            alignment: TextAlign.left,
+                          ),
                         ),
                         const SizedBox(width: 80),
                         Expanded(
                           flex: 2,
-                          child: _buildGridOptions(context, isDesktop: true),
+                          child: GiftDeliveryOptionsGrid(
+                            isDesktop: true,
+                            onTapOption: (String title) =>
+                                _handleOptionTap(context, title),
+                          ),
                         ),
                       ],
                     ),
@@ -72,117 +82,19 @@ class GiftDeliveryMethodView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       const SizedBox(height: 40),
-                      _buildMainText(TextAlign.center),
+                      const GiftDeliveryMainText(alignment: TextAlign.center),
                       const SizedBox(height: 48),
-                      _buildGridOptions(context, isDesktop: false),
+                      GiftDeliveryOptionsGrid(
+                        isDesktop: false,
+                        onTapOption: (String title) =>
+                            _handleOptionTap(context, title),
+                      ),
                       const SizedBox(height: 40),
                     ],
                   ),
                 ),
               );
             },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMainText(TextAlign alignment) {
-    return Text(
-      '친구에게 전달할 방식을\n선택해주세요 !',
-      textAlign: alignment,
-      style: const TextStyle(
-        fontFamily: 'PFStardustS',
-        fontSize: 28,
-        color: Colors.white,
-        height: 1.5,
-      ),
-    );
-  }
-
-  Widget _buildGridOptions(BuildContext context, {required bool isDesktop}) {
-    final List<Map<String, dynamic>> options = <Map<String, dynamic>>[
-      <String, dynamic>{
-        'title': '캡슐 뽑기',
-        'icon': 'assets/images/gacha_machine.png',
-        'accent': AppColors.neonPurple,
-      },
-      <String, dynamic>{
-        'title': '문제 맞추기',
-        'icon': 'assets/images/quiz_character.png',
-        'accent': AppColors.neonBlue,
-      },
-      <String, dynamic>{
-        'title': '바로 오픈',
-        'icon': 'assets/images/open_gift_box.png',
-        'accent': AppColors.pixelPurple,
-      },
-    ];
-
-    final int crossAxisCount = isDesktop ? 3 : 2;
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: crossAxisCount,
-        mainAxisSpacing: 20,
-        crossAxisSpacing: 20,
-        childAspectRatio: 0.8,
-      ),
-      itemCount: options.length,
-      itemBuilder: (BuildContext context, int index) {
-        return _buildOptionCard(
-          context: context,
-          title: options[index]['title'] as String,
-          iconPath: options[index]['icon'] as String,
-          accent: options[index]['accent'] as Color,
-        );
-      },
-    );
-  }
-
-  Widget _buildOptionCard({
-    required BuildContext context,
-    required String title,
-    required String iconPath,
-    required Color accent,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => _handleOptionTap(context, title),
-        borderRadius: BorderRadius.circular(20),
-        child: Container(
-          decoration: BoxDecoration(
-            color: accent.withValues(alpha: 0.07),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: accent.withValues(alpha: 0.4),
-              width: 1.5,
-            ),
-          ),
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Expanded(
-                child: Center(
-                  child: Image.asset(iconPath, fit: BoxFit.contain),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'WantedSans',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: accent,
-                ),
-              ),
-            ],
           ),
         ),
       ),
@@ -262,12 +174,13 @@ class GiftDeliveryMethodView extends StatelessWidget {
       if (confirm == true) {
         bloc.add(SetGachaContent(const GachaContent()));
         bloc.add(SetContentType(selectedType));
-        if (context.mounted) context.push(route);
+        if (context.mounted) {
+          unawaited(context.push(route));
+        }
       }
     } else {
       bloc.add(SetContentType(selectedType));
-      context.push(route);
+      unawaited(context.push(route));
     }
   }
-
 }
