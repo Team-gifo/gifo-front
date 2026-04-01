@@ -57,11 +57,12 @@ class MemoryGallerySettingBloc
     );
   }
 
-  // 새 갤러리 아이템 추가 후 GiftPackagingBloc에 동기화
+  // 새 갤러리 아이템 추가 후 GiftPackagingBloc에 동기화 (최대 10개 제한)
   void _onAddItem(
     AddMemoryItem event,
     Emitter<MemoryGallerySettingState> emit,
   ) {
+    if (state.uiItems.length >= 10) return;
     final MemoryGalleryItemData newItem = MemoryGalleryItemData(id: state.nextId);
     final List<MemoryGalleryItemData> newUiItems = List<MemoryGalleryItemData>.from(state.uiItems)
       ..add(newItem);

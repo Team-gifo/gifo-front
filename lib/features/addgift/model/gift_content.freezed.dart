@@ -244,8 +244,8 @@ return $default(_that.gacha,_that.quiz,_that.unboxing);case _:
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _GiftContent implements GiftContent {
   const _GiftContent({this.gacha, this.quiz, this.unboxing});
   factory _GiftContent.fromJson(Map<String, dynamic> json) => _$GiftContentFromJson(json);

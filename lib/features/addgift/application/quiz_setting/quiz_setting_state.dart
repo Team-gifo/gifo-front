@@ -15,6 +15,15 @@ class QuizSettingState {
         successReward = successReward ?? QuizRewardData(requiredCount: 1),
         failReward = failReward ?? QuizRewardData();
 
+  // 현재 등록된 이미지 수 (질문 이미지 + 성공/실패 보상 이미지)
+  int get imageCount {
+    final int itemImages =
+        uiItems.where((QuizItemData item) => item.imageFile != null).length;
+    final int successImage = successReward.imageFile != null ? 1 : 0;
+    final int failImage = failReward.imageFile != null ? 1 : 0;
+    return itemImages + successImage + failImage;
+  }
+
   QuizSettingState copyWith({
     List<QuizItemData>? uiItems,
     QuizRewardData? successReward,

@@ -20,7 +20,7 @@ _GiftContent _$GiftContentFromJson(Map<String, dynamic> json) => _GiftContent(
 
 Map<String, dynamic> _$GiftContentToJson(_GiftContent instance) =>
     <String, dynamic>{
-      'gacha': instance.gacha,
-      'quiz': instance.quiz,
-      'unboxing': instance.unboxing,
+      'gacha': instance.gacha?.toJson(),
+      'quiz': instance.quiz?.toJson(),
+      'unboxing': instance.unboxing?.toJson(),
     };

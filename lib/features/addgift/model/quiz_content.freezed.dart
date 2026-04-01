@@ -226,8 +226,8 @@ return $default(_that.successReward,_that.failReward,_that.list);case _:
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _QuizContent implements QuizContent {
   const _QuizContent({@JsonKey(name: 'success_reward') required this.successReward, @JsonKey(name: 'fail_reward') required this.failReward, final  List<QuizItemModel> list = const <QuizItemModel>[]}): _list = list;
   factory _QuizContent.fromJson(Map<String, dynamic> json) => _$QuizContentFromJson(json);
