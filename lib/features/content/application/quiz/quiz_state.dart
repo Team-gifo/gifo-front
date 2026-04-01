@@ -2,6 +2,7 @@ part of 'quiz_bloc.dart';
 
 class QuizState {
   final String userName;
+  final String subTitle;
   final QuizContent? quizContent;
   final int currentQuizIndex;
   final int currentLives;
@@ -13,6 +14,7 @@ class QuizState {
 
   const QuizState({
     this.userName = '',
+    this.subTitle = '',
     this.quizContent,
     this.currentQuizIndex = 0,
     this.currentLives = 0,
@@ -31,6 +33,7 @@ class QuizState {
 
   QuizState copyWith({
     String? userName,
+    String? subTitle,
     QuizContent? quizContent,
     int? currentQuizIndex,
     int? currentLives,
@@ -41,6 +44,7 @@ class QuizState {
   }) {
     return QuizState(
       userName: userName ?? this.userName,
+      subTitle: subTitle ?? this.subTitle,
       quizContent: quizContent ?? this.quizContent,
       currentQuizIndex: currentQuizIndex ?? this.currentQuizIndex,
       currentLives: currentLives ?? this.currentLives,

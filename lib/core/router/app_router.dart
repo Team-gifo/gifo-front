@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/addgift/application/gift_packaging_bloc.dart';
+import '../../features/addgift/presentation/views/ai_intro_view.dart';
 import '../../features/addgift/presentation/views/direct_open_setting_view.dart';
 import '../../features/addgift/presentation/views/gacha_setting_view.dart';
 import '../../features/addgift/presentation/views/gift_delivery_method_view.dart';
@@ -15,7 +16,6 @@ import '../../features/content/application/quiz/quiz_bloc.dart';
 import '../../features/content/application/unboxing/unboxing_bloc.dart';
 import '../../features/content/presentation/gacha/gacha_view.dart';
 import '../../features/content/presentation/quiz/quiz_view.dart';
-import '../../features/content/presentation/result/result_view.dart';
 import '../../features/content/presentation/unboxing/unboxing_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
 import '../../features/lobby/application/lobby_bloc.dart';
@@ -46,21 +46,22 @@ class _ErrorRedirectPageState extends State<_ErrorRedirectPage> {
     // 위젯이 완전히 렌더링된 이후에 이동 (build 중 context 사용 방지)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      
+
       final GoRouterState routerState = GoRouterState.of(context);
       final String currentPath = routerState.uri.path;
-      
+
       // sitemap.xml, robots.txt 등 정적 파일 요청이나 개발망 경로가 강제로 플러터로 넘어온 경우
       // '잘못된 초대코드' 토스트가 뜨는 것을 방지
-      final bool isStaticFile = currentPath.endsWith('.xml') || 
-                           currentPath.endsWith('.txt') || 
-                           currentPath.endsWith('.png') ||
-                           currentPath.endsWith('.json');
-                           
+      final bool isStaticFile =
+          currentPath.endsWith('.xml') ||
+          currentPath.endsWith('.txt') ||
+          currentPath.endsWith('.png') ||
+          currentPath.endsWith('.json');
+
       if (!isStaticFile) {
         _shouldShowInvalidCodeToast = true;
       }
-      
+
       GoRouter.of(context).go('/');
     });
   }
@@ -198,25 +199,6 @@ final GoRouter appRouter = GoRouter(
         );
       },
     ),
-    // 콘텐츠 진행 - 공용 결과창 화면
-    GoRoute(
-      path: '/content/result',
-      pageBuilder: (BuildContext context, GoRouterState state) {
-        final Map<String, dynamic>? extra =
-            state.extra as Map<String, dynamic>?;
-        final String itemName = extra?['itemName'] as String? ?? '결과 없음';
-        final String imageUrl =
-            extra?['imageUrl'] as String? ?? 'assets/images/title_logo.png';
-        final String userName = extra?['userName'] as String? ?? '';
-        return NoTransitionPage(
-          child: ResultView(
-            itemName: itemName,
-            imageUrl: imageUrl,
-            userName: userName,
-          ),
-        );
-      },
-    ),
     // 선물 포장하기 전체 플로우 (ShellRoute로 묶어 GiftPackagingBloc 상태 유지)
     ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
@@ -226,53 +208,58 @@ final GoRouter appRouter = GoRouter(
         );
       },
       routes: <RouteBase>[
-        // 선물 포장 - 받는 분 성함 입력 화면
+        // 선물 포장 - 진입 화면 (mode=ai면 AI 소개, 아니면 직접 입력)
         GoRoute(
           path: '/addgift',
-          builder: (BuildContext context, GoRouterState state) =>
-              const ReceiverNameView(),
+          pageBuilder: (BuildContext context, GoRouterState state) {
+            final String? mode = state.uri.queryParameters['mode'];
+            if (mode == 'ai') {
+              return const NoTransitionPage<void>(child: AiIntroView());
+            }
+            return const NoTransitionPage<void>(child: ReceiverNameView());
+          },
         ),
         // 선물 포장 - 추억 공유 여부 선택 화면
         GoRoute(
           path: '/addgift/memory-decision',
-          builder: (BuildContext context, GoRouterState state) =>
-              const MemoryDecisionView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: MemoryDecisionView()),
         ),
         // 선물 포장 - 추억 갤러리 셋팅 화면 (추억 저장하는 공간)
         GoRoute(
           path: '/addgift/memory-gallery',
-          builder: (BuildContext context, GoRouterState state) =>
-              const MemoryGallerySettingView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: MemoryGallerySettingView()),
         ),
         // 선물 포장 - 선물 전달 방식(오픈 콘텐츠) 선택 화면
         GoRoute(
           path: '/addgift/delivery-method',
-          builder: (BuildContext context, GoRouterState state) =>
-              const GiftDeliveryMethodView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: GiftDeliveryMethodView()),
         ),
         // 선물 포장 - 가차(캡슐 뽑기) 세팅 화면
         GoRoute(
           path: '/addgift/gacha-setting',
-          builder: (BuildContext context, GoRouterState state) =>
-              const GachaSettingView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: GachaSettingView()),
         ),
         // 선물 포장 - 퀴즈 세팅 화면
         GoRoute(
           path: '/addgift/quiz-setting',
-          builder: (BuildContext context, GoRouterState state) =>
-              const QuizSettingView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: QuizSettingView()),
         ),
         // 선물 포장 - 바로 오픈 세팅 화면
         GoRoute(
           path: '/addgift/direct-open-setting',
-          builder: (BuildContext context, GoRouterState state) =>
-              const DirectOpenSettingView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: DirectOpenSettingView()),
         ),
         // 선물 포장 - 등록 완료 화면
         GoRoute(
           path: '/addgift/package-complete',
-          builder: (BuildContext context, GoRouterState state) =>
-              const PackageCompleteView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: PackageCompleteView()),
         ),
       ],
     ),

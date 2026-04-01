@@ -7,6 +7,8 @@ part 'quiz_content.g.dart';
 
 @freezed
 abstract class QuizContent with _$QuizContent {
+  // ignore: invalid_annotation_target
+  @JsonSerializable(explicitToJson: true)
   const factory QuizContent({
     @JsonKey(name: 'success_reward') required QuizSuccessReward successReward,
     @JsonKey(name: 'fail_reward') required QuizFailReward failReward,

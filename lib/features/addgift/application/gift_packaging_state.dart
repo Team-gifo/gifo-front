@@ -6,6 +6,7 @@ part of 'gift_packaging_bloc.dart';
 enum SubmitStatus { idle, loading, success, failure }
 
 class GiftPackagingState {
+  final GiftMode mode;
   final String receiverName;
   final String subTitle;
   final String bgm;
@@ -15,6 +16,8 @@ class GiftPackagingState {
   final QuizContent? quizContent;
   final UnboxingContent? unboxingContent;
   final SubmitStatus submitStatus;
+  final String shareCode;
+  final String shareUrl;
 
   // 랜덤한 서브타이틀 명칭 생성 헬퍼
   static String generateRandomSubTitle() {
@@ -39,6 +42,7 @@ class GiftPackagingState {
   }
 
   const GiftPackagingState({
+    this.mode = GiftMode.manual,
     this.receiverName = '',
     this.subTitle = '',
     this.bgm = '',
@@ -48,9 +52,12 @@ class GiftPackagingState {
     this.quizContent,
     this.unboxingContent,
     this.submitStatus = SubmitStatus.idle,
+    this.shareCode = '',
+    this.shareUrl = '',
   });
 
   GiftPackagingState copyWith({
+    GiftMode? mode,
     String? receiverName,
     String? subTitle,
     String? bgm,
@@ -60,8 +67,11 @@ class GiftPackagingState {
     QuizContent? quizContent,
     UnboxingContent? unboxingContent,
     SubmitStatus? submitStatus,
+    String? shareCode,
+    String? shareUrl,
   }) {
     return GiftPackagingState(
+      mode: mode ?? this.mode,
       receiverName: receiverName ?? this.receiverName,
       subTitle: subTitle ?? this.subTitle,
       bgm: bgm ?? this.bgm,
@@ -71,6 +81,8 @@ class GiftPackagingState {
       quizContent: quizContent ?? this.quizContent,
       unboxingContent: unboxingContent ?? this.unboxingContent,
       submitStatus: submitStatus ?? this.submitStatus,
+      shareCode: shareCode ?? this.shareCode,
+      shareUrl: shareUrl ?? this.shareUrl,
     );
   }
 }

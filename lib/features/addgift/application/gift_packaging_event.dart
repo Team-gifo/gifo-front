@@ -3,6 +3,9 @@ part of 'gift_packaging_bloc.dart';
 // 선물 포장에 사용될 콘텐츠 타입
 enum ContentType { gacha, quiz, unboxing }
 
+// 선물 포장 입력 방식
+enum GiftMode { manual, ai }
+
 // ---- BLoC 이벤트 정의 ----
 
 sealed class GiftPackagingEvent {}
@@ -70,6 +73,12 @@ class SubmitPackage extends GiftPackagingEvent {
     required this.gallery,
     required this.content,
   });
+}
+
+// 입력 방식(AI/직접) 설정
+class SetMode extends GiftPackagingEvent {
+  final GiftMode mode;
+  SetMode(this.mode);
 }
 
 // 전체 상태 초기화

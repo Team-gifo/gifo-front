@@ -39,7 +39,8 @@ lib/
 │   │       ├── download_event.dart
 │   │       └── download_state.dart
 │   ├── utils/
-│   │   └── file_download_helper.dart  # 웹 기반 파일 다운로드 유틸리티
+│   │   ├── file_download_helper.dart  # 웹 기반 파일 다운로드 유틸리티
+│   │   └── share_helper.dart          # 공용 클립보드 공유 유틸 (ResultView, GachaHistoryPanel 공유)
 │   └── widgets/
 │       ├── center_burst_confetti_widget.dart
 │       ├── grid_background_painter.dart
@@ -135,7 +136,9 @@ lib/
         │   │   └── gifticon_frame.dart     # 캡쳐/공유용 기프티콘 프레임 위젯
         │   ├── quiz/quiz_view.dart
         │   ├── unboxing/unboxing_view.dart
-        │   └── result/result_view.dart
+        │   └── result/
+        │       ├── result_view.dart        # 공용 결과 화면 (다크 테마, 그리드 배경)
+        │       └── result_cubit.dart       # 스크린샷 캡쳐 + DownloadBloc 위임
         └── repository/
             └── content_api.dart        # GET /api/events/{code} (미연동)
 ```

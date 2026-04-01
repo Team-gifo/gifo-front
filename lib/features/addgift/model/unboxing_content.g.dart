@@ -16,8 +16,8 @@ _UnboxingContent _$UnboxingContentFromJson(Map<String, dynamic> json) =>
 
 Map<String, dynamic> _$UnboxingContentToJson(_UnboxingContent instance) =>
     <String, dynamic>{
-      'before_open': instance.beforeOpen,
-      'after_open': instance.afterOpen,
+      'before_open': instance.beforeOpen.toJson(),
+      'after_open': instance.afterOpen.toJson(),
     };
 
 _BeforeOpen _$BeforeOpenFromJson(Map<String, dynamic> json) => _BeforeOpen(

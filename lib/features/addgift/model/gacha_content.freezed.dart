@@ -207,8 +207,8 @@ return $default(_that.playCount,_that.list);case _:
 }
 
 /// @nodoc
-@JsonSerializable()
 
+@JsonSerializable(explicitToJson: true)
 class _GachaContent implements GachaContent {
   const _GachaContent({@JsonKey(name: 'play_count') this.playCount = 3, final  List<GachaItem> list = const <GachaItem>[]}): _list = list;
   factory _GachaContent.fromJson(Map<String, dynamic> json) => _$GachaContentFromJson(json);
