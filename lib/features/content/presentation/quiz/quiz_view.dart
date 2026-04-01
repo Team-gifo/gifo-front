@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/blocs/download/download_bloc.dart';
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -17,7 +19,8 @@ class QuizView extends StatefulWidget {
   State<QuizView> createState() => _QuizViewState();
 }
 
-class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin {
+class _QuizViewState extends State<QuizView>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _textController = TextEditingController();
 
   late AnimationController _animationController;
@@ -34,7 +37,7 @@ class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin
 
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1500),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -61,9 +64,9 @@ class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin
 
   void _triggerAnswerAnimation(bool isCorrect) {
     if (!mounted) return;
-    
+
     _textController.clear(); // 정답 제출 시 확실히 초기화
-    
+
     setState(() {
       _showAnimation = true;
       _isCorrect = isCorrect;
@@ -173,10 +176,11 @@ class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin
                                       : Colors.redAccent,
                                   shadows: <Shadow>[
                                     Shadow(
-                                      color: (_isCorrect
-                                              ? AppColors.neonBlue
-                                              : Colors.redAccent)
-                                          .withValues(alpha: 0.5),
+                                      color:
+                                          (_isCorrect
+                                                  ? AppColors.neonBlue
+                                                  : Colors.redAccent)
+                                              .withValues(alpha: 0.5),
                                       blurRadius: 20,
                                     ),
                                   ],
@@ -227,10 +231,23 @@ class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Image.asset(
-              'assets/images/title_logo.png',
-              height: isMobileOrSmall ? 40 : 48,
-              color: Colors.white,
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () async {
+                  final Uri homeUri = Uri.base.resolve('/');
+                  if (await canLaunchUrl(homeUri)) {
+                    await launchUrl(homeUri, webOnlyWindowName: '_blank');
+                  } else {
+                    if (context.mounted) context.go('/');
+                  }
+                },
+                child: Image.asset(
+                  'assets/images/title_logo.png',
+                  height: isMobileOrSmall ? 40 : 48,
+                  color: Colors.white,
+                ),
+              ),
             ),
             const SizedBox(width: 16),
             if (size.width >= AppBreakpoints.tablet)

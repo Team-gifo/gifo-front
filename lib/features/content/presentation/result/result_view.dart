@@ -2,6 +2,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -165,10 +166,23 @@ class _ResultBodyState extends State<_ResultBody>
   Widget _buildLogoAndCongrats(bool isTabletOrLarger) {
     return Column(
       children: <Widget>[
-        Image.asset(
-          'assets/images/title_logo.png',
-          height: 60,
-          color: Colors.white,
+        MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            onTap: () async {
+              final Uri homeUri = Uri.base.resolve('/');
+              if (await canLaunchUrl(homeUri)) {
+                await launchUrl(homeUri, webOnlyWindowName: '_blank');
+              } else {
+                if (mounted) context.go('/');
+              }
+            },
+            child: Image.asset(
+              'assets/images/title_logo.png',
+              height: 60,
+              color: Colors.white,
+            ),
+          ),
         ),
         const SizedBox(height: 16),
         Text(
@@ -253,7 +267,7 @@ class _ResultBodyState extends State<_ResultBody>
                   widget.itemName,
                   speed: const Duration(milliseconds: 80),
                   textStyle: TextStyle(
-                    fontFamily: 'PFStardust',
+                    fontFamily: 'WantedSans',
                     fontSize: isDesktop ? 30 : 22,
                     color: Colors.white,
                     letterSpacing: 1,
