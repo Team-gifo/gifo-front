@@ -47,19 +47,11 @@ UI: 선물 박스 애니메이션 표시 (닫힌 상태)
     ↓ 사용자 선물 박스 탭/버튼 클릭
 UnboxingBloc.add(ReceiveGift())
     ↓ emit state.copyWith(isReceived: true)
-UI(BlocListener): isReceived == true → 열리는 애니메이션 → 결과 화면 이동
-    ↓ context.go('/content/result', extra: { itemName, imageUrl, userName })
+UI: isReceived == true 상태 감지 → 열리는 애니메이션 후 `ResultView` 인라인 렌더링
 ```
 
-## 결과 화면 이동
+## 결과 화면 표시
 
-`isReceived: true` 상태 변경 시 `BlocListener`에서 감지하여 이동:
-```dart
-context.go('/content/result', extra: {
-  'itemName': state.unboxingContent!.itemName,
-  'imageUrl': state.unboxingContent!.imageUrl,
-  'userName': state.userName ?? '',
-});
-```
+`isReceived: true` 및 애니메이션 완료 상태가 되면 `UnboxingView` 내부에서 기존 박스를 지우고 `ResultView` 위젯을 생성하여 표시한다. 이 때 보상 아이템 정보와 초대코드가 전달된다.
 
 자세한 로직: [business-logic/unboxing-logic.md](../business-logic/unboxing-logic.md)
