@@ -10,9 +10,12 @@ import '../../../../core/widgets/packaging_loading_overlay.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../application/quiz_setting/quiz_setting_bloc.dart';
 import '../../model/quiz_setting_models.dart';
+import '../widgets/quiz/quiz_complete_button.dart';
 import '../widgets/quiz/quiz_edit_form.dart';
-import '../widgets/quiz/quiz_list_item.dart';
+import '../widgets/quiz/quiz_items_section.dart';
+import '../widgets/quiz/quiz_mobile_bottom_bar.dart';
 import '../widgets/quiz/quiz_settings_panel.dart';
+import '../widgets/quiz/quiz_title_bar.dart';
 import '../widgets/step_indicator.dart';
 
 class QuizSettingView extends StatelessWidget {
@@ -418,7 +421,12 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                   surfaceTintColor: Colors.transparent,
                   elevation: 0,
                   iconTheme: const IconThemeData(color: Colors.white),
-                  title: isMobile ? null : _buildTitleBar(),
+                  title: isMobile
+                      ? null
+                      : QuizTitleBar(
+                          userNameController: _userNameController,
+                          subTitleController: _subTitleController,
+                        ),
                   actions: const <Widget>[StepIndicator(activeStep: 3)],
                 ),
                 body: Stack(
@@ -434,7 +442,10 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                                   padding: const EdgeInsets.all(24.0),
                                   child: SingleChildScrollView(
                                     scrollDirection: Axis.horizontal,
-                                    child: _buildTitleBar(),
+                                    child: QuizTitleBar(
+                                      userNameController: _userNameController,
+                                      subTitleController: _subTitleController,
+                                    ),
                                   ),
                                 ),
                                 Expanded(
@@ -442,9 +453,14 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                                     padding: const EdgeInsets.symmetric(
                                       horizontal: 24.0,
                                     ),
-                                    child: _buildItemsSection(
-                                      isMobile,
-                                      quizState,
+                                    child: QuizItemsSection(
+                                      isMobile: isMobile,
+                                      quizState: quizState,
+                                      onAddItem: _addItem,
+                                      onRemoveAllItems: _removeAllItems,
+                                      onReorder: _onReorder,
+                                      onRemoveItem: _removeItem,
+                                      onTapItem: _showEditModal,
                                     ),
                                   ),
                                 ),
@@ -457,9 +473,14 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                                   flex: 7,
                                   child: Padding(
                                     padding: const EdgeInsets.all(40.0),
-                                    child: _buildItemsSection(
-                                      isMobile,
-                                      quizState,
+                                    child: QuizItemsSection(
+                                      isMobile: isMobile,
+                                      quizState: quizState,
+                                      onAddItem: _addItem,
+                                      onRemoveAllItems: _removeAllItems,
+                                      onReorder: _onReorder,
+                                      onRemoveItem: _removeItem,
+                                      onTapItem: _showEditModal,
                                     ),
                                   ),
                                 ),
@@ -492,7 +513,10 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                                           ),
                                         ),
                                         const SizedBox(height: 24),
-                                        _buildCompleteButton(),
+                                        QuizCompleteButton(
+                                          enabled: !_isSubmitting,
+                                          onPressed: _completePackage,
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -504,265 +528,17 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                     if (_isSubmitting) const PackagingLoadingOverlay(),
                   ],
                 ),
-                bottomNavigationBar: isMobile ? _buildMobileBottomBar() : null,
+                bottomNavigationBar: isMobile
+                    ? QuizMobileBottomBar(
+                        isSubmitting: _isSubmitting,
+                        onShowSettings: _showMobileSettingsModal,
+                        onComplete: _completePackage,
+                      )
+                    : null,
               ),
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildTitleBar() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        SizedBox(
-          width: 100,
-          child: TextFormField(
-            controller: _userNameController,
-            decoration: InputDecoration(
-              hintText: '닉네임',
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 8,
-                horizontal: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: AppColors.neonPurple,
-                  width: 1.5,
-                ),
-              ),
-            ),
-            style: const TextStyle(color: Colors.white),
-          ),
-        ),
-        const SizedBox(width: 8),
-        const Text('님의', style: TextStyle(fontSize: 16, color: Colors.white70)),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 120,
-          child: TextFormField(
-            controller: _subTitleController,
-            decoration: InputDecoration(
-              hintText: '서브 타이틀',
-              hintStyle: const TextStyle(color: Colors.white38),
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 8,
-                horizontal: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: AppColors.neonPurple,
-                  width: 1.5,
-                ),
-              ),
-            ),
-            style: const TextStyle(color: Colors.white),
-          ),
-        ),
-        const SizedBox(width: 8),
-        const Text(
-          '문제 맞추기',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildItemsSection(bool isMobile, QuizSettingState quizState) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            ElevatedButton(
-              onPressed: _addItem,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.neonPurple,
-                foregroundColor: Colors.white,
-                elevation: 0,
-              ),
-              child: const Text('추가'),
-            ),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: _removeAllItems,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
-                elevation: 0,
-              ),
-              child: const Text('모두 제거'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.15),
-                width: 1,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: quizState.uiItems.isEmpty
-                ? const Center(
-                    child: Text(
-                      '추가 버튼을 눌러 문제를 생성해보세요.',
-                      style: TextStyle(color: Colors.white38),
-                    ),
-                  )
-                : ReorderableListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: quizState.uiItems.length,
-                    onReorder: _onReorder,
-                    buildDefaultDragHandles: false,
-                    proxyDecorator:
-                        (Widget child, int index, Animation<double> animation) {
-                          return Material(
-                            color: Colors.transparent,
-                            elevation: 0,
-                            child: child,
-                          );
-                        },
-                    itemBuilder: (BuildContext context, int index) {
-                      final QuizItemData item = quizState.uiItems[index];
-                      return QuizListItem(
-                        key: ValueKey<String>(item.id),
-                        item: item,
-                        index: index,
-                        onRemove: () => _removeItem(item.id),
-                        onTap: () => _showEditModal(item),
-                      );
-                    },
-                  ),
-          ),
-        ),
-        if (isMobile) const SizedBox(height: 24),
-      ],
-    );
-  }
-
-  Widget _buildCompleteButton() {
-    return SizedBox(
-      height: 60,
-      child: ElevatedButton(
-        onPressed: _isSubmitting ? null : _completePackage,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF6DE1F1),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 0,
-        ),
-        child: const Text(
-          '포장 완료',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMobileBottomBar() {
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.07),
-          border: const Border(top: BorderSide(color: Colors.white12)),
-        ),
-        child: Row(
-          children: <Widget>[
-            InkWell(
-              onTap: () {
-                _showMobileSettingsModal();
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.07),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    width: 2,
-                  ),
-                ),
-                child: const Icon(Icons.settings, color: Colors.white60),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: SizedBox(
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: _isSubmitting ? null : _completePackage,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6DE1F1),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    '포장 완료',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
