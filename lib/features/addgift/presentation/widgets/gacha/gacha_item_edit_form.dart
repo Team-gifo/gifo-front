@@ -89,15 +89,20 @@ class GachaItemEditForm extends StatelessWidget {
                 ),
                 child: Text(
                   label,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'WantedSans',
+                  ),
                 ),
               );
             }
 
-            return SafeArea(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: <Widget>[
+            return Container(
+              color: const Color(0xFF1A1A2E),
+              child: SafeArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: <Widget>[
                   Expanded(
                     child: SingleChildScrollView(
                       padding: EdgeInsets.only(
@@ -116,6 +121,7 @@ class GachaItemEditForm extends StatelessWidget {
                               const Text(
                                 '캡슐 상세 설정',
                                 style: TextStyle(
+                                  fontFamily: 'WantedSans',
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -135,6 +141,7 @@ class GachaItemEditForm extends StatelessWidget {
                           const Text(
                             '제목',
                             style: TextStyle(
+                              fontFamily: 'WantedSans',
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -143,7 +150,10 @@ class GachaItemEditForm extends StatelessWidget {
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: nameController,
-                            style: const TextStyle(color: Colors.white),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'WantedSans',
+                            ),
                             onChanged: (String val) {
                               context.read<GachaSettingBloc>().add(
                                 UpdateGachaItemName(currentItemData.id, val),
@@ -151,7 +161,13 @@ class GachaItemEditForm extends StatelessWidget {
                             },
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: Colors.white12,
+                              fillColor: Colors.white.withValues(alpha: 0.07),
+                              hintText: '제목을 입력해주세요',
+                              hintStyle: const TextStyle(
+                                color: Colors.white38,
+                                fontFamily: 'WantedSans',
+                              ),
+                              errorStyle: const TextStyle(fontFamily: 'WantedSans'),
                               suffixIcon: currentItemData.itemName.isNotEmpty
                                   ? IconButton(
                                       icon: const Icon(
@@ -217,6 +233,7 @@ class GachaItemEditForm extends StatelessWidget {
                           const Text(
                             '이미지',
                             style: TextStyle(
+                              fontFamily: 'WantedSans',
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -230,10 +247,10 @@ class GachaItemEditForm extends StatelessWidget {
                               child: Container(
                                 height: 120,
                                 decoration: BoxDecoration(
-                                  color: Colors.white12,
+                                  color: Colors.white.withValues(alpha: 0.07),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.2),
+                                    color: Colors.white24,
                                     width: 1,
                                   ),
                                 ),
@@ -255,12 +272,10 @@ class GachaItemEditForm extends StatelessWidget {
                                     maxHeight: 500,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white12,
+                                    color: Colors.white.withValues(alpha: 0.05),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.2,
-                                      ),
+                                      color: Colors.white24,
                                       width: 1,
                                     ),
                                   ),
@@ -282,7 +297,10 @@ class GachaItemEditForm extends StatelessWidget {
                                         updateModal,
                                       ),
                                       icon: const Icon(Icons.edit, size: 16),
-                                      label: const Text('수정'),
+                                      label: const Text(
+                                        '수정',
+                                        style: TextStyle(fontFamily: 'WantedSans'),
+                                      ),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor: Colors.blue,
                                         side: const BorderSide(
@@ -300,7 +318,10 @@ class GachaItemEditForm extends StatelessWidget {
                                         );
                                       },
                                       icon: const Icon(Icons.delete, size: 16),
-                                      label: const Text('삭제'),
+                                      label: const Text(
+                                        '삭제',
+                                        style: TextStyle(fontFamily: 'WantedSans'),
+                                      ),
                                       style: OutlinedButton.styleFrom(
                                         foregroundColor: Colors.red,
                                         side: const BorderSide(
@@ -317,13 +338,15 @@ class GachaItemEditForm extends StatelessWidget {
                             '- 부적절한 제목이나 이미지는 신고 대상이 될 수 있으며, 관련 책임은 등록 주체에게 있음을 알려드립니다.',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.white38,
+                              color: Colors.grey,
+                              fontFamily: 'WantedSans',
                             ),
                           ),
                           const SizedBox(height: 24),
                           const Text(
                             '확률 (%)',
                             style: TextStyle(
+                              fontFamily: 'WantedSans',
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -335,7 +358,10 @@ class GachaItemEditForm extends StatelessWidget {
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
-                            style: const TextStyle(color: Colors.white),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'WantedSans',
+                            ),
                             onChanged: (String val) {
                               context.read<GachaSettingBloc>().add(
                                 UpdateGachaItemPercent(currentItemData.id, val),
@@ -343,7 +369,12 @@ class GachaItemEditForm extends StatelessWidget {
                             },
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: Colors.white12,
+                              fillColor: Colors.white.withValues(alpha: 0.07),
+                              hintText: '확률을 입력해주세요',
+                              hintStyle: const TextStyle(
+                                color: Colors.white38,
+                                fontFamily: 'WantedSans',
+                              ),
                               suffixIcon: currentItemData.percentStr.isNotEmpty
                                   ? IconButton(
                                       icon: const Icon(
@@ -403,7 +434,10 @@ class GachaItemEditForm extends StatelessWidget {
                               errorText: !isPercentValid
                                   ? '확률은 0.01% 이상 100% 이하입니다.'
                                   : null,
-                              errorStyle: const TextStyle(fontSize: 14),
+                              errorStyle: const TextStyle(
+                                fontSize: 14,
+                                fontFamily: 'WantedSans',
+                              ),
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -440,6 +474,7 @@ class GachaItemEditForm extends StatelessWidget {
                                 child: Text(
                                   '확률 공개 여부',
                                   style: TextStyle(
+                                    fontFamily: 'WantedSans',
                                     fontSize: 16,
                                     color: Colors.white,
                                   ),
@@ -450,7 +485,11 @@ class GachaItemEditForm extends StatelessWidget {
                           const SizedBox(height: 16),
                           const Text(
                             '- 모든 캡슐의 확률 합이 100% 이하여야 합니다.',
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                              fontFamily: 'WantedSans',
+                            ),
                           ),
                           const SizedBox(height: 40),
                         ],
@@ -463,7 +502,7 @@ class GachaItemEditForm extends StatelessWidget {
                       vertical: 16,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.darkBg,
+                      color: Colors.transparent,
                       border: Border(
                         top: BorderSide(
                           color: Colors.white.withValues(alpha: 0.1),
@@ -494,6 +533,7 @@ class GachaItemEditForm extends StatelessWidget {
                             child: const Text(
                               '삭제',
                               style: TextStyle(
+                                fontFamily: 'WantedSans',
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -518,6 +558,7 @@ class GachaItemEditForm extends StatelessWidget {
                             child: const Text(
                               '닫기',
                               style: TextStyle(
+                                fontFamily: 'WantedSans',
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -529,10 +570,11 @@ class GachaItemEditForm extends StatelessWidget {
                   ),
                 ],
               ),
-            );
-          },
-        );
-      },
-    );
-  }
+            ),
+          );
+        },
+      );
+    },
+  );
+}
 }

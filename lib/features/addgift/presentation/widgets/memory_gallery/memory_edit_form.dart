@@ -28,10 +28,12 @@ class MemoryEditForm extends StatelessWidget {
         final bool isDescriptionValid = itemData.description.trim().isNotEmpty;
         final bool hasImage = itemData.imageFile != null;
 
-        return SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
+        return Container(
+          color: const Color(0xFF1A1A2E),
+          child: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
               Expanded(
                 child: SingleChildScrollView(
                   padding: EdgeInsets.only(
@@ -321,7 +323,7 @@ class MemoryEditForm extends StatelessWidget {
                   vertical: 16,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A2E),
+                  color: Colors.transparent,
                   border: Border(
                     top: BorderSide(
                       color: Colors.white.withValues(alpha: 0.1),
@@ -389,8 +391,9 @@ class MemoryEditForm extends StatelessWidget {
               ),
             ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
 }
