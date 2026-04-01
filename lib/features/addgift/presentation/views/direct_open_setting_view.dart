@@ -9,8 +9,12 @@ import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/packaging_loading_overlay.dart';
 import '../../application/direct_open_setting/direct_open_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
-import '../widgets/direct_open/after_open_card.dart';
-import '../widgets/direct_open/before_open_card.dart';
+import '../widgets/direct_open/direct_open_complete_button.dart';
+import '../widgets/direct_open/direct_open_content_section.dart';
+import '../widgets/direct_open/direct_open_mobile_bottom_bar.dart';
+import '../widgets/direct_open/direct_open_settings_section.dart';
+import '../widgets/direct_open/direct_open_step_indicator.dart';
+import '../widgets/direct_open/direct_open_title_bar.dart';
 
 class DirectOpenSettingView extends StatelessWidget {
   const DirectOpenSettingView({super.key});
@@ -33,8 +37,7 @@ class _DirectOpenSettingContent extends StatefulWidget {
       _DirectOpenSettingContentState();
 }
 
-class _DirectOpenSettingContentState
-    extends State<_DirectOpenSettingContent> {
+class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
   final TextEditingController _userNameController = TextEditingController();
   final TextEditingController _subTitleController = TextEditingController();
   final TextEditingController _beforeDescController = TextEditingController();
@@ -47,8 +50,9 @@ class _DirectOpenSettingContentState
   @override
   void initState() {
     super.initState();
-    final GiftPackagingState packagingState =
-        context.read<GiftPackagingBloc>().state;
+    final GiftPackagingState packagingState = context
+        .read<GiftPackagingBloc>()
+        .state;
     if (packagingState.receiverName.isNotEmpty) {
       _userNameController.text = packagingState.receiverName;
     }
@@ -57,8 +61,9 @@ class _DirectOpenSettingContentState
     }
 
     // BLoC 초기 상태에서 설명 필드 초기화
-    final DirectOpenSettingState directOpenState =
-        context.read<DirectOpenSettingBloc>().state;
+    final DirectOpenSettingState directOpenState = context
+        .read<DirectOpenSettingBloc>()
+        .state;
     _beforeDescController.text = directOpenState.beforeDescription;
     _afterNameController.text = directOpenState.afterItemName;
 
@@ -138,436 +143,142 @@ class _DirectOpenSettingContentState
         }
       },
       child: BlocBuilder<DirectOpenSettingBloc, DirectOpenSettingState>(
-        builder: (BuildContext context, DirectOpenSettingState directOpenState) {
-          return PopScope(
-            canPop: !_isSubmitting,
-            child: Scaffold(
-            backgroundColor: AppColors.darkBg,
-            appBar: AppBar(
-              toolbarHeight: 68,
-              backgroundColor: AppColors.darkBg,
-              surfaceTintColor: Colors.transparent,
-              elevation: 0,
-              iconTheme: const IconThemeData(color: Colors.white),
-              title: isMobile ? null : _buildTitleBar(),
-              actions: <Widget>[_buildStepIndicator()],
-            ),
-            body: Stack(
-              children: <Widget>[
-                Positioned.fill(
-                  child: CustomPaint(painter: GridBackgroundPainter()),
-                ),
-                SafeArea(
-                  child: isMobile
-                      ? Column(
-                          children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.all(24.0),
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: _buildTitleBar(),
-                              ),
-                            ),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 24.0,
-                                ),
-                                child: _buildContentSection(
-                                  isMobile,
-                                  directOpenState,
-                                ),
-                              ),
-                            ),
-                          ],
-                        )
-                      : Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: <Widget>[
-                            Expanded(
-                              flex: 7,
-                              child: Padding(
-                                padding: const EdgeInsets.all(40.0),
-                                child: Center(
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      maxWidth: 1000,
-                                    ),
-                                    child: _buildContentSection(
-                                      isMobile,
-                                      directOpenState,
+        builder:
+            (BuildContext context, DirectOpenSettingState directOpenState) {
+              return PopScope(
+                canPop: !_isSubmitting,
+                child: Scaffold(
+                  backgroundColor: AppColors.darkBg,
+                  appBar: AppBar(
+                    toolbarHeight: 68,
+                    backgroundColor: AppColors.darkBg,
+                    surfaceTintColor: Colors.transparent,
+                    elevation: 0,
+                    iconTheme: const IconThemeData(color: Colors.white),
+                    title: isMobile
+                        ? null
+                        : DirectOpenTitleBar(
+                            userNameController: _userNameController,
+                            subTitleController: _subTitleController,
+                          ),
+                    actions: const <Widget>[DirectOpenStepIndicator()],
+                  ),
+                  body: Stack(
+                    children: <Widget>[
+                      Positioned.fill(
+                        child: CustomPaint(painter: GridBackgroundPainter()),
+                      ),
+                      SafeArea(
+                        child: isMobile
+                            ? Column(
+                                children: <Widget>[
+                                  Padding(
+                                    padding: const EdgeInsets.all(24.0),
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: DirectOpenTitleBar(
+                                        userNameController: _userNameController,
+                                        subTitleController: _subTitleController,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                            ),
-                            Container(
-                              width: 1,
-                              color: Colors.white.withValues(alpha: 0.1),
-                            ),
-                            Expanded(
-                              flex: 3,
-                              child: Padding(
-                                padding: const EdgeInsets.all(40.0),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: <Widget>[
-                                    Expanded(
-                                      child: SingleChildScrollView(
-                                        child: _buildSettingsSection(
-                                          directOpenState,
-                                          isMobile: false,
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 24.0,
+                                      ),
+                                      child: DirectOpenContentSection(
+                                        isMobile: isMobile,
+                                        state: directOpenState,
+                                        beforeDescController:
+                                            _beforeDescController,
+                                        afterNameController:
+                                            _afterNameController,
+                                        onPickBeforeImage: () =>
+                                            _pickImage(true),
+                                        onPickAfterImage: () =>
+                                            _pickImage(false),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: <Widget>[
+                                  Expanded(
+                                    flex: 7,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(40.0),
+                                      child: Center(
+                                        child: ConstrainedBox(
+                                          constraints: const BoxConstraints(
+                                            maxWidth: 1000,
+                                          ),
+                                          child: DirectOpenContentSection(
+                                            isMobile: isMobile,
+                                            state: directOpenState,
+                                            beforeDescController:
+                                                _beforeDescController,
+                                            afterNameController:
+                                                _afterNameController,
+                                            onPickBeforeImage: () =>
+                                                _pickImage(true),
+                                            onPickAfterImage: () =>
+                                                _pickImage(false),
+                                          ),
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 24),
-                                    _buildCompleteButton(),
-                                  ],
-                                ),
+                                  ),
+                                  Container(
+                                    width: 1,
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                  ),
+                                  Expanded(
+                                    flex: 3,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(40.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: <Widget>[
+                                          Expanded(
+                                            child: SingleChildScrollView(
+                                              child: DirectOpenSettingsSection(
+                                                state: directOpenState,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 24),
+                                          DirectOpenCompleteButton(
+                                            onPressed: _completePackage,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                          ],
-                        ),
-                ),
-                // 로딩 오버레이: 전송 중 터치 차단 + 프로그레스 표시
-                if (_isSubmitting) const PackagingLoadingOverlay(),
-              ],
-            ),
-            bottomNavigationBar:
-                isMobile ? _buildMobileBottomBar(directOpenState) : null,
-          ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildStepIndicator() {
-    return Padding(
-      padding: const EdgeInsets.only(right: 20.0),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          _buildCircle(isActive: true, number: '1'),
-          _buildLine(isActive: true),
-          _buildCircle(isActive: true, number: '2'),
-          _buildLine(isActive: true),
-          _buildCircle(isActive: true, number: '3'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCircle({required bool isActive, required String number}) {
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: isActive
-            ? AppColors.pixelPurple
-            : Colors.white.withValues(alpha: 0.1),
-        border: isActive ? null : Border.all(color: Colors.white24),
-      ),
-      child: Center(
-        child: Text(
-          number,
-          style: TextStyle(
-            color: isActive ? Colors.white : Colors.white38,
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLine({required bool isActive}) {
-    return Container(
-      width: 16,
-      height: 2,
-      color: isActive
-          ? AppColors.pixelPurple.withValues(alpha: 0.5)
-          : Colors.white12,
-    );
-  }
-
-  Widget _buildTitleBar() {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        SizedBox(
-          width: 100,
-          child: TextFormField(
-            controller: _userNameController,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: '닉네임',
-              hintStyle: const TextStyle(color: Colors.white38),
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 8,
-                horizontal: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: AppColors.pixelPurple,
-                  width: 1.5,
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        const Text(
-          '님의',
-          style: TextStyle(fontSize: 16, color: Colors.white70),
-        ),
-        const SizedBox(width: 8),
-        SizedBox(
-          width: 120,
-          child: TextFormField(
-            controller: _subTitleController,
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: '서브 타이틀',
-              hintStyle: const TextStyle(color: Colors.white38),
-              isDense: true,
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 8,
-                horizontal: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1,
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(
-                  color: AppColors.pixelPurple,
-                  width: 1.5,
-                ),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        const Text(
-          '선물 개봉',
-          style: TextStyle(fontSize: 16, color: Colors.white70),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildContentSection(
-    bool isMobile,
-    DirectOpenSettingState state,
-  ) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          if (isMobile) ...<Widget>[
-            BeforeOpenCard(
-                isMobile: isMobile,
-                imageFile: state.beforeImageFile,
-                descController: _beforeDescController,
-                onPickImage: () => _pickImage(true),
-              ),
-            const SizedBox(height: 24),
-            AfterOpenCard(
-                isMobile: isMobile,
-                imageFile: state.afterImageFile,
-                nameController: _afterNameController,
-                onPickImage: () => _pickImage(false),
-              ),
-          ] else ...<Widget>[
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Expanded(
-                  child: BeforeOpenCard(
-                    isMobile: isMobile,
-                    imageFile: state.beforeImageFile,
-                    descController: _beforeDescController,
-                    onPickImage: () => _pickImage(true),
+                      ),
+                      // 로딩 오버레이: 전송 중 터치 차단 + 프로그레스 표시
+                      if (_isSubmitting) const PackagingLoadingOverlay(),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 32),
-                Expanded(
-                  child: AfterOpenCard(
-                    isMobile: isMobile,
-                    imageFile: state.afterImageFile,
-                    nameController: _afterNameController,
-                    onPickImage: () => _pickImage(false),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettingsSection(
-    DirectOpenSettingState state, {
-    required bool isMobile,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        const Text(
-          'BGM (배경음악)',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white12,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: state.selectedBgm,
-                    isExpanded: true,
-                    dropdownColor: const Color(0xFF1A1A1A),
-                    style: const TextStyle(color: Colors.white),
-                    iconEnabledColor: Colors.white38,
-                    onChanged: (String? val) {
-                      if (val != null) {
-                        context.read<DirectOpenSettingBloc>().add(
-                          UpdateDirectOpenBgm(val),
-                        );
-                      }
-                    },
-                    items: <String>['신나는 생일', '잔잔한 음악', '우리의 추억']
-                        .map(
-                          (String value) => DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(
-                              value,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
+                  bottomNavigationBar: isMobile
+                      ? DirectOpenMobileBottomBar(
+                          onShowSettings: _showMobileSettingsModal,
+                          onComplete: _completePackage,
                         )
-                        .toList(),
-                  ),
+                      : null,
                 ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white12,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.play_arrow, color: Colors.white38),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCompleteButton() {
-    return SizedBox(
-      height: 60,
-      child: ElevatedButton(
-        onPressed: _completePackage,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF6DE1F1),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 0,
-        ),
-        child: const Text(
-          '포장 완료',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
+              );
+            },
       ),
     );
   }
 
-  Widget _buildMobileBottomBar(DirectOpenSettingState state) {
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.07),
-          border: const Border(top: BorderSide(color: Colors.white12)),
-        ),
-        child: Row(
-          children: <Widget>[
-            InkWell(
-              onTap: () => _showMobileSettingsModal(state),
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.07),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    width: 2,
-                  ),
-                ),
-                child: const Icon(Icons.settings, color: Colors.white60),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(child: _buildCompleteButton()),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showMobileSettingsModal(DirectOpenSettingState currentState) {
+  void _showMobileSettingsModal() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -611,7 +322,7 @@ class _DirectOpenSettingContentState
                           ),
                         ),
                         const SizedBox(height: 24),
-                        _buildSettingsSection(state, isMobile: true),
+                        DirectOpenSettingsSection(state: state),
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,

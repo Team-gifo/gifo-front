@@ -190,12 +190,11 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
       final XFile? pickedFile = await _picker.pickImage(
         source: ImageSource.gallery,
       );
-      if (pickedFile != null) {
-        context.read<GachaSettingBloc>().add(
-          UpdateGachaItemImage(itemData.id, pickedFile),
-        );
-        updateModal(); // 모달 내부 UI 갱신
-      }
+      if (!mounted || pickedFile == null) return;
+      context.read<GachaSettingBloc>().add(
+        UpdateGachaItemImage(itemData.id, pickedFile),
+      );
+      updateModal(); // 모달 내부 UI 갱신
     } catch (e) {
       debugPrint('이미지 선택 오류: $e');
     }
@@ -390,7 +389,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                 color: Colors.black,
                 child: PopScope(
                   canPop: false,
-                  onPopInvoked: (bool didPop) {
+                  onPopInvokedWithResult: (bool didPop, Object? result) {
                     if (didPop) return;
                     // 로딩 중에는 뒤로가기 차단
                     if (isLoading) return;
