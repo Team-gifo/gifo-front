@@ -669,6 +669,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                     itemBuilder: (BuildContext context, int index) {
                       final QuizItemData item = quizState.uiItems[index];
                       return QuizListItem(
+                        key: ValueKey<String>(item.id),
                         item: item,
                         index: index,
                         onRemove: () => _removeItem(item.id),
