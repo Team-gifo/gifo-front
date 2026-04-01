@@ -42,17 +42,19 @@ class GachaItemsSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: <Widget>[
-              ElevatedButton.icon(
-                onPressed: onAddItem,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
+              if (uiItems.length < 10) ...<Widget>[
+                ElevatedButton.icon(
+                  onPressed: onAddItem,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                  ),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('추가'),
                 ),
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text('추가'),
-              ),
-              const SizedBox(width: 8),
+                const SizedBox(width: 8),
+              ],
               ElevatedButton.icon(
                 onPressed: onRemoveAllItems,
                 style: ElevatedButton.styleFrom(
@@ -115,17 +117,19 @@ class GachaItemsSection extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  ElevatedButton.icon(
-                    onPressed: onAddItem,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
+                  if (uiItems.length < 10) ...<Widget>[
+                    ElevatedButton.icon(
+                      onPressed: onAddItem,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                      ),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('추가'),
                     ),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text('추가'),
-                  ),
-                  const SizedBox(width: 8),
+                    const SizedBox(width: 8),
+                  ],
                   ElevatedButton.icon(
                     onPressed: onRemoveAllItems,
                     style: ElevatedButton.styleFrom(
@@ -254,33 +258,34 @@ class _CapsuleListContainer extends StatelessWidget {
               onHoverEnter: () => onHoverEnter(uiItems[i].id),
               onHoverExit: onHoverExit,
             ),
-          InkWell(
-            onTap: onAddItem,
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-            hoverColor: Colors.transparent,
-            borderRadius: BorderRadius.circular(50),
-            child: Container(
-              width: isMobile ? 80 : 96,
-              height: isMobile ? 80 : 96,
-              decoration: const BoxDecoration(shape: BoxShape.circle),
-              child: Stack(
-                children: <Widget>[
-                  Positioned.fill(
-                    child: CustomPaint(
-                      painter: _DashedCirclePainter(
-                        color: Colors.white38,
-                        strokeWidth: 1.5,
+          if (uiItems.length < 10)
+            InkWell(
+              onTap: onAddItem,
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              borderRadius: BorderRadius.circular(50),
+              child: Container(
+                width: isMobile ? 80 : 96,
+                height: isMobile ? 80 : 96,
+                decoration: const BoxDecoration(shape: BoxShape.circle),
+                child: Stack(
+                  children: <Widget>[
+                    Positioned.fill(
+                      child: CustomPaint(
+                        painter: _DashedCirclePainter(
+                          color: Colors.white38,
+                          strokeWidth: 1.5,
+                        ),
                       ),
                     ),
-                  ),
-                  const Center(
-                    child: Icon(Icons.add, color: Colors.white38, size: 32),
-                  ),
-                ],
+                    const Center(
+                      child: Icon(Icons.add, color: Colors.white38, size: 32),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
