@@ -79,7 +79,10 @@ class MemoryEditForm extends StatelessWidget {
                       TextFormField(
                         key: ValueKey<String>('title_$itemId'),
                         initialValue: itemData.title,
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'WantedSans',
+                        ),
                         onChanged: (String val) {
                           context.read<MemoryGallerySettingBloc>().add(
                             UpdateMemoryItemTitle(itemId, val),
@@ -89,7 +92,11 @@ class MemoryEditForm extends StatelessWidget {
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.07),
                           hintText: '제목을 입력해주세요',
-                          hintStyle: const TextStyle(color: Colors.white38),
+                          hintStyle: const TextStyle(
+                            color: Colors.white38,
+                            fontFamily: 'WantedSans',
+                          ),
+                          errorStyle: const TextStyle(fontFamily: 'WantedSans'),
                           suffixIcon: itemData.title.isNotEmpty
                               ? IconButton(
                                   icon: const Icon(Icons.clear, size: 20),
@@ -195,7 +202,10 @@ class MemoryEditForm extends StatelessWidget {
                                 OutlinedButton.icon(
                                   onPressed: onPickImage,
                                   icon: const Icon(Icons.edit, size: 16),
-                                  label: const Text('수정'),
+                                  label: const Text(
+                                    '수정',
+                                    style: TextStyle(fontFamily: 'WantedSans'),
+                                  ),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AppColors.neonBlue,
                                     side: const BorderSide(
@@ -211,7 +221,10 @@ class MemoryEditForm extends StatelessWidget {
                                         .add(RemoveMemoryItemImage(itemId));
                                   },
                                   icon: const Icon(Icons.delete, size: 16),
-                                  label: const Text('삭제'),
+                                  label: const Text(
+                                    '삭제',
+                                    style: TextStyle(fontFamily: 'WantedSans'),
+                                  ),
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: Colors.redAccent,
                                     side: const BorderSide(
@@ -226,14 +239,20 @@ class MemoryEditForm extends StatelessWidget {
                       const SizedBox(height: 8),
                       const Text(
                         '- 부적절한 제목이나 이미지는 신고 대상이 될 수 있으며, 관련 책임은 등록 주체에게 있음을 알려드립니다.',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                          fontFamily: 'WantedSans',
+                        ),
                       ),
                       const SizedBox(height: 24),
                       const Text(
                         '설명',
                         style: TextStyle(
+                          fontFamily: 'WantedSans',
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -241,7 +260,10 @@ class MemoryEditForm extends StatelessWidget {
                         key: ValueKey<String>('desc_$itemId'),
                         initialValue: itemData.description,
                         maxLines: 4,
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontFamily: 'WantedSans',
+                        ),
                         onChanged: (String val) {
                           context.read<MemoryGallerySettingBloc>().add(
                             UpdateMemoryItemDescription(itemId, val),
@@ -251,7 +273,11 @@ class MemoryEditForm extends StatelessWidget {
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.07),
                           hintText: '설명을 입력해주세요',
-                          hintStyle: const TextStyle(color: Colors.white38),
+                          hintStyle: const TextStyle(
+                            color: Colors.white38,
+                            fontFamily: 'WantedSans',
+                          ),
+                          errorStyle: const TextStyle(fontFamily: 'WantedSans'),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide(
