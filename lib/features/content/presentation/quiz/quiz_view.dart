@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import '../../../../core/blocs/download/download_bloc.dart';
+import '../../../../core/constants/app_breakpoints.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../lobby/model/lobby_data.dart';
 import '../../application/quiz/quiz_bloc.dart';
-import '../../../../core/constants/app_breakpoints.dart';
-import '../../../../core/widgets/grid_background_painter.dart';
-import '../../../../core/constants/app_colors.dart';
+import '../result/result_view.dart';
 
 class QuizView extends StatefulWidget {
   final String code;
@@ -83,29 +84,30 @@ class _QuizViewState extends State<QuizView> with SingleTickerProviderStateMixin
     final bool isDesktop = size.width >= AppBreakpoints.desktop;
 
     return BlocConsumer<QuizBloc, QuizState>(
-      // 퀴즈 완료 시 결과 화면으로 이동
       listener: (BuildContext context, QuizState state) {
-        if (state.isFinished && state.quizContent != null) {
-          final RewardItem reward = state.isSuccess
-              ? state.quizContent!.successReward
-              : state.quizContent!.failReward;
-
-          context.go(
-            '/content/result',
-            extra: <String, dynamic>{
-              'itemName': reward.itemName,
-              'imageUrl': reward.imageUrl,
-              'userName': state.userName,
-            },
-          );
-        }
-
         // 제출 시 (정답/오답) 애니메이션 효과 실행
         if (state.isLastAnswerCorrect != null) {
           _triggerAnswerAnimation(state.isLastAnswerCorrect!);
         }
       },
       builder: (BuildContext context, QuizState state) {
+        // 퀴즈 완료 시 URL 유지한 채 결과 화면을 인라인으로 렌더링
+        if (state.isFinished && state.quizContent != null) {
+          final RewardItem reward = state.isSuccess
+              ? state.quizContent!.successReward
+              : state.quizContent!.failReward;
+
+          return BlocProvider<DownloadBloc>(
+            create: (_) => DownloadBloc(),
+            child: ResultView(
+              itemName: reward.itemName,
+              imageUrl: reward.imageUrl,
+              userName: state.userName,
+              inviteCode: widget.code,
+            ),
+          );
+        }
+
         if (state.quizContent == null) {
           return Title(
             title: 'Happy Birthday, ${state.userName} | Gifo',
