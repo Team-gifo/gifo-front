@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gifo/features/addgift/model/gallery_item.dart';
@@ -7,6 +9,8 @@ import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../widgets/addgift_scaffold.dart';
+import '../widgets/memory_decision/memory_decision_buttons_column.dart';
+import '../widgets/memory_decision/memory_decision_main_text.dart';
 import '../widgets/step_indicator.dart';
 
 class MemoryDecisionView extends StatelessWidget {
@@ -34,7 +38,7 @@ class MemoryDecisionView extends StatelessWidget {
               }
             },
           ),
-          actions: <Widget>[const StepIndicator(activeStep: 2)],
+          actions: const <Widget>[StepIndicator(activeStep: 2)],
         ),
         body: SafeArea(
           child: LayoutBuilder(
@@ -52,11 +56,23 @@ class MemoryDecisionView extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: <Widget>[
-                        Expanded(
-                          child: _buildMainText(TextAlign.left),
+                        const Expanded(
+                          child: MemoryDecisionMainText(
+                            alignment: TextAlign.left,
+                          ),
                         ),
                         const SizedBox(width: 80),
-                        Expanded(child: _buildButtonsColumn(context)),
+                        Expanded(
+                          child: MemoryDecisionButtonsColumn(
+                            onSelectShareMemory: () {
+                              unawaited(
+                                context.push('/addgift/memory-gallery'),
+                              );
+                            },
+                            onSelectDirectOpen: () =>
+                                _handleDirectOpenSelection(context),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -72,10 +88,20 @@ class MemoryDecisionView extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
                           const SizedBox(height: 48),
-                          _buildMainText(TextAlign.center),
+                          const MemoryDecisionMainText(
+                            alignment: TextAlign.center,
+                          ),
                           const Spacer(),
                           const SizedBox(height: 48),
-                          _buildButtonsColumn(context),
+                          MemoryDecisionButtonsColumn(
+                            onSelectShareMemory: () {
+                              unawaited(
+                                context.push('/addgift/memory-gallery'),
+                              );
+                            },
+                            onSelectDirectOpen: () =>
+                                _handleDirectOpenSelection(context),
+                          ),
                         ],
                       ),
                     ),
@@ -89,165 +115,73 @@ class MemoryDecisionView extends StatelessWidget {
     );
   }
 
-  Widget _buildMainText(TextAlign alignment) {
-    return Text(
-      '선물을 공개하기 전,\n친구와 추억을 공유할까요?',
-      textAlign: alignment,
-      style: const TextStyle(
-        fontFamily: 'PFStardustS',
-        fontSize: 28,
-        color: Colors.white,
-        height: 1.5,
-      ),
-    );
-  }
+  Future<void> _handleDirectOpenSelection(BuildContext context) async {
+    final bool hasGalleryData = context
+        .read<GiftPackagingBloc>()
+        .state
+        .gallery
+        .isNotEmpty;
 
-  Widget _buildButtonsColumn(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: <Widget>[
-        _buildSelectionButton(
-          title: '네,',
-          subtitle: '저는 친구와 함께 추억을 공유하고 싶어요!',
-          icon: Icons.photo_library_rounded,
-          accentColor: AppColors.neonPurple,
-          onPressed: () => context.push('/addgift/memory-gallery'),
-        ),
-        const SizedBox(height: 16),
-        _buildSelectionButton(
-          title: '아니요,',
-          subtitle: '저는 바로 선물을 공개할거에요.',
-          icon: Icons.card_giftcard_rounded,
-          accentColor: AppColors.neonBlue,
-          onPressed: () async {
-            final bool hasGalleryData = context
-                .read<GiftPackagingBloc>()
-                .state
-                .gallery
-                .isNotEmpty;
-
-            if (hasGalleryData) {
-              final bool? confirm = await showDialog<bool>(
-                context: context,
-                builder: (BuildContext dialogContext) => AlertDialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  backgroundColor: const Color(0xFF1A1A1A),
-                  title: const Text(
-                    '추억 갤러리 데이터 존재',
-                    style: TextStyle(
-                      fontFamily: 'WantedSans',
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  content: const Text(
-                    '등록된 추억 갤러리 데이터가 있습니다.\n초기화하고 바로 선물 공개로 진행할까요?',
-                    style: TextStyle(
-                      fontFamily: 'WantedSans',
-                      height: 1.5,
-                      fontSize: 15,
-                      color: Colors.white70,
-                    ),
-                  ),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(false),
-                      child: const Text(
-                        '아니오 (데이터 유지)',
-                        style: TextStyle(
-                          fontFamily: 'WantedSans',
-                          color: Colors.white38,
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.of(dialogContext).pop(true),
-                      child: const Text(
-                        '초기화 후 진행',
-                        style: TextStyle(
-                          fontFamily: 'WantedSans',
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-              if (confirm == true && context.mounted) {
-                context.read<GiftPackagingBloc>().add(
-                  SetGalleryItems(<GalleryItem>[]),
-                );
-                context.push('/addgift/delivery-method');
-              } else if (confirm == false && context.mounted) {
-                context.push('/addgift/delivery-method');
-              }
-            } else {
-              context.push('/addgift/delivery-method');
-            }
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSelectionButton({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color accentColor,
-    required VoidCallback onPressed,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(20.0),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 28.0, horizontal: 16.0),
-          decoration: BoxDecoration(
-            color: accentColor.withValues(alpha: 0.07),
-            border: Border.all(
-              color: accentColor.withValues(alpha: 0.5),
-              width: 1.5,
+    if (hasGalleryData) {
+      final bool? confirm = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext dialogContext) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: const Color(0xFF1A1A1A),
+          title: const Text(
+            '추억 갤러리 데이터 존재',
+            style: TextStyle(
+              fontFamily: 'WantedSans',
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
-            borderRadius: BorderRadius.circular(20.0),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              Icon(icon, size: 48, color: accentColor),
-              const SizedBox(height: 20),
-              Text(
-                title,
-                textAlign: TextAlign.center,
+          content: const Text(
+            '등록된 추억 갤러리 데이터가 있습니다.\n초기화하고 바로 선물 공개로 진행할까요?',
+            style: TextStyle(
+              fontFamily: 'WantedSans',
+              height: 1.5,
+              fontSize: 15,
+              color: Colors.white70,
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text(
+                '아니오 (데이터 유지)',
                 style: TextStyle(
-                  fontFamily: 'PFStardustS',
-                  fontSize: 22,
-                  color: accentColor,
-                  height: 1.3,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
                   fontFamily: 'WantedSans',
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  height: 1.5,
-                  color: Colors.white60,
+                  color: Colors.white38,
                 ),
               ),
-            ],
-          ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text(
+                '초기화 후 진행',
+                style: TextStyle(
+                  fontFamily: 'WantedSans',
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
-      ),
-    );
-  }
+      );
 
+      if (confirm == true && context.mounted) {
+        context.read<GiftPackagingBloc>().add(SetGalleryItems(<GalleryItem>[]));
+        unawaited(context.push('/addgift/delivery-method'));
+      } else if (confirm == false && context.mounted) {
+        unawaited(context.push('/addgift/delivery-method'));
+      }
+      return;
+    }
+
+    unawaited(context.push('/addgift/delivery-method'));
+  }
 }
