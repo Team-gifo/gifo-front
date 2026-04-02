@@ -116,7 +116,7 @@ class QuizSettingsPanel extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   _buildRewardImagePicker(
-                    isSuccess: true,
+                    context: context,
                     imageFile: quizState.successReward.imageFile,
                     onTap: onPickSuccessRewardImage,
                   ),
@@ -152,7 +152,7 @@ class QuizSettingsPanel extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: <Widget>[
                   _buildRewardImagePicker(
-                    isSuccess: false,
+                    context: context,
                     imageFile: quizState.failReward.imageFile,
                     onTap: onPickFailRewardImage,
                   ),
@@ -270,38 +270,63 @@ class QuizSettingsPanel extends StatelessWidget {
   }
 
   Widget _buildRewardImagePicker({
-    required bool isSuccess,
+    required BuildContext context,
     required XFile? imageFile,
     required VoidCallback onTap,
   }) {
-    return InkWell(
-      onTap: onTap,
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white12,
-            borderRadius: BorderRadius.circular(8),
-            image: imageFile != null
-                ? DecorationImage(
-                    image: NetworkImage(imageFile.path),
-                    fit: BoxFit.contain,
-                  )
-                : null,
+    return Stack(
+      children: <Widget>[
+        InkWell(
+          onTap: onTap,
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white12,
+                borderRadius: BorderRadius.circular(8),
+                image: imageFile != null
+                    ? DecorationImage(
+                        image: NetworkImage(imageFile.path),
+                        fit: BoxFit.contain,
+                      )
+                    : null,
+              ),
+              child: imageFile == null
+                  ? const Center(
+                      child: Text(
+                        '물품 사진',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  : null,
+            ),
           ),
-          child: imageFile == null
-              ? const Center(
-                  child: Text(
-                    '물품 사진',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                )
-              : null,
         ),
-      ),
+        if (imageFile != null)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: () => _showFullImage(context, imageFile),
+              child: Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(
+                  Icons.open_in_full,
+                  color: Colors.white,
+                  size: 16,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -320,4 +345,33 @@ class QuizSettingsPanel extends StatelessWidget {
       style: const TextStyle(color: Colors.white),
     );
   }
+}
+
+void _showFullImage(BuildContext context, XFile imageFile) {
+  showDialog<void>(
+    context: context,
+    builder: (BuildContext ctx) => Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.all(16),
+      child: Stack(
+        children: <Widget>[
+          InteractiveViewer(
+            child: Image.network(
+              imageFile.path,
+              fit: BoxFit.contain,
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              icon: const Icon(Icons.close, color: Colors.white),
+              style: IconButton.styleFrom(backgroundColor: Colors.black54),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

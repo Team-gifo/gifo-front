@@ -38,47 +38,72 @@ class AfterOpenCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          InkWell(
-            onTap: onPickImage,
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              width: isMobile ? 200 : 280,
-              height: isMobile ? 200 : 280,
-              decoration: BoxDecoration(
-                color: Colors.white12,
+          Stack(
+            children: <Widget>[
+              InkWell(
+                onTap: onPickImage,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 2,
+                child: Container(
+                  width: isMobile ? 200 : 280,
+                  height: isMobile ? 200 : 280,
+                  decoration: BoxDecoration(
+                    color: Colors.white12,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      width: 2,
+                    ),
+                    image: imageFile != null
+                        ? DecorationImage(
+                            image: NetworkImage(imageFile!.path),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: imageFile == null
+                      ? const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            Icon(
+                              Icons.image,
+                              size: 64,
+                              color: Colors.white38,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              '물품 사진 등록',
+                              style: TextStyle(
+                                color: Colors.white38,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        )
+                      : null,
                 ),
-                image: imageFile != null
-                    ? DecorationImage(
-                        image: NetworkImage(imageFile!.path),
-                        fit: BoxFit.cover,
-                      )
-                    : null,
               ),
-              child: imageFile == null
-                  ? const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Icon(
-                          Icons.image,
-                          size: 64,
-                          color: Colors.white38,
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          '물품 사진 등록',
-                          style: TextStyle(
-                            color: Colors.white38,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    )
-                  : null,
-            ),
+              if (imageFile != null)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: GestureDetector(
+                    onTap: () => _showFullImage(context, imageFile!),
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Icon(
+                        Icons.open_in_full,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 24),
           const Align(
@@ -122,4 +147,33 @@ class AfterOpenCard extends StatelessWidget {
       ),
     );
   }
+}
+
+void _showFullImage(BuildContext context, XFile imageFile) {
+  showDialog<void>(
+    context: context,
+    builder: (BuildContext ctx) => Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.all(16),
+      child: Stack(
+        children: <Widget>[
+          InteractiveViewer(
+            child: Image.network(
+              imageFile.path,
+              fit: BoxFit.contain,
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: IconButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              icon: const Icon(Icons.close, color: Colors.white),
+              style: IconButton.styleFrom(backgroundColor: Colors.black54),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

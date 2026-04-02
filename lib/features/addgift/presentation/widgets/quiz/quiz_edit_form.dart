@@ -149,6 +149,35 @@ class _QuizEditFormState extends State<QuizEditForm> {
     }
   }
 
+  void _showFullImage() {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          children: <Widget>[
+            InteractiveViewer(
+              child: Image.network(
+                _editingItem.imageFile!.path,
+                fit: BoxFit.contain,
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: IconButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                icon: const Icon(Icons.close, color: Colors.white),
+                style: IconButton.styleFrom(backgroundColor: Colors.black54),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -200,36 +229,100 @@ class _QuizEditFormState extends State<QuizEditForm> {
                   ),
                   const SizedBox(height: 16),
                   _buildSectionTitle('이미지 (선택)'),
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: Container(
-                      height: 120,
-                      decoration: BoxDecoration(
-                        color: Colors.white12,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.15),
+                  if (_editingItem.imageFile == null)
+                    GestureDetector(
+                      onTap: _pickImage,
+                      child: Container(
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.07),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white24, width: 1),
                         ),
-                        image: _editingItem.imageFile != null
-                            ? DecorationImage(
-                                image: NetworkImage(
-                                  _editingItem.imageFile!.path,
-                                ),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
+                        child: const Center(
+                          child: Icon(
+                            Icons.add_photo_alternate,
+                            size: 40,
+                            color: Colors.white38,
+                          ),
+                        ),
                       ),
-                      child: _editingItem.imageFile == null
-                          ? const Center(
-                              child: Icon(
-                                Icons.add_photo_alternate,
-                                size: 40,
-                                color: Colors.white24,
+                    )
+                  else
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Stack(
+                          children: <Widget>[
+                            Container(
+                              constraints: const BoxConstraints(maxHeight: 500),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: Colors.white24,
+                                  width: 1,
+                                ),
                               ),
-                            )
-                          : null,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.network(
+                                  _editingItem.imageFile!.path,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: GestureDetector(
+                                onTap: _showFullImage,
+                                child: Container(
+                                  width: 28,
+                                  height: 28,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Icon(
+                                    Icons.open_in_full,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            OutlinedButton.icon(
+                              onPressed: _pickImage,
+                              icon: const Icon(Icons.edit, size: 16),
+                              label: const Text('수정'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.blue,
+                                side: const BorderSide(color: Colors.blue),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            OutlinedButton.icon(
+                              onPressed: () => setState(
+                                () => _editingItem.imageFile = null,
+                              ),
+                              icon: const Icon(Icons.delete, size: 16),
+                              label: const Text('삭제'),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.red,
+                                side: const BorderSide(color: Colors.red),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
                   const SizedBox(height: 16),
                   _buildSectionTitle('설명'),
                   _buildDarkTextField(
