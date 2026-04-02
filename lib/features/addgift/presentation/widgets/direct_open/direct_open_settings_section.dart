@@ -4,9 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../application/direct_open_setting/direct_open_setting_bloc.dart';
 
 class DirectOpenSettingsSection extends StatelessWidget {
-  const DirectOpenSettingsSection({super.key, required this.state});
+  const DirectOpenSettingsSection({
+    super.key,
+    required this.state,
+    this.isMobile = false,
+  });
 
   final DirectOpenSettingState state;
+  final bool isMobile;
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +74,36 @@ class DirectOpenSettingsSection extends StatelessWidget {
             ),
           ],
         ),
+        if (!isMobile) ...<Widget>[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.1),
+                width: 1,
+              ),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  '⚠️ 포장 완료 조건',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Colors.deepOrange,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text('• 상단 닉네임 및 서브타이틀 입력', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                Text('• 물품 이름 입력', style: TextStyle(fontSize: 12, color: Colors.white70)),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }

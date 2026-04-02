@@ -112,6 +112,21 @@ class _QuizEditFormState extends State<QuizEditForm> {
       _editingItem.answer = _selectedMultipleChoiceAnswers
           .map((int idx) => idx.toString())
           .toList();
+      // 복수 정답 자동 힌트 처리
+      final String currentHint = _hintController.text.trim();
+      if (_selectedMultipleChoiceAnswers.length >= 2) {
+        if (!currentHint.contains('복수 정답')) {
+          _editingItem.hint = currentHint.isEmpty
+              ? '복수 정답'
+              : '$currentHint / 복수 정답';
+        }
+      } else {
+        _editingItem.hint = currentHint
+            .replaceAll(' / 복수 정답', '')
+            .replaceAll('복수 정답 / ', '')
+            .replaceAll('복수 정답', '')
+            .trim();
+      }
     } else if (_editingItem.type == QuizType.subjective) {
       _editingItem.answer = _answerControllers
           .map((TextEditingController c) => c.text.trim())
@@ -284,18 +299,27 @@ class _QuizEditFormState extends State<QuizEditForm> {
                         ),
                       );
                     }),
-                    TextButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          _optionControllers.add(TextEditingController());
-                        });
-                      },
-                      style: TextButton.styleFrom(
-                        foregroundColor: AppColors.neonPurpleLight,
+                    if (_optionControllers.length < 5)
+                      TextButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _optionControllers.add(TextEditingController());
+                          });
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.neonPurpleLight,
+                        ),
+                        icon: const Icon(Icons.add),
+                        label: const Text('선택지 추가'),
+                      )
+                    else
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          '최대 5개까지 추가 가능합니다',
+                          style: TextStyle(fontSize: 12, color: Colors.white38),
+                        ),
                       ),
-                      icon: const Icon(Icons.add),
-                      label: const Text('선택지 추가'),
-                    ),
                     const SizedBox(height: 16),
                     _buildSectionTitle('정답 선택 (복수 선택 가능)'),
                     Wrap(

@@ -108,6 +108,13 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
     }
   }
 
+  bool _canComplete() {
+    if (_userNameController.text.trim().isEmpty) return false;
+    if (_subTitleController.text.trim().isEmpty) return false;
+    if (_afterNameController.text.trim().isEmpty) return false;
+    return true;
+  }
+
   void _completePackage() {
     final GiftPackagingBloc packagingBloc = context.read<GiftPackagingBloc>();
     context.read<DirectOpenSettingBloc>().add(
@@ -247,12 +254,15 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                                             child: SingleChildScrollView(
                                               child: DirectOpenSettingsSection(
                                                 state: directOpenState,
+                                                isMobile: false,
                                               ),
                                             ),
                                           ),
                                           const SizedBox(height: 24),
                                           DirectOpenCompleteButton(
-                                            onPressed: _completePackage,
+                                            onPressed: _canComplete()
+                                                ? _completePackage
+                                                : null,
                                           ),
                                         ],
                                       ),
@@ -267,6 +277,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                   ),
                   bottomNavigationBar: isMobile
                       ? DirectOpenMobileBottomBar(
+                          canComplete: _canComplete(),
                           onShowSettings: _showMobileSettingsModal,
                           onComplete: _completePackage,
                         )
@@ -322,7 +333,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        DirectOpenSettingsSection(state: state),
+                        DirectOpenSettingsSection(state: state, isMobile: true),
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,

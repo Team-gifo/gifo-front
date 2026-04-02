@@ -165,82 +165,102 @@ class QuizSettingsPanel extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 40),
-        const Text(
-          'BGM 설정',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        const SizedBox(height: 16),
+        if (!isMobile)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.1),
+                width: 1,
+              ),
+            ),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  '⚠️ 포장 완료 조건',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                    color: Colors.deepOrange,
+                  ),
+                ),
+                SizedBox(height: 8),
+                Text('• 문제 최소 1개 이상 생성', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                Text('• 상단 닉네임 및 서브타이틀 입력', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                Text('• 미완성 문제 없음 (제목 + 정답 필수)', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                Text('• 성공 보상 물품 이름 입력', style: TextStyle(fontSize: 12, color: Colors.white70)),
+              ],
+            ),
           ),
+        const SizedBox(height: 16),
+        const Row(
+          children: <Widget>[
+            Icon(Icons.music_note, size: 20, color: Colors.white),
+            SizedBox(width: 8),
+            Text(
+              'BGM 설정',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.12),
-              width: 1,
-            ),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(
             children: <Widget>[
-              const Text(
-                '메인 BGM :',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white12,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                      value: quizState.selectedBgm,
+                      isExpanded: true,
+                      dropdownColor: const Color(0xFF1A1A1A),
+                      style: const TextStyle(color: Colors.white),
+                      iconEnabledColor: Colors.white38,
+                      onChanged: (String? val) {
+                        if (val != null) {
+                          context.read<QuizSettingBloc>().add(
+                            UpdateQuizBgm(val),
+                          );
+                        }
+                      },
+                      items: <String>['신나는 생일', '잔잔한 음악', '우리의 추억']
+                          .map(
+                            (String value) => DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(
+                                value,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 12),
-              Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white12,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: quizState.selectedBgm,
-                          isExpanded: true,
-                          dropdownColor: const Color(0xFF1A1A1A),
-                          style: const TextStyle(color: Colors.white),
-                          iconEnabledColor: Colors.white38,
-                          onChanged: (String? val) {
-                            if (val != null) {
-                              context.read<QuizSettingBloc>().add(
-                                UpdateQuizBgm(val),
-                              );
-                            }
-                          },
-                          items: <String>['신나는 생일', '잔잔한 음악', '우리의 추억']
-                              .map(
-                                (String value) => DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(
-                                    value,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              )
-                              .toList(),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white12,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(Icons.play_arrow, color: Colors.white38),
-                  ),
-                ],
+              const SizedBox(width: 8),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white12,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.play_arrow, color: Colors.white38),
               ),
             ],
           ),
@@ -256,29 +276,31 @@ class QuizSettingsPanel extends StatelessWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      child: Container(
-        height: 80,
-        decoration: BoxDecoration(
-          color: Colors.white12,
-          borderRadius: BorderRadius.circular(8),
-          image: imageFile != null
-              ? DecorationImage(
-                  image: NetworkImage(imageFile.path),
-                  fit: BoxFit.cover,
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white12,
+            borderRadius: BorderRadius.circular(8),
+            image: imageFile != null
+                ? DecorationImage(
+                    image: NetworkImage(imageFile.path),
+                    fit: BoxFit.contain,
+                  )
+                : null,
+          ),
+          child: imageFile == null
+              ? const Center(
+                  child: Text(
+                    '물품 사진',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 )
               : null,
         ),
-        child: imageFile == null
-            ? const Center(
-                child: Text(
-                  '물품 사진',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              )
-            : null,
       ),
     );
   }
