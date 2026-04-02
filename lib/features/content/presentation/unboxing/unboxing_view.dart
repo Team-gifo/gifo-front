@@ -1,7 +1,14 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/blocs/download/download_bloc.dart';
+import '../../../../core/constants/app_breakpoints.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/grid_background_painter.dart';
+import '../../../../core/widgets/pixel_envelope_widget.dart';
 import '../../application/unboxing/unboxing_bloc.dart';
 import '../result/result_view.dart';
 
@@ -14,26 +21,113 @@ class UnboxingView extends StatefulWidget {
   State<UnboxingView> createState() => _UnboxingViewState();
 }
 
-class _UnboxingViewState extends State<UnboxingView> {
+class _UnboxingViewState extends State<UnboxingView>
+    with TickerProviderStateMixin {
   bool _isHovering = false;
+  bool _hasStartedAnim = false;
+  bool _startTyping = false;
+
+  late AnimationController _introAnimCtrl;
+  late AnimationController _btnAnimCtrl;
+
+  late Animation<double> _envDrop;
+  late Animation<double> _envScale;
+  late Animation<double> _envOpacity;
+  late Animation<double> _bgOpacity;
+  late Animation<double> _textBgOpacity;
+  late Animation<double> _textDrop;
+
+  late Animation<double> _btnOpacity;
+  late Animation<double> _btnSlideUp;
 
   @override
   void initState() {
     super.initState();
     context.read<UnboxingBloc>().add(InitUnboxing(widget.code));
+
+    _introAnimCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2500),
+    );
+
+    _btnAnimCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 800),
+    );
+
+    _envDrop = Tween<double>(begin: -1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _introAnimCtrl,
+        curve: const Interval(0.0, 0.35, curve: Curves.bounceOut),
+      ),
+    );
+    _envScale = Tween<double>(begin: 1.0, end: 1.5).animate(
+      CurvedAnimation(
+        parent: _introAnimCtrl,
+        curve: const Interval(0.45, 0.6, curve: Curves.easeIn),
+      ),
+    );
+    _envOpacity = Tween<double>(begin: 1.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _introAnimCtrl,
+        curve: const Interval(0.45, 0.6, curve: Curves.easeIn),
+      ),
+    );
+
+    _bgOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _introAnimCtrl,
+        curve: const Interval(0.6, 0.8, curve: Curves.easeOut),
+      ),
+    );
+
+    _textDrop = Tween<double>(begin: -50.0, end: 0.0).animate(
+      CurvedAnimation(
+        parent: _introAnimCtrl,
+        curve: const Interval(0.8, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
+    _textBgOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _introAnimCtrl,
+        curve: const Interval(0.8, 1.0, curve: Curves.easeOut),
+      ),
+    );
+
+    _btnSlideUp = Tween<double>(begin: 100.0, end: 0.0).animate(
+      CurvedAnimation(parent: _btnAnimCtrl, curve: Curves.easeOutCubic),
+    );
+    _btnOpacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _btnAnimCtrl, curve: Curves.easeOut));
+
+    _introAnimCtrl.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        if (mounted) {
+          setState(() {
+            _startTyping = true;
+          });
+        }
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _introAnimCtrl.dispose();
+    _btnAnimCtrl.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final Size size = MediaQuery.of(context).size;
-    final bool isDesktop = size.width > 900;
+    final bool isDesktop = size.width >= AppBreakpoints.desktop;
 
     return BlocConsumer<UnboxingBloc, UnboxingState>(
-      listener: (BuildContext context, UnboxingState state) {
-        // 수령 완료 상태는 builder에서 처리하므로 listener는 비워둔다
-      },
+      listener: (BuildContext context, UnboxingState state) {},
       builder: (BuildContext context, UnboxingState state) {
-        // URL 유지한 채 결과 화면을 인라인으로 렌더링
         if (state.isReceived && state.unboxingContent != null) {
           return BlocProvider<DownloadBloc>(
             create: (_) => DownloadBloc(),
@@ -49,121 +143,311 @@ class _UnboxingViewState extends State<UnboxingView> {
         if (state.unboxingContent == null) {
           return Title(
             title: 'Happy Birthday, ${state.userName} | Gifo',
-            color: Colors.black,
+            color: AppColors.darkBg,
             child: const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+              backgroundColor: AppColors.darkBg,
+              body: Center(
+                child: CircularProgressIndicator(color: AppColors.neonPurple),
+              ),
             ),
           );
         }
 
+        if (!_hasStartedAnim) {
+          _hasStartedAnim = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _introAnimCtrl.forward();
+          });
+        }
+
         return Title(
           title: 'Happy Birthday, ${state.userName} | Gifo',
-          color: Colors.black,
+          color: AppColors.darkBg,
           child: Scaffold(
-            backgroundColor: Colors.white,
-            appBar: _buildAppBar(state, size),
-          body: SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            backgroundColor: AppColors.darkBg,
+            body: SafeArea(
+              child: AnimatedBuilder(
+                animation: Listenable.merge([_introAnimCtrl, _btnAnimCtrl]),
+                builder: (context, child) {
+                  final double topInset = size.width < AppBreakpoints.tablet
+                      ? 64
+                      : 72;
+                  final double responsiveFontSize;
+
+                  if (size.width >= AppBreakpoints.desktop) {
+                    responsiveFontSize = 22.0;
+                  } else if (size.width >= AppBreakpoints.tablet) {
+                    responsiveFontSize = 18.0;
+                  } else {
+                    responsiveFontSize = 16.0;
+                  }
+
+                  return Stack(
+                    fit: StackFit.expand,
                     children: <Widget>[
-                      if (isDesktop) const SizedBox(height: 48),
-                      Container(
-                        constraints: const BoxConstraints(maxWidth: 700),
-                        padding: const EdgeInsets.all(32.0),
-                        child: Column(
-                          children: <Widget>[
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(16.0),
-                              child: Image.asset(
-                                state.unboxingContent!.beforeOpen.imageUrl,
-                                fit: BoxFit.contain,
-                                width: double.infinity,
-                                height: isDesktop ? 500 : 350,
-                              ),
-                            ),
-                            const SizedBox(height: 32),
-                            Text(
-                              state.unboxingContent!.beforeOpen.description,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w600,
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
-                        ),
+                      // 1. Grid Background
+                      Positioned.fill(
+                        child: CustomPaint(painter: GridBackgroundPainter()),
                       ),
-                      const SizedBox(height: 48),
-                      if (isDesktop) _buildReceiveButton(isDesktop: true),
-                      if (isDesktop) const SizedBox(height: 48),
+
+                      // 2. Background Image
+                      if (_bgOpacity.value > 0)
+                        Positioned.fill(
+                          child: Opacity(
+                            opacity: _bgOpacity.value,
+                            child: Image.asset(
+                              state.unboxingContent!.beforeOpen.imageUrl,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+
+                      // 3. Pixel Envelope Drop & Burst
+                      if (_envOpacity.value > 0)
+                        Align(
+                          alignment: FractionalOffset(
+                            0.5,
+                            0.5 + (_envDrop.value * 1.5),
+                          ),
+                          child: Transform.scale(
+                            scale: _envScale.value,
+                            child: Opacity(
+                              opacity: _envOpacity.value,
+                              child: const PixelEnvelopeWidget(),
+                            ),
+                          ),
+                        ),
+
+                      // 4. Text Container Dropping Down
+                      if (_textBgOpacity.value > 0)
+                        Positioned(
+                          top: topInset + 24,
+                          left: 24,
+                          right: 24,
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: Transform.translate(
+                              offset: Offset(0, _textDrop.value),
+                              child: Opacity(
+                                opacity: _textBgOpacity.value,
+                                child: Container(
+                                  width: isDesktop ? 490 : double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24.0,
+                                    vertical: 32.0,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.darkBg.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    borderRadius: BorderRadius.circular(16.0),
+                                    border: Border.all(
+                                      color: AppColors.neonPurple.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                      width: 2,
+                                    ),
+                                    boxShadow: <BoxShadow>[
+                                      BoxShadow(
+                                        color: AppColors.neonPurpleLight
+                                            .withValues(alpha: 0.2),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      minHeight: 40,
+                                    ),
+                                    child: Center(
+                                      heightFactor: 1.0,
+                                      child: _startTyping
+                                          ? DefaultTextStyle(
+                                              style: TextStyle(
+                                                fontSize: responsiveFontSize,
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w600,
+                                                fontFamily: 'WantedSans',
+                                                height: 1.5,
+                                              ),
+                                              child: AnimatedTextKit(
+                                                key: ValueKey(
+                                                  state
+                                                      .unboxingContent!
+                                                      .beforeOpen
+                                                      .description,
+                                                ),
+                                                pause: Duration.zero,
+                                                isRepeatingAnimation: false,
+                                                displayFullTextOnTap: true,
+                                                stopPauseOnTap: true,
+                                                animatedTexts: [
+                                                  TypewriterAnimatedText(
+                                                    state
+                                                        .unboxingContent!
+                                                        .beforeOpen
+                                                        .description,
+                                                    textAlign: TextAlign.center,
+                                                    speed: const Duration(
+                                                      milliseconds: 60,
+                                                    ),
+                                                  ),
+                                                ],
+                                                onFinished: () {
+                                                  if (mounted &&
+                                                      !_btnAnimCtrl
+                                                          .isAnimating &&
+                                                      !_btnAnimCtrl
+                                                          .isCompleted) {
+                                                    _btnAnimCtrl.forward();
+                                                  }
+                                                },
+                                              ),
+                                            )
+                                          : const SizedBox.shrink(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // 5. Button Sliding Up
+                      if (_btnOpacity.value > 0)
+                        Positioned(
+                          bottom: 48,
+                          left: 0,
+                          right: 0,
+                          child: Transform.translate(
+                            offset: Offset(0, _btnSlideUp.value),
+                            child: Opacity(
+                              opacity: _btnOpacity.value,
+                              child: Center(
+                                child: _buildReceiveButton(
+                                  isDesktop: isDesktop,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // 6. AppBar fixed at Top
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: _buildAppBar(state, size),
+                      ),
                     ],
-                  ),
-                ),
+                  );
+                },
               ),
             ),
           ),
-          bottomNavigationBar: isDesktop
-              ? null
-              : SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: _buildReceiveButton(isDesktop: false),
-                  ),
-                ),
-        ));
+        );
       },
     );
   }
 
-  PreferredSizeWidget _buildAppBar(UnboxingState state, Size size) {
-    return AppBar(
-      automaticallyImplyLeading: false,
-      backgroundColor: Colors.white,
-      elevation: 0,
-      title: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Row(
+  Widget _buildAppBar(UnboxingState state, Size size) {
+    final bool isMobileOrSmall = size.width < AppBreakpoints.tablet;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.darkBg.withValues(alpha: 0.8),
+        border: Border(
+          bottom: BorderSide(
+            color: AppColors.neonPurple.withValues(alpha: 0.3),
+            width: 1,
+          ),
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.neonPurple.withValues(alpha: 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: AppBar(
+        toolbarHeight: isMobileOrSmall ? 64.0 : 72.0,
+        primary: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        titleSpacing: isMobileOrSmall ? 16.0 : 32.0,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            Image.asset('assets/images/title_logo.png', height: 50),
+            MouseRegion(
+              cursor: SystemMouseCursors.click,
+              child: GestureDetector(
+                onTap: () async {
+                  final Uri homeUri = Uri.base.resolve('/');
+                  if (await canLaunchUrl(homeUri)) {
+                    await launchUrl(homeUri, webOnlyWindowName: '_blank');
+                  } else {
+                    if (context.mounted) context.go('/');
+                  }
+                },
+                child: Image.asset(
+                  'assets/images/title_logo.png',
+                  height: isMobileOrSmall ? 40 : 48,
+                  color: Colors.white,
+                ),
+              ),
+            ),
             const SizedBox(width: 16),
-            if (size.width > 600)
+            if (size.width >= AppBreakpoints.tablet)
               RichText(
                 text: TextSpan(
                   style: const TextStyle(
                     fontSize: 20,
-                    color: Colors.black,
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
+                    fontFamily: 'WantedSans',
                   ),
                   children: <InlineSpan>[
                     TextSpan(
                       text: state.userName,
-                      style: const TextStyle(color: Colors.blue),
+                      style: const TextStyle(color: AppColors.neonPurple),
                     ),
                     const TextSpan(text: '님의 '),
                     TextSpan(
-                      text: state.subTitle,
-                      style: const TextStyle(color: Colors.blue),
+                      text: state.subTitle.isNotEmpty ? state.subTitle : '',
+                      style: const TextStyle(color: AppColors.neonPurple),
                     ),
                     const TextSpan(text: ' 선물상자'),
                   ],
                 ),
               )
             else
-              Expanded(
-                child: Text(
-                  '${state.userName}님의 ${state.subTitle} 선물상자',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                  ),
+              Flexible(
+                child: RichText(
                   overflow: TextOverflow.ellipsis,
+                  text: TextSpan(
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'WantedSans',
+                    ),
+                    children: <InlineSpan>[
+                      TextSpan(
+                        text: state.userName,
+                        style: const TextStyle(color: AppColors.neonPurple),
+                      ),
+                      const TextSpan(text: '님의 '),
+                      TextSpan(
+                        text: state.subTitle.isNotEmpty ? state.subTitle : '',
+                        style: const TextStyle(color: AppColors.neonPurple),
+                      ),
+                      const TextSpan(text: ' 선물상자'),
+                    ],
+                  ),
                 ),
               ),
           ],
@@ -180,22 +464,31 @@ class _UnboxingViewState extends State<UnboxingView> {
         duration: const Duration(milliseconds: 200),
         transform: Matrix4.translationValues(0, _isHovering ? -5 : 0, 0),
         width: isDesktop ? 400 : double.infinity,
+        constraints: const BoxConstraints(maxWidth: 400),
         height: 60,
         child: ElevatedButton(
           onPressed: () =>
               context.read<UnboxingBloc>().add(const ReceiveGift()),
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFC7DEFF),
-            foregroundColor: Colors.black,
+            backgroundColor: AppColors.neonPurple,
+            foregroundColor: Colors.white,
             elevation: _isHovering ? 8 : 4,
-            shadowColor: Colors.blue.withValues(alpha: 0.3),
+            shadowColor: AppColors.neonPurple.withValues(alpha: 0.5),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16.0),
+              borderRadius: BorderRadius.circular(12.0),
+              side: const BorderSide(
+                color: Colors.white,
+                width: 2,
+              ), // 네온 스타일 보더
             ),
           ),
           child: const Text(
-            '🎁 선물 받기',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            '🎁 선물 개봉하기',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'PFStardust',
+            ),
           ),
         ),
       ),
