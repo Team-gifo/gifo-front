@@ -207,16 +207,24 @@ class _UnboxingViewState extends State<UnboxingView> {
   ) {
     double imgMaxWidth;
     double imgMaxHeight;
+    double imgMinWidth;
+    double imgMinHeight;
 
     if (size.width >= AppBreakpoints.desktop) {
       imgMaxWidth = 600;
       imgMaxHeight = 400;
+      imgMinWidth = 300;
+      imgMinHeight = 200;
     } else if (size.width >= AppBreakpoints.tablet) {
       imgMaxWidth = 500;
       imgMaxHeight = 350;
+      imgMinWidth = 250;
+      imgMinHeight = 150;
     } else {
       imgMaxWidth = double.infinity;
       imgMaxHeight = 300;
+      imgMinWidth = 200;
+      imgMinHeight = 150;
     }
 
     return Center(
@@ -232,13 +240,35 @@ class _UnboxingViewState extends State<UnboxingView> {
                 padding: const EdgeInsets.all(32.0),
                 child: Column(
                   children: <Widget>[
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(16.0),
-                      child: Image.asset(
-                        state.unboxingContent!.beforeOpen.imageUrl,
-                        fit: BoxFit.contain,
-                        width: imgMaxWidth,
-                        height: imgMaxHeight,
+                    Container(
+                      constraints: BoxConstraints(
+                        minWidth: imgMinWidth,
+                        minHeight: imgMinHeight,
+                        maxWidth: imgMaxWidth,
+                        maxHeight: imgMaxHeight,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16.0),
+                        border: Border.all(
+                          color: AppColors.neonPurple.withValues(alpha: 0.5),
+                          width: 2,
+                        ),
+                        boxShadow: <BoxShadow>[
+                          BoxShadow(
+                            color: AppColors.neonPurpleLight.withValues(
+                              alpha: 0.2,
+                            ),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14.0),
+                        child: Image.asset(
+                          state.unboxingContent!.beforeOpen.imageUrl,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 32),
