@@ -846,6 +846,8 @@ class _HomeViewState extends State<HomeView>
                           imagePaths: const <String>[
                             'assets/images/example/play_ex_1.png',
                             'assets/images/example/play_ex_2.png',
+                            'assets/images/example/play_ex_3.png',
+                            'assets/images/example/play_ex_4.png',
                           ],
                           reversed: true, // 이미지 좌측, 텍스트 우측
                         ),
@@ -865,7 +867,8 @@ class _HomeViewState extends State<HomeView>
                               '소중한 사람에게 영원히 기억될 선물을 전하세요.',
                           imagePlaceholderLabel: 'Gift Coupon',
                           imagePaths: const <String>[
-                            'assets/images/example/gift_ex.png',
+                            'assets/images/example/gift_ex_1.png',
+                            'assets/images/example/gift_ex_2.png',
                           ],
                         ),
 

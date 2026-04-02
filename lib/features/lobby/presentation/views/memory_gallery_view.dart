@@ -107,167 +107,167 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
         backgroundColor: AppColors.darkBg,
         // 기존 AppBar를 제거하고 본문에 직관적으로 배치
         body: SafeArea(
-          child:
-              BlocListener<DownloadBloc, DownloadState>(
-                listener: (context, state) {
-                  if (state.status == DownloadStatus.success) {
-                    toastification.show(
-                      context: context,
-                      title: const Text('다운로드 완료!'),
-                      type: ToastificationType.success,
-                      autoCloseDuration: const Duration(seconds: 3),
-                      alignment: Alignment.topCenter,
-                    );
-                  } else if (state.status == DownloadStatus.failure) {
-                    toastification.show(
-                      context: context,
-                      title: const Text('다운로드 중 오류가 발생했습니다.'),
-                      description: Text(state.errorMessage ?? ''),
-                      type: ToastificationType.error,
-                      autoCloseDuration: const Duration(seconds: 3),
-                      alignment: Alignment.topCenter,
-                    );
-                  }
-                },
-                child: Stack(
-                  children: <Widget>[
-                    // 1. 배경 그리드 패턴 추가
-                    Positioned.fill(
-                      child: CustomPaint(painter: GridBackgroundPainter()),
-                    ),
-                    // 2. 상단 타이틀 로고 및 다운로드 버튼 배치
-                    Positioned(
-                      top: isMobileOrSmall ? 8 : 12,
-                      left: paddingHorizontal,
-                      right: paddingHorizontal,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          MouseRegion(
-                            cursor: SystemMouseCursors.click,
-                            child: GestureDetector(
-                              onTap: () async {
-                                final Uri homeUri = Uri.base.resolve('/');
-                                if (await canLaunchUrl(homeUri)) {
-                                  await launchUrl(
-                                    homeUri,
-                                    webOnlyWindowName: '_blank',
-                                  );
-                                } else {
-                                  if (context.mounted) context.go('/');
-                                }
-                              },
-                              child: Image.asset(
-                                'assets/images/title_logo.png',
-                                height: isMobileOrSmall ? 48 : 80,
-                                color: Colors.white, // 통일감 있는 색상 유지
-                              ),
-                            ),
-                          ),
-                          // 상단 배포를 위한 다운로드 버튼 (데스크톱: 텍스트+아이콘, 모바일: 아이콘)
-                          if (isMobileOrSmall)
-                            IconButton(
-                              onPressed: _showDownloadModal,
-                              icon: const Icon(
-                                Icons.file_download_outlined,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            )
-                          else
-                            TextButton.icon(
-                              onPressed: _showDownloadModal,
-                              style: TextButton.styleFrom(
-                                foregroundColor: Colors.blueAccent,
-                                backgroundColor: Colors.blueAccent.withValues(
-                                  alpha: 0.1,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 12,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              icon: const Icon(Icons.download, size: 20),
-                              label: const Text(
-                                '이미지 다운로드',
-                                style: TextStyle(
-                                  fontFamily: 'PFStardust',
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-
-                    // 3. 메인 콘텐츠 (이미지부 / 텍스트·버튼부 분리 배치)
-                    Positioned.fill(
-                      top: isMobileOrSmall ? 64 : 100, // 패딩(상단 로고 높이 + 여백 확보)
-                      bottom:
-                          0, // 하단은 padding으로만 조절하도록 변경. 하단까지 스크롤 자연스럽게 가기 위함.
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          paddingHorizontal,
-                          24.0,
-                          paddingHorizontal,
-                          isMobileOrSmall ? 0 : 24.0, // 데스크톱은 하단 여백 부여
-                        ),
-                        child: isColumnLayout
-                            ? _buildColumnLayout(
-                                titleFontSize,
-                                descFontSize,
-                                true,
-                                false, // isCapture: false
-                              )
-                            : _buildRowLayout(
-                                titleFontSize,
-                                descFontSize,
-                                false,
-                                false, // isCapture: false
-                              ),
-                      ),
-                    ),
-
-                    // 4. 처리 중일 경우 오버레이 (다이얼로그 외의 전체 컴포넌트 커버)
-                    Positioned.fill(
-                      child:
-                          BlocBuilder<DownloadBloc, DownloadState>(
-                            builder: (context, state) {
-                              if (state.status == DownloadStatus.loading) {
-                                return Container(
-                                  color: Colors.black.withValues(alpha: 0.5),
-                                  child: const Center(
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        CircularProgressIndicator(
-                                          color: AppColors.neonPurple,
-                                        ),
-                                        SizedBox(height: 16),
-                                        Text(
-                                          '다운로드 중..',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontFamily: 'PFStardust',
-                                            fontSize: 20,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              }
-                              return const SizedBox.shrink();
-                            },
-                          ),
-                    ),
-                  ],
+          child: BlocListener<DownloadBloc, DownloadState>(
+            listener: (context, state) {
+              if (state.status == DownloadStatus.success) {
+                toastification.show(
+                  context: context,
+                  title: const Text('다운로드 완료!'),
+                  type: ToastificationType.success,
+                  autoCloseDuration: const Duration(seconds: 3),
+                  alignment: Alignment.topCenter,
+                );
+              } else if (state.status == DownloadStatus.failure) {
+                toastification.show(
+                  context: context,
+                  title: const Text('다운로드 중 오류가 발생했습니다.'),
+                  description: Text(state.errorMessage ?? ''),
+                  type: ToastificationType.error,
+                  autoCloseDuration: const Duration(seconds: 3),
+                  alignment: Alignment.topCenter,
+                );
+              }
+            },
+            child: Stack(
+              children: <Widget>[
+                // 1. 배경 그리드 패턴 추가
+                Positioned.fill(
+                  child: CustomPaint(painter: GridBackgroundPainter()),
                 ),
-              ),
+                // 2. 상단 타이틀 로고 및 다운로드 버튼 배치
+                Positioned(
+                  top: isMobileOrSmall ? 8 : 12,
+                  left: paddingHorizontal,
+                  right: paddingHorizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () async {
+                            final Uri homeUri = Uri.base.resolve('/');
+                            if (await canLaunchUrl(homeUri)) {
+                              await launchUrl(
+                                homeUri,
+                                webOnlyWindowName: '_blank',
+                              );
+                            } else {
+                              if (context.mounted) context.go('/');
+                            }
+                          },
+                          child: Image.asset(
+                            'assets/images/title_logo.png',
+                            height: isMobileOrSmall ? 48 : 80,
+                            color: Colors.white, // 통일감 있는 색상 유지
+                          ),
+                        ),
+                      ),
+                      // 상단 배포를 위한 다운로드 버튼 (데스크톱: 텍스트+아이콘, 모바일: 아이콘)
+                      if (isMobileOrSmall)
+                        IconButton(
+                          onPressed: _showDownloadModal,
+                          icon: const Icon(
+                            Icons.file_download_outlined,
+                            color: Colors.white,
+                            size: 28,
+                          ),
+                        )
+                      else
+                        TextButton.icon(
+                          onPressed: _showDownloadModal,
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.neonPurple,
+                            backgroundColor: AppColors.neonPurple,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          icon: const Icon(
+                            Icons.download,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                          label: const Text(
+                            '추억 이미지 저장하기',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontFamily: 'PFStardust',
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+
+                // 3. 메인 콘텐츠 (이미지부 / 텍스트·버튼부 분리 배치)
+                Positioned.fill(
+                  top: isMobileOrSmall ? 64 : 100, // 패딩(상단 로고 높이 + 여백 확보)
+                  bottom: 0, // 하단은 padding으로만 조절하도록 변경. 하단까지 스크롤 자연스럽게 가기 위함.
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      paddingHorizontal,
+                      24.0,
+                      paddingHorizontal,
+                      isMobileOrSmall ? 0 : 24.0, // 데스크톱은 하단 여백 부여
+                    ),
+                    child: isColumnLayout
+                        ? _buildColumnLayout(
+                            titleFontSize,
+                            descFontSize,
+                            true,
+                            false, // isCapture: false
+                          )
+                        : _buildRowLayout(
+                            titleFontSize,
+                            descFontSize,
+                            false,
+                            false, // isCapture: false
+                          ),
+                  ),
+                ),
+
+                // 4. 처리 중일 경우 오버레이 (다이얼로그 외의 전체 컴포넌트 커버)
+                Positioned.fill(
+                  child: BlocBuilder<DownloadBloc, DownloadState>(
+                    builder: (context, state) {
+                      if (state.status == DownloadStatus.loading) {
+                        return Container(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          child: const Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                CircularProgressIndicator(
+                                  color: AppColors.neonPurple,
+                                ),
+                                SizedBox(height: 16),
+                                Text(
+                                  '다운로드 중..',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: 'PFStardust',
+                                    fontSize: 20,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
