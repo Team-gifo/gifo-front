@@ -340,42 +340,52 @@ class GachaMachineSectionState extends State<GachaMachineSection>
   }
 
   Widget _buildRemainingBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF130E1F),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.4)),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: AppColors.neonPurple.withValues(alpha: 0.2),
-            blurRadius: 12,
-          ),
-        ],
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxWidth: MediaQuery.of(context).size.width * 0.85,
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(
-            '남은 뽑기 횟수',
-            style: TextStyle(
-              fontFamily: 'PFStardust',
-              fontSize: 16,
-              color: Colors.white.withValues(alpha: 0.8),
-              letterSpacing: 1,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+          decoration: BoxDecoration(
+            color: const Color(0xFF130E1F),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: AppColors.neonPurple.withValues(alpha: 0.4),
             ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: AppColors.neonPurple.withValues(alpha: 0.2),
+                blurRadius: 12,
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Text(
-            widget.remainingCount.toString().padLeft(2, '0'),
-            style: const TextStyle(
-              fontFamily: 'PFStardust',
-              fontSize: 22,
-              color: AppColors.neonPurple,
-              fontWeight: FontWeight.bold,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                '남은 뽑기 횟수',
+                style: TextStyle(
+                  fontFamily: 'PFStardust',
+                  fontSize: 16,
+                  color: Colors.white.withValues(alpha: 0.8),
+                  letterSpacing: 1,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                widget.remainingCount.toString().padLeft(2, '0'),
+                style: const TextStyle(
+                  fontFamily: 'PFStardust',
+                  fontSize: 22,
+                  color: AppColors.neonPurple,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

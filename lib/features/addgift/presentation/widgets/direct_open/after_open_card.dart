@@ -19,12 +19,16 @@ class AfterOpenCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const Color accent = AppColors.neonBlue;
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
+        color: Colors.black.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(
+          color: accent.withValues(alpha: 0.3),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -32,12 +36,14 @@ class AfterOpenCard extends StatelessWidget {
           const Text(
             '개봉 후',
             style: TextStyle(
+              fontFamily: 'WantedSans',
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
           const SizedBox(height: 16),
+          // 이미지 영역 — 액센트 색상 적용
           Stack(
             children: <Widget>[
               InkWell(
@@ -47,12 +53,19 @@ class AfterOpenCard extends StatelessWidget {
                   width: isMobile ? 200 : 280,
                   height: isMobile ? 200 : 280,
                   decoration: BoxDecoration(
-                    color: Colors.white12,
+                    color: accent.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      width: 2,
+                      color: accent.withValues(alpha: 0.3),
+                      width: 1.5,
                     ),
+                    boxShadow: <BoxShadow>[
+                      BoxShadow(
+                        color: accent.withValues(alpha: 0.1),
+                        blurRadius: 16,
+                        spreadRadius: 1,
+                      ),
+                    ],
                     image: imageFile != null
                         ? DecorationImage(
                             image: NetworkImage(imageFile!.path),
@@ -61,20 +74,22 @@ class AfterOpenCard extends StatelessWidget {
                         : null,
                   ),
                   child: imageFile == null
-                      ? const Column(
+                      ? Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             Icon(
                               Icons.image,
-                              size: 64,
-                              color: Colors.white38,
+                              size: 56,
+                              color: accent.withValues(alpha: 0.4),
                             ),
-                            SizedBox(height: 8),
+                            const SizedBox(height: 8),
                             Text(
                               '물품 사진 등록',
                               style: TextStyle(
-                                color: Colors.white38,
-                                fontWeight: FontWeight.bold,
+                                fontFamily: 'WantedSans',
+                                color: accent.withValues(alpha: 0.6),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
                               ),
                             ),
                           ],
@@ -111,35 +126,42 @@ class AfterOpenCard extends StatelessWidget {
             child: Text(
               '물품 이름',
               style: TextStyle(
+                fontFamily: 'WantedSans',
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: Colors.white70,
               ),
             ),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: nameController,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+              color: Colors.white,
+              fontFamily: 'WantedSans',
+            ),
+            cursorColor: accent,
             decoration: InputDecoration(
               hintText: '상품 이름을 기입해주세요.',
               hintStyle: const TextStyle(color: Colors.white38),
               filled: true,
-              fillColor: Colors.white12,
+              fillColor: Colors.white.withValues(alpha: 0.06),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.15),
+                  color: Colors.white.withValues(alpha: 0.12),
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: Colors.white.withValues(alpha: 0.15),
+                  color: Colors.white.withValues(alpha: 0.12),
                 ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: AppColors.pixelPurple),
+                borderSide: BorderSide(
+                  color: accent.withValues(alpha: 0.6),
+                ),
               ),
             ),
           ),

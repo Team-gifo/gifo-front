@@ -148,26 +148,30 @@ class _GachaViewState extends State<GachaView> {
               const SizedBox(width: 16),
             ] else ...<Widget>[const SizedBox(width: 8)],
             // 타이틀 텍스트
-            RichText(
-              text: TextSpan(
-                style: TextStyle(
-                  fontSize: isMobileOrSmall ? 15 : 18,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'WantedSans',
+            Flexible(
+              child: RichText(
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                text: TextSpan(
+                  style: TextStyle(
+                    fontSize: isMobileOrSmall ? 15 : 18,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'WantedSans',
+                  ),
+                  children: <InlineSpan>[
+                    TextSpan(
+                      text: state.userName,
+                      style: const TextStyle(color: AppColors.neonPurple),
+                    ),
+                    const TextSpan(text: '님의 '),
+                    const TextSpan(
+                      text: '신나는 오락',
+                      style: TextStyle(color: AppColors.neonPurple),
+                    ),
+                    const TextSpan(text: ' 뽑기'),
+                  ],
                 ),
-                children: <InlineSpan>[
-                  TextSpan(
-                    text: state.userName,
-                    style: const TextStyle(color: AppColors.neonPurple),
-                  ),
-                  const TextSpan(text: '님의 '),
-                  const TextSpan(
-                    text: '신나는 오락',
-                    style: TextStyle(color: AppColors.neonPurple),
-                  ),
-                  const TextSpan(text: ' 뽑기'),
-                ],
               ),
             ),
             const Spacer(),

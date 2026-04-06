@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../model/quiz_setting_models.dart';
+import '../common/edit_form_styles.dart';
 
 class QuizEditForm extends StatefulWidget {
   final QuizItemData item;
@@ -185,29 +186,11 @@ class _QuizEditFormState extends State<QuizEditForm> {
           ? null
           : BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.darkBg,
-        borderRadius: widget.isDesktop
-            ? BorderRadius.zero
-            : const BorderRadius.only(
-                topLeft: Radius.circular(24),
-                topRight: Radius.circular(24),
-              ),
-      ),
+      decoration: EditFormStyles.formDecoration(isDesktop: widget.isDesktop),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              margin: const EdgeInsets.only(bottom: 24),
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
+          EditFormStyles.dragHandle(),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
@@ -215,122 +198,35 @@ class _QuizEditFormState extends State<QuizEditForm> {
                 children: <Widget>[
                   Text(
                     '${_editingItem.typeName} 문제 설정',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    style: EditFormStyles.headerTitleStyle,
                   ),
                   const SizedBox(height: 24),
-                  _buildSectionTitle('제목 (질문)'),
+                  EditFormStyles.sectionTitle('제목 (질문)'),
                   _buildDarkTextField(
                     controller: _titleController,
                     hint: '질문을 입력하세요',
                   ),
                   const SizedBox(height: 16),
-                  _buildSectionTitle('이미지 (선택)'),
+                  EditFormStyles.sectionTitle('이미지 (선택)'),
                   if (_editingItem.imageFile == null)
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: Container(
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.07),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white24, width: 1),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.add_photo_alternate,
-                            size: 40,
-                            color: Colors.white38,
-                          ),
-                        ),
-                      ),
-                    )
+                    EditFormStyles.emptyImagePicker(onTap: _pickImage)
                   else
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        Stack(
-                          children: <Widget>[
-                            Container(
-                              constraints: const BoxConstraints(maxHeight: 500),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: Colors.white24,
-                                  width: 1,
-                                ),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.network(
-                                  _editingItem.imageFile!.path,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              top: 8,
-                              right: 8,
-                              child: GestureDetector(
-                                onTap: _showFullImage,
-                                child: Container(
-                                  width: 28,
-                                  height: 28,
-                                  decoration: BoxDecoration(
-                                    color: Colors.black54,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: const Icon(
-                                    Icons.open_in_full,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: <Widget>[
-                            OutlinedButton.icon(
-                              onPressed: _pickImage,
-                              icon: const Icon(Icons.edit, size: 16),
-                              label: const Text('수정'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.blue,
-                                side: const BorderSide(color: Colors.blue),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            OutlinedButton.icon(
-                              onPressed: () => setState(
-                                () => _editingItem.imageFile = null,
-                              ),
-                              icon: const Icon(Icons.delete, size: 16),
-                              label: const Text('삭제'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.red,
-                                side: const BorderSide(color: Colors.red),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                    EditFormStyles.imagePreviewWithActions(
+                      imagePath: _editingItem.imageFile!.path,
+                      onEdit: _pickImage,
+                      onDelete: () => setState(
+                        () => _editingItem.imageFile = null,
+                      ),
+                      onFullscreen: _showFullImage,
                     ),
                   const SizedBox(height: 16),
-                  _buildSectionTitle('설명'),
+                  EditFormStyles.sectionTitle('설명'),
                   _buildDarkTextField(
                     controller: _descController,
                     hint: '문제에 대한 설명을 입력하세요',
                   ),
                   const SizedBox(height: 16),
-                  _buildSectionTitle('힌트'),
+                  EditFormStyles.sectionTitle('힌트'),
                   _buildDarkTextField(
                     controller: _hintController,
                     hint: '문제에 대한 힌트를 입력하세요',
@@ -338,7 +234,7 @@ class _QuizEditFormState extends State<QuizEditForm> {
                   const SizedBox(height: 24),
 
                   if (_editingItem.type == QuizType.multipleChoice) ...<Widget>[
-                    _buildSectionTitle('선택지'),
+                    EditFormStyles.sectionTitle('선택지'),
                     ..._optionControllers.asMap().entries.map((
                       MapEntry<int, TextEditingController> entry,
                     ) {
@@ -414,7 +310,7 @@ class _QuizEditFormState extends State<QuizEditForm> {
                         ),
                       ),
                     const SizedBox(height: 16),
-                    _buildSectionTitle('정답 선택 (복수 선택 가능)'),
+                    EditFormStyles.sectionTitle('정답 선택 (복수 선택 가능)'),
                     Wrap(
                       spacing: 8.0,
                       runSpacing: 8.0,
@@ -449,7 +345,7 @@ class _QuizEditFormState extends State<QuizEditForm> {
                     ),
                   ] else if (_editingItem.type ==
                       QuizType.subjective) ...<Widget>[
-                    _buildSectionTitle('정답 목록 (유사 답변 포함)'),
+                    EditFormStyles.sectionTitle('정답 목록 (유사 답변 포함)'),
                     ..._answerControllers.asMap().entries.map((
                       MapEntry<int, TextEditingController> entry,
                     ) {
@@ -491,7 +387,7 @@ class _QuizEditFormState extends State<QuizEditForm> {
                       label: const Text('정답 형태 추가'),
                     ),
                   ] else if (_editingItem.type == QuizType.ox) ...<Widget>[
-                    _buildSectionTitle('정답'),
+                    EditFormStyles.sectionTitle('정답'),
                     Row(
                       children: <Widget>[
                         Expanded(
@@ -570,20 +466,6 @@ class _QuizEditFormState extends State<QuizEditForm> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-          color: Colors.white70,
-        ),
-      ),
-    );
-  }
-
   Widget _buildDarkTextField({
     required TextEditingController controller,
     required String hint,
@@ -592,29 +474,7 @@ class _QuizEditFormState extends State<QuizEditForm> {
       controller: controller,
       style: const TextStyle(color: Colors.white),
       cursorColor: AppColors.neonPurple,
-      decoration: _inputDecoration(hint),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: const TextStyle(color: Colors.white38),
-      filled: true,
-      fillColor: Colors.white.withValues(alpha: 0.07),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.neonPurple),
-      ),
+      decoration: EditFormStyles.inputDecoration(hint),
     );
   }
 }
