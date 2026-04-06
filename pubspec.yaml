@@ -36,6 +36,7 @@ dependencies:
   screenshot: ^3.0.0
   archive: ^4.0.9
   barcode: ^2.2.9
+  share_plus: ^10.1.4
 
 dev_dependencies:
   flutter_test:
