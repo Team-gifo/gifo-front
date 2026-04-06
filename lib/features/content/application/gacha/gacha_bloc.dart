@@ -16,15 +16,16 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
     on<ClearLastDrawnItem>(_onClearLastDrawnItem);
   }
 
-  // 더미 데이터 기반 초기화 (추후 서버 데이터로 교체 예정)
+  // LobbyBloc에서 전달받은 LobbyData로 가챠 상태 초기화
   void _onInitGacha(InitGacha event, Emitter<GachaState> emit) {
-    final LobbyData? lobbyData = LobbyData.getDummyByCode(event.code);
-    if (lobbyData == null || lobbyData.content?.gacha == null) return;
+    final LobbyData lobbyData = event.lobbyData;
+    if (lobbyData.content?.gacha == null) return;
 
     final GachaContent gacha = lobbyData.content!.gacha!;
     emit(
       state.copyWith(
         userName: lobbyData.user,
+        inviteCode: event.inviteCode,
         gachaContent: gacha,
         remainingCount: gacha.playCount,
         history: const <Map<String, dynamic>>[],

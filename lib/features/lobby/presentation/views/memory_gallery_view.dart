@@ -10,16 +10,22 @@ import 'package:screenshot/screenshot.dart';
 import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/blocs/download/download_bloc.dart';
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
-import '../../../../core/blocs/download/download_bloc.dart';
 import '../../model/lobby_data.dart';
 
 class MemoryGalleryView extends StatefulWidget {
-  final String code;
+  final LobbyData lobbyData;
+  // QR 코드 및 콘텐츠 주소 생성에 사용되는 초대 코드
+  final String inviteCode;
 
-  const MemoryGalleryView({super.key, required this.code});
+  const MemoryGalleryView({
+    super.key,
+    required this.lobbyData,
+    required this.inviteCode,
+  });
 
   @override
   State<MemoryGalleryView> createState() => _MemoryGalleryViewState();
@@ -43,8 +49,8 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   @override
   void initState() {
     super.initState();
-    // 로비 데이터를 불러와 갤러리 리스트 초기화
-    lobbyData = LobbyData.getDummyByCode(widget.code)!;
+    // 외부에서 전달받은 LobbyData로 갤러리 리스트 초기화
+    lobbyData = widget.lobbyData;
     _galleryItems = lobbyData.gallery;
 
     // 만약 갤러리 아이템이 1개 이하라면 처음부터 마지막 페이지로 간주
@@ -68,12 +74,16 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
 
   void _onEnterPressed() {
     if (lobbyData.content != null) {
+      final Map<String, dynamic> extra = <String, dynamic>{
+        'data': lobbyData,
+        'code': widget.inviteCode,
+      };
       if (lobbyData.content!.gacha != null) {
-        context.push('/content/gacha', extra: widget.code);
+        context.push('/content/gacha', extra: extra);
       } else if (lobbyData.content!.quiz != null) {
-        context.push('/content/quiz', extra: widget.code);
+        context.push('/content/quiz', extra: extra);
       } else if (lobbyData.content!.unboxing != null) {
-        // context.push('/content/unboxing', extra: widget.code);
+        context.push('/content/unboxing', extra: extra);
       }
     }
   }
@@ -108,7 +118,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
         // 기존 AppBar를 제거하고 본문에 직관적으로 배치
         body: SafeArea(
           child: BlocListener<DownloadBloc, DownloadState>(
-            listener: (context, state) {
+            listener: (BuildContext context, DownloadState state) {
               if (state.status == DownloadStatus.success) {
                 toastification.show(
                   context: context,
@@ -141,7 +151,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                   right: paddingHorizontal,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
+                    children: <Widget>[
                       MouseRegion(
                         cursor: SystemMouseCursors.click,
                         child: GestureDetector(
@@ -236,14 +246,14 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                 // 4. 처리 중일 경우 오버레이 (다이얼로그 외의 전체 컴포넌트 커버)
                 Positioned.fill(
                   child: BlocBuilder<DownloadBloc, DownloadState>(
-                    builder: (context, state) {
+                    builder: (BuildContext context, DownloadState state) {
                       if (state.status == DownloadStatus.loading) {
                         return Container(
                           color: Colors.black.withValues(alpha: 0.5),
                           child: const Center(
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
-                              children: [
+                              children: <Widget>[
                                 CircularProgressIndicator(
                                   color: AppColors.neonPurple,
                                 ),
@@ -424,15 +434,15 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
 
   // --- 인스타그램 액션 버튼 아이콘 ---
   Widget _buildActionRow() {
-    return Row(
+    return const Row(
       children: <Widget>[
-        const Icon(Icons.favorite, color: Colors.red, size: 28),
-        const SizedBox(width: 16),
-        const Icon(Icons.mode_comment_outlined, color: Colors.white, size: 28),
-        const SizedBox(width: 16),
-        const Icon(Icons.send_outlined, color: Colors.white, size: 28),
-        const Spacer(),
-        const Icon(Icons.bookmark_border, color: Colors.white, size: 28),
+        Icon(Icons.favorite, color: Colors.red, size: 28),
+        SizedBox(width: 16),
+        Icon(Icons.mode_comment_outlined, color: Colors.white, size: 28),
+        SizedBox(width: 16),
+        Icon(Icons.send_outlined, color: Colors.white, size: 28),
+        Spacer(),
+        Icon(Icons.bookmark_border, color: Colors.white, size: 28),
       ],
     );
   }
@@ -463,7 +473,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: [
+                    children: <Widget>[
                       Container(
                         width: 50,
                         height: 5,
@@ -475,7 +485,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                       ),
                       const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+                        children: <Widget>[
                           Icon(
                             Icons.download_for_offline,
                             color: AppColors.neonPurple,
@@ -497,7 +507,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                       _buildModalContent(setModalState),
                       const SizedBox(height: 40),
                       Row(
-                        children: [
+                        children: <Widget>[
                           Expanded(
                             child: TextButton(
                               onPressed: () => Navigator.pop(ctx),
@@ -577,7 +587,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                 titlePadding: const EdgeInsets.fromLTRB(32, 32, 32, 0),
                 contentPadding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
                 title: const Row(
-                  children: [
+                  children: <Widget>[
                     Icon(
                       Icons.download_outlined,
                       color: AppColors.neonPurple,
@@ -601,7 +611,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                   ),
                 ),
                 actionsPadding: const EdgeInsets.fromLTRB(0, 0, 32, 32),
-                actions: [
+                actions: <Widget>[
                   TextButton(
                     onPressed: () => Navigator.pop(ctx),
                     style: TextButton.styleFrom(
@@ -657,12 +667,12 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         // 그룹 1: 다운로드 대상
         _buildOptionGroup(
           title: '다운로드 범위',
           icon: Icons.filter_center_focus_outlined,
-          children: [
+          children: <Widget>[
             RadioListTile<bool>(
               title: const Text(
                 '현재 페이지만',
@@ -708,7 +718,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
         _buildOptionGroup(
           title: '이미지 포맷 선택',
           icon: Icons.collections_outlined,
-          children: [
+          children: <Widget>[
             CheckboxListTile(
               title: const Text(
                 '원본 이미지',
@@ -792,7 +802,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
             ),
           ],
         ),
-        if ([_dlOriginal, _dlDesktop, _dlMobile].where((bool e) => e).length >=
+        if (<bool>[_dlOriginal, _dlDesktop, _dlMobile].where((bool e) => e).length >=
                 2 ||
             _dlAllPages)
           Padding(
@@ -807,7 +817,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                 ),
               ),
               child: const Row(
-                children: [
+                children: <Widget>[
                   Icon(
                     Icons.info_outline,
                     color: AppColors.neonPurple,
@@ -841,11 +851,11 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
+      children: <Widget>[
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Row(
-            children: [
+            children: <Widget>[
               Icon(icon, color: Colors.white54, size: 18),
               const SizedBox(width: 8),
               Text(
@@ -875,7 +885,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
 
   Future<void> _executeDownload() async {
     final DownloadBloc bloc = context.read<DownloadBloc>();
-    final List<Map<String, dynamic>> filesInfo = [];
+    final List<Map<String, dynamic>> filesInfo = <Map<String, dynamic>>[];
 
     if (!_dlOriginal && !_dlDesktop && !_dlMobile) {
       toastification.show(
@@ -897,7 +907,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
 
     final List<int> targetIndices = _dlAllPages
         ? List.generate(_galleryItems.length, (int i) => i)
-        : [_currentPage];
+        : <int>[_currentPage];
 
     for (final int index in targetIndices) {
       final GalleryItem item = _galleryItems[index];
@@ -910,7 +920,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
       if (_dlOriginal) {
         try {
           final ByteData data = await rootBundle.load(item.imageUrl);
-          filesInfo.add({
+          filesInfo.add(<String, dynamic>{
             'name': 'Original_${index + 1}_$safeTitle.png',
             'bytes': data.buffer.asUint8List(),
           });
@@ -922,20 +932,18 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
       // 2. 데스크톱 캡처 (1920x1080 고정 해상도)
       if (_dlDesktop) {
         try {
-          final Uint8List? desktopBytes = await _screenshotController
+          final Uint8List desktopBytes = await _screenshotController
               .captureFromWidget(
                 _buildCaptureFrame(isDesktop: true, pageIndex: index),
                 // delay: const Duration(milliseconds: 500), // Removed delay
                 context: context,
                 targetSize: const Size(1920, 1080),
               );
-          if (desktopBytes != null) {
-            filesInfo.add({
-              'name': 'Desktop_Frame_${index + 1}_$safeTitle.png',
-              'bytes': desktopBytes,
-            });
-          }
-        } catch (e) {
+          filesInfo.add(<String, dynamic>{
+            'name': 'Desktop_Frame_${index + 1}_$safeTitle.png',
+            'bytes': desktopBytes,
+          });
+                } catch (e) {
           debugPrint('Desktop capture error at index $index: $e');
         }
       }
@@ -943,7 +951,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
       // 3. 모바일 캡처 (아이폰 15 프로 기준 393x852 layout)
       if (_dlMobile) {
         try {
-          final Uint8List? mobileBytes = await _screenshotController
+          final Uint8List mobileBytes = await _screenshotController
               .captureFromWidget(
                 _buildCaptureFrame(isDesktop: false, pageIndex: index),
                 // delay: const Duration(milliseconds: 500), // Removed delay
@@ -951,13 +959,11 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                 targetSize: const Size(393, 852),
                 pixelRatio: 3.0, // 고해상도 출력
               );
-          if (mobileBytes != null) {
-            filesInfo.add({
-              'name': 'Mobile_Frame_${index + 1}_$safeTitle.png',
-              'bytes': mobileBytes,
-            });
-          }
-        } catch (e) {
+          filesInfo.add(<String, dynamic>{
+            'name': 'Mobile_Frame_${index + 1}_$safeTitle.png',
+            'bytes': mobileBytes,
+          });
+                } catch (e) {
           debugPrint('Mobile capture error at index $index: $e');
         }
       }
@@ -986,7 +992,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
             width: width,
             height: height,
             child: Stack(
-              children: [
+              children: <Widget>[
                 Positioned.fill(
                   child: CustomPaint(painter: GridBackgroundPainter()),
                 ),
@@ -1112,7 +1118,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                     alignment: Alignment.topLeft,
                     children: <Widget>[
                       ...previousChildren,
-                      if (currentChild != null) currentChild,
+                      ?currentChild,
                     ],
                   );
                 },
@@ -1160,7 +1166,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
           padding: const EdgeInsets.symmetric(vertical: 16), // 캡처 시 여백 축소
           child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: [
+            children: <Widget>[
               Image.asset(
                 'assets/images/title_logo.png',
                 height: 32, // 로고 크기 축소
@@ -1290,7 +1296,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                     ? _buildImageContent(overrideIndex ?? _currentPage, true)
                     : _buildImageSection(true),
               ),
-              if (!isCapture) ...[
+              if (!isCapture) ...<Widget>[
                 const SizedBox(height: 24), // 16 -> 24 상향
                 _buildIndicators(overrideIndex: overrideIndex),
               ],

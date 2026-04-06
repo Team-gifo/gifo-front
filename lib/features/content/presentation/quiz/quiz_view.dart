@@ -11,9 +11,7 @@ import '../../application/quiz/quiz_bloc.dart';
 import '../result/result_view.dart';
 
 class QuizView extends StatefulWidget {
-  final String code;
-
-  const QuizView({super.key, required this.code});
+  const QuizView({super.key});
 
   @override
   State<QuizView> createState() => _QuizViewState();
@@ -33,8 +31,7 @@ class _QuizViewState extends State<QuizView>
   @override
   void initState() {
     super.initState();
-    context.read<QuizBloc>().add(InitQuiz(widget.code));
-
+    // InitQuiz는 라우터에서 BLoC 생성 시 이미 발행되므로 여기서는 불필요
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -106,7 +103,7 @@ class _QuizViewState extends State<QuizView>
               itemName: reward.itemName,
               imageUrl: reward.imageUrl,
               userName: state.userName,
-              inviteCode: widget.code,
+              inviteCode: state.inviteCode,
             ),
           );
         }
@@ -531,7 +528,7 @@ class _QuizViewState extends State<QuizView>
                   width: isMobile ? double.infinity : 400,
                   height: 60,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: state.isSubmitting ? null : () {
                       context.read<QuizBloc>().add(
                         SetUserAnswer(isSelected ? '' : opt),
                       );
@@ -587,9 +584,9 @@ class _QuizViewState extends State<QuizView>
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              _buildOXButton('O', state.userAnswer),
+              _buildOXButton('O', state.userAnswer, state.isSubmitting),
               const SizedBox(width: 24),
-              _buildOXButton('X', state.userAnswer),
+              _buildOXButton('X', state.userAnswer, state.isSubmitting),
             ],
           );
         },
@@ -597,15 +594,21 @@ class _QuizViewState extends State<QuizView>
     } else {
       content = ConstrainedBox(
         constraints: BoxConstraints(maxWidth: isMobile ? double.infinity : 400),
-        child: TextField(
-          controller: _textController,
-          style: const TextStyle(color: Colors.white, fontFamily: 'WantedSans'),
-          onChanged: (String v) =>
-              context.read<QuizBloc>().add(SetUserAnswer(v)),
-          onSubmitted: (String _) =>
-              context.read<QuizBloc>().add(const SubmitAnswer()),
-          decoration: InputDecoration(
-            filled: true,
+        child: BlocBuilder<QuizBloc, QuizState>(
+          builder: (BuildContext context, QuizState state) {
+            return TextField(
+              controller: _textController,
+              enabled: !state.isSubmitting,
+              style: const TextStyle(color: Colors.white, fontFamily: 'WantedSans'),
+              onChanged: (String v) =>
+                  context.read<QuizBloc>().add(SetUserAnswer(v)),
+              onSubmitted: (String _) {
+                if (!state.isSubmitting) {
+                  context.read<QuizBloc>().add(const SubmitAnswer());
+                }
+              },
+              decoration: InputDecoration(
+                filled: true,
             fillColor: Colors.white.withValues(alpha: 0.05),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -629,7 +632,9 @@ class _QuizViewState extends State<QuizView>
               vertical: 16,
             ),
           ),
-        ),
+        );
+      },
+      ),
       );
     }
 
@@ -643,7 +648,7 @@ class _QuizViewState extends State<QuizView>
           height: 60,
           child: BlocBuilder<QuizBloc, QuizState>(
             builder: (BuildContext context, QuizState state) {
-              final bool canSubmit = state.userAnswer.trim().isNotEmpty;
+              final bool canSubmit = state.userAnswer.trim().isNotEmpty && !state.isSubmitting;
 
               return ElevatedButton(
                 onPressed: canSubmit
@@ -662,14 +667,23 @@ class _QuizViewState extends State<QuizView>
                   ),
                   elevation: 0,
                 ),
-                child: const Text(
-                  '정답 제출',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    fontFamily: 'PFStardust',
-                  ),
-                ),
+                child: state.isSubmitting
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          color: AppColors.neonBlue,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        '정답 제출',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          fontFamily: 'PFStardust',
+                        ),
+                      ),
               );
             },
           ),
@@ -678,14 +692,14 @@ class _QuizViewState extends State<QuizView>
     );
   }
 
-  Widget _buildOXButton(String value, String currentAnswer) {
+  Widget _buildOXButton(String value, String currentAnswer, bool isSubmitting) {
     final bool isSelected = currentAnswer == value;
     final Color activeColor = value == 'O'
         ? AppColors.neonBlue
         : Colors.redAccent;
 
     return InkWell(
-      onTap: () => context.read<QuizBloc>().add(SetUserAnswer(value)),
+      onTap: isSubmitting ? null : () => context.read<QuizBloc>().add(SetUserAnswer(value)),
       borderRadius: BorderRadius.circular(16),
       child: Container(
         width: 100,

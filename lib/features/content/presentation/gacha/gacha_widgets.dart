@@ -381,7 +381,7 @@ class GachaMachineSectionState extends State<GachaMachineSection>
   }
 
   Widget _buildPixelMachineFrame() {
-    return Container(
+    return SizedBox(
       width: 280,
       height: 580,
       child: Column(
@@ -464,7 +464,7 @@ class GachaMachineSectionState extends State<GachaMachineSection>
                           right: 0,
                           child: Container(
                             height: 3,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               boxShadow: <BoxShadow>[
                                 BoxShadow(
                                   color: AppColors.neonPurple,
@@ -810,7 +810,7 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
     final String qrUrl = '${Uri.base.origin}/gift/code/${widget.inviteCode}';
 
     try {
-      final Uint8List? imageBytes = await _screenshotController
+      final Uint8List imageBytes = await _screenshotController
           .captureFromWidget(
             GifticonFrame(
               itemName: item.itemName,
@@ -823,7 +823,7 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
             delay: const Duration(milliseconds: 100),
           );
 
-      if (imageBytes != null && mounted) {
+      if (mounted) {
         // 3. 공용 DownloadBloc을 통해 실제 다운로드 실행
         final String fileName = 'gifticon_${item.itemName}_$time.png';
         context.read<DownloadBloc>().add(

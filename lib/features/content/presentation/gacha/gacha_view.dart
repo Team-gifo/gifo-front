@@ -11,10 +11,9 @@ import '../../application/gacha/gacha_bloc.dart';
 import 'gacha_result_modal.dart';
 import 'gacha_widgets.dart';
 
+// code 파라미터 제거: 라우터에서 BLoC 생성 시 InitGacha 이벤트가 먼저 발행됨
 class GachaView extends StatefulWidget {
-  final String code;
-
-  const GachaView({super.key, required this.code});
+  const GachaView({super.key});
 
   @override
   State<GachaView> createState() => _GachaViewState();
@@ -23,12 +22,6 @@ class GachaView extends StatefulWidget {
 class _GachaViewState extends State<GachaView> {
   final GlobalKey<GachaMachineSectionState> _machineKey =
       GlobalKey<GachaMachineSectionState>();
-
-  @override
-  void initState() {
-    super.initState();
-    context.read<GachaBloc>().add(InitGacha(widget.code));
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +36,6 @@ class _GachaViewState extends State<GachaView> {
           prev.lastDrawnItem != curr.lastDrawnItem,
       listener: (BuildContext context, GachaState state) {
         if (state.lastDrawnItem != null) {
-          // BLoC에서 결과가 넘어오면 머신 위젯의 '결과 낙하' 애니메이션 트리거
           _machineKey.currentState?.startResultAnimation(state.lastDrawnItem!);
         }
       },
@@ -96,7 +88,7 @@ class _GachaViewState extends State<GachaView> {
     );
   }
 
-  // AppBar: memory_gallery_view 방식 (로고 + 타이틀), 타이틀 텍스트는 기존 103~112번 코드 유지
+  // AppBar: 로고 + 타이틀
   Widget _buildAppBar(GachaState state, bool isMobileOrSmall) {
     final bool isMobile =
         MediaQuery.of(context).size.width < AppBreakpoints.tablet;
@@ -204,24 +196,22 @@ class _GachaViewState extends State<GachaView> {
     );
   }
 
-  // 데스크톱: 3단 레이아웃 (히스토리 | 머신 | 경품 목록) - 가변 너비 적용
+  // 데스크톱: 3단 레이아웃 (히스토리 | 머신 | 경품 목록)
   Widget _buildDesktopLayout(GachaState state) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(32, 24, 32, 32),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          // 좌측: 히스토리 패널 (가변 너비)
           Expanded(
             flex: 1,
             child: GachaHistoryPanel(
               history: state.history,
               userName: state.userName,
-              inviteCode: widget.code,
+              inviteCode: state.inviteCode,
             ),
           ),
           const SizedBox(width: 28),
-          // 중앙: 가챠 머신 섹션 (가세 비율 유지하며 중앙 집중)
           Expanded(
             flex: 2,
             child: GachaMachineSection(
@@ -237,7 +227,6 @@ class _GachaViewState extends State<GachaView> {
             ),
           ),
           const SizedBox(width: 28),
-          // 우측: 경품 목록 패널 (가변 너비)
           Expanded(
             flex: 1,
             child: GachaPrizeListPanel(items: state.gachaContent!.list),
@@ -247,11 +236,10 @@ class _GachaViewState extends State<GachaView> {
     );
   }
 
-  // 모바일: 단일 컬럼 (머신 전체 활용), 히스토리/경품은 AppBar 아이콘으로 접근
+  // 모바일: 단일 컬럼 (머신 전체 활용)
   Widget _buildMobileLayout(GachaState state, bool isMobileOrSmall) {
     return Column(
       children: <Widget>[
-        // 중앙 머신 섹션 (가변 높이)
         Expanded(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
@@ -297,7 +285,7 @@ class _GachaViewState extends State<GachaView> {
                 child: GachaHistoryPanel(
                   history: state.history,
                   userName: state.userName,
-                  inviteCode: widget.code,
+                  inviteCode: state.inviteCode,
                 ),
               ),
             ],

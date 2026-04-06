@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -50,10 +49,7 @@ class DownloadBloc extends Bloc<DownloadEvent, DownloadState> {
           archive.addFile(ArchiveFile(name, bytes.length, bytes));
         }
 
-        final List<int>? zipData = ZipEncoder().encode(archive);
-        if (zipData == null) {
-          throw Exception('ZIP 압축 실패');
-        }
+        final List<int> zipData = ZipEncoder().encode(archive);
 
         FileDownloadHelper.downloadBytesOnWeb(
           bytes: Uint8List.fromList(zipData),

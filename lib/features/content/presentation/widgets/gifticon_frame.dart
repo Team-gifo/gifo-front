@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:barcode/barcode.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 
@@ -72,7 +73,7 @@ class GifticonFrame extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
+                      boxShadow: <BoxShadow>[
                         BoxShadow(
                           color: Colors.white.withOpacity(0.05),
                           blurRadius: 30,

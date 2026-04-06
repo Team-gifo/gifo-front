@@ -13,15 +13,17 @@ class UnboxingBloc extends Bloc<UnboxingEvent, UnboxingState> {
     on<ResetUnboxing>(_onResetUnboxing);
   }
 
+  // LobbyBloc에서 전달받은 LobbyData로 언박싱 상태 초기화
   void _onInitUnboxing(InitUnboxing event, Emitter<UnboxingState> emit) {
-    final LobbyData? lobbyData = LobbyData.getDummyByCode(event.code);
-    if (lobbyData == null || lobbyData.content?.unboxing == null) return;
+    final LobbyData lobbyData = event.lobbyData;
+    if (lobbyData.content?.unboxing == null) return;
 
     final UnboxingContent unboxing = lobbyData.content!.unboxing!;
     emit(
       state.copyWith(
         userName: lobbyData.user,
         subTitle: lobbyData.subTitle,
+        inviteCode: event.inviteCode,
         unboxingContent: unboxing,
         isReceived: false,
       ),

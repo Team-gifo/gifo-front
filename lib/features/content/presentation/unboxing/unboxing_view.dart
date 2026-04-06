@@ -13,9 +13,7 @@ import '../../application/unboxing/unboxing_bloc.dart';
 import '../result/result_view.dart';
 
 class UnboxingView extends StatefulWidget {
-  final String code;
-
-  const UnboxingView({super.key, required this.code});
+  const UnboxingView({super.key});
 
   @override
   State<UnboxingView> createState() => _UnboxingViewState();
@@ -43,8 +41,7 @@ class _UnboxingViewState extends State<UnboxingView>
   @override
   void initState() {
     super.initState();
-    context.read<UnboxingBloc>().add(InitUnboxing(widget.code));
-
+    // InitUnboxing는 라우터에서 BLoC 생성 시 이미 발행되므로 여기서는 불필요
     _introAnimCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2500),
@@ -102,7 +99,7 @@ class _UnboxingViewState extends State<UnboxingView>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _btnAnimCtrl, curve: Curves.easeOut));
 
-    _introAnimCtrl.addStatusListener((status) {
+    _introAnimCtrl.addStatusListener((AnimationStatus status) {
       if (status == AnimationStatus.completed) {
         if (mounted) {
           setState(() {
@@ -135,7 +132,7 @@ class _UnboxingViewState extends State<UnboxingView>
               itemName: state.unboxingContent!.afterOpen.itemName,
               imageUrl: state.unboxingContent!.afterOpen.imageUrl,
               userName: state.userName,
-              inviteCode: widget.code,
+              inviteCode: state.inviteCode,
             ),
           );
         }
@@ -167,8 +164,8 @@ class _UnboxingViewState extends State<UnboxingView>
             backgroundColor: AppColors.darkBg,
             body: SafeArea(
               child: AnimatedBuilder(
-                animation: Listenable.merge([_introAnimCtrl, _btnAnimCtrl]),
-                builder: (context, child) {
+                animation: Listenable.merge(<Listenable?>[_introAnimCtrl, _btnAnimCtrl]),
+                builder: (BuildContext context, Widget? child) {
                   final double topInset = size.width < AppBreakpoints.tablet
                       ? 64
                       : 72;
@@ -282,7 +279,7 @@ class _UnboxingViewState extends State<UnboxingView>
                                                 isRepeatingAnimation: false,
                                                 displayFullTextOnTap: true,
                                                 stopPauseOnTap: true,
-                                                animatedTexts: [
+                                                animatedTexts: <AnimatedText>[
                                                   TypewriterAnimatedText(
                                                     state
                                                         .unboxingContent!

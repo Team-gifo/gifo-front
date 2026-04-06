@@ -4,10 +4,12 @@ abstract class QuizEvent {
   const QuizEvent();
 }
 
-// 코드 기반 퀴즈 데이터 초기화
+// LobbyBloc에서 수신한 LobbyData와 초대 코드를 직접 전달받아 초기화
 class InitQuiz extends QuizEvent {
-  final String code;
-  const InitQuiz(this.code);
+  final LobbyData lobbyData;
+  // 결과 화면 공유 링크에 사용되는 초대 코드
+  final String inviteCode;
+  const InitQuiz(this.lobbyData, {this.inviteCode = ''});
 }
 
 // 사용자 답변 입력
