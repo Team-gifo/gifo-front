@@ -3,6 +3,7 @@ import 'package:retrofit/retrofit.dart';
 
 import '../model/quiz/quiz_answer_request.dart';
 import '../model/quiz/quiz_answer_response.dart';
+import '../model/quiz/quiz_result_response.dart';
 
 part 'content_api.g.dart';
 
@@ -17,5 +18,12 @@ abstract class ContentApi {
   Future<QuizAnswerResponse> submitQuizAnswer(
     @Path('eventUrl') String eventUrl,
     @Body() QuizAnswerRequest request,
+  );
+
+  // 퀴즈 결과 조회
+  @POST('/api/events/{eventUrl}/quiz/result')
+  @Headers(<String, dynamic>{'Content-Type': 'application/json'})
+  Future<QuizResultResponse> getQuizResult(
+    @Path('eventUrl') String eventUrl,
   );
 }

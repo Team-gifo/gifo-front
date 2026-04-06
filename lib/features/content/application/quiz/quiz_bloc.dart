@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../model/quiz/quiz_answer_response.dart';
+import '../../model/quiz/quiz_result_response.dart';
 
 import '../../../lobby/model/lobby_data.dart';
 import '../../model/quiz/quiz_answer_request.dart';
@@ -20,7 +21,7 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
   }
 
   // LobbyBloc에서 전달받은 LobbyData로 퀴즈 상태 초기화
-  void _onInitQuiz(InitQuiz event, Emitter<QuizState> emit) {
+  Future<void> _onInitQuiz(InitQuiz event, Emitter<QuizState> emit) async {
     final LobbyData lobbyData = event.lobbyData;
     if (lobbyData.content?.quiz == null) return;
 
@@ -30,8 +31,15 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
     // 이미 완료된 퀴즈인지 체크 (인덱스가 전체 길이를 넘어가면 종료 상태로 시작)
     final bool isAlreadyFinished = serverIndex >= quiz.list.length;
     
-    // 정답 횟수 계산 (서버에서 받은 history 기반)
-    final int initialCorrectCount = quiz.answerHistory.where((h) => h.correct).length;
+    int initialCorrectCount = quiz.answerHistory.where((h) => h.correct).length;
+
+    // 만약 이미 완료된 상태라면, 서버에서 최종 결과를 다시 한번 확인하여 정확한 점수 표기
+    if (isAlreadyFinished) {
+      final response = await repository.getQuizResult(event.inviteCode);
+      if (response?.data != null) {
+        initialCorrectCount = response!.data!.correctCount;
+      }
+    }
 
     emit(
       state.copyWith(
