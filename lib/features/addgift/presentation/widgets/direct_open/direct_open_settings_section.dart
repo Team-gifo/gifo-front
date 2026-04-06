@@ -8,25 +8,32 @@ class DirectOpenSettingsSection extends StatelessWidget {
     super.key,
     required this.state,
     this.isMobile = false,
+    this.isCompactDesktop = false,
   });
 
   final DirectOpenSettingState state;
   final bool isMobile;
+  final bool isCompactDesktop;
 
   @override
   Widget build(BuildContext context) {
+    final double titleFontSize = isCompactDesktop ? 15 : 16;
+    final double spacingAfterTitle = isCompactDesktop ? 6 : 8;
+    final double spacingBeforeConditions = isCompactDesktop ? 12 : 16;
+    final double conditionsPadding = isCompactDesktop ? 14 : 16;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        const Text(
+        Text(
           'BGM (배경음악)',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: titleFontSize,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: spacingAfterTitle),
         Row(
           children: <Widget>[
             Expanded(
@@ -75,9 +82,9 @@ class DirectOpenSettingsSection extends StatelessWidget {
           ],
         ),
         if (!isMobile) ...<Widget>[
-          const SizedBox(height: 16),
+          SizedBox(height: spacingBeforeConditions),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(conditionsPadding),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(12),
@@ -86,10 +93,10 @@ class DirectOpenSettingsSection extends StatelessWidget {
                 width: 1,
               ),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
+                const Text(
                   '⚠️ 포장 완료 조건',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -97,9 +104,15 @@ class DirectOpenSettingsSection extends StatelessWidget {
                     color: Colors.deepOrange,
                   ),
                 ),
-                SizedBox(height: 8),
-                Text('• 상단 닉네임 및 서브타이틀 입력', style: TextStyle(fontSize: 12, color: Colors.white70)),
-                Text('• 물품 이름 입력', style: TextStyle(fontSize: 12, color: Colors.white70)),
+                SizedBox(height: isCompactDesktop ? 6 : 8),
+                const Text(
+                  '• 상단 닉네임 및 서브타이틀 입력',
+                  style: TextStyle(fontSize: 12, color: Colors.white70),
+                ),
+                const Text(
+                  '• 물품 이름 입력',
+                  style: TextStyle(fontSize: 12, color: Colors.white70),
+                ),
               ],
             ),
           ),

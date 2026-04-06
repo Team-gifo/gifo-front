@@ -9,22 +9,28 @@ class GachaSettingsPanel extends StatelessWidget {
     super.key,
     required this.isMobile,
     required this.playCountController,
-    required this.canComplete,
-    required this.onComplete,
+    this.isCompactDesktop = false,
   });
 
   final bool isMobile;
   final TextEditingController playCountController;
-  final bool canComplete;
-  final VoidCallback onComplete;
+  final bool isCompactDesktop;
 
   @override
   Widget build(BuildContext context) {
+    final double desktopTopSpacing = !isMobile
+        ? (isCompactDesktop ? 12 : 24)
+        : 0;
+    final double sectionGap = isCompactDesktop ? 24 : 40;
+    final double bgmVerticalPadding = isCompactDesktop ? 12 : 16;
+    final double conditionTextSize = isCompactDesktop ? 14 : 16;
+    final double conditionTitleGap = isCompactDesktop ? 6 : 8;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        if (!isMobile) const SizedBox(height: 24),
+        if (!isMobile) SizedBox(height: desktopTopSpacing),
         Row(
           children: <Widget>[
             const Icon(Icons.casino, size: 20, color: Colors.white),
@@ -99,7 +105,7 @@ class GachaSettingsPanel extends StatelessWidget {
             textAlign: TextAlign.end,
           ),
         ),
-        const SizedBox(height: 40),
+        SizedBox(height: sectionGap),
         const Row(
           children: <Widget>[
             Icon(Icons.music_note, size: 20, color: Colors.white),
@@ -116,7 +122,7 @@ class GachaSettingsPanel extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: EdgeInsets.symmetric(vertical: bgmVerticalPadding),
           child: Row(
             children: <Widget>[
               Expanded(
@@ -172,9 +178,9 @@ class GachaSettingsPanel extends StatelessWidget {
           ),
         ),
         if (!isMobile) ...<Widget>[
-          const Spacer(),
+          SizedBox(height: isCompactDesktop ? 12 : 16),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isCompactDesktop ? 14 : 16),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(12),
@@ -183,10 +189,10 @@ class GachaSettingsPanel extends StatelessWidget {
                 width: 1,
               ),
             ),
-            child: const Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
+                const Text(
                   '⚠️ 포장 완료 조건',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
@@ -194,62 +200,53 @@ class GachaSettingsPanel extends StatelessWidget {
                     color: Colors.deepOrange,
                   ),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: conditionTitleGap),
                 Text(
                   '• 캡슐 최소 1개 이상 생성',
-                  style: TextStyle(fontSize: 16, color: Colors.white54),
+                  style: TextStyle(
+                    fontSize: conditionTextSize,
+                    color: Colors.white54,
+                  ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
                 Text(
                   '• 상단 이름 및 서브타이틀 입력',
-                  style: TextStyle(fontSize: 16, color: Colors.white54),
+                  style: TextStyle(
+                    fontSize: conditionTextSize,
+                    color: Colors.white54,
+                  ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
                 Text(
                   '• 뽑기 가능 횟수 최소 1회 이상',
-                  style: TextStyle(fontSize: 16, color: Colors.white54),
+                  style: TextStyle(
+                    fontSize: conditionTextSize,
+                    color: Colors.white54,
+                  ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
                 Text(
                   '• 미완성 캡슐 없음',
-                  style: TextStyle(fontSize: 16, color: Colors.white54),
+                  style: TextStyle(
+                    fontSize: conditionTextSize,
+                    color: Colors.white54,
+                  ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
                 Text(
                   '• 전체 확률 100% 충족',
-                  style: TextStyle(fontSize: 16, color: Colors.white54),
+                  style: TextStyle(
+                    fontSize: conditionTextSize,
+                    color: Colors.white54,
+                  ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
               ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 60,
-            child: ElevatedButton(
-              onPressed: canComplete ? onComplete : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    canComplete ? const Color(0xFF6DE1F1) : Colors.grey.shade300,
-                disabledBackgroundColor: Colors.grey.shade800,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 0,
-              ),
-              child: Text(
-                '포장 완료',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: canComplete ? Colors.black : Colors.grey.shade500,
-                ),
-              ),
             ),
           ),
         ],

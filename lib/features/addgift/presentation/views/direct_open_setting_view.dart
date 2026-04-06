@@ -9,6 +9,7 @@ import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/packaging_loading_overlay.dart';
 import '../../application/direct_open_setting/direct_open_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
+import '../widgets/desktop_settings_rail.dart';
 import '../widgets/direct_open/direct_open_complete_button.dart';
 import '../widgets/direct_open/direct_open_content_section.dart';
 import '../widgets/direct_open/direct_open_mobile_bottom_bar.dart';
@@ -244,27 +245,20 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                                   ),
                                   Expanded(
                                     flex: 3,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(40.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        children: <Widget>[
-                                          Expanded(
-                                            child: SingleChildScrollView(
-                                              child: DirectOpenSettingsSection(
-                                                state: directOpenState,
-                                                isMobile: false,
-                                              ),
-                                            ),
+                                    child: DesktopSettingsRail(
+                                      settingsBuilder:
+                                          (
+                                            BuildContext context,
+                                            bool isCompactDesktop,
+                                          ) => DirectOpenSettingsSection(
+                                            state: directOpenState,
+                                            isMobile: false,
+                                            isCompactDesktop: isCompactDesktop,
                                           ),
-                                          const SizedBox(height: 24),
-                                          DirectOpenCompleteButton(
-                                            onPressed: _canComplete()
-                                                ? _completePackage
-                                                : null,
-                                          ),
-                                        ],
+                                      bottomAction: DirectOpenCompleteButton(
+                                        onPressed: _canComplete()
+                                            ? _completePackage
+                                            : null,
                                       ),
                                     ),
                                   ),

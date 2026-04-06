@@ -10,6 +10,7 @@ import '../../../../core/widgets/packaging_loading_overlay.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../application/quiz_setting/quiz_setting_bloc.dart';
 import '../../model/quiz_setting_models.dart';
+import '../widgets/desktop_settings_rail.dart';
 import '../widgets/quiz/quiz_complete_button.dart';
 import '../widgets/quiz/quiz_edit_form.dart';
 import '../widgets/quiz/quiz_items_section.dart';
@@ -243,7 +244,10 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                 },
               ),
               ListTile(
-                title: const Text('OX 퀴즈', style: TextStyle(color: Colors.white)),
+                title: const Text(
+                  'OX 퀴즈',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _showEditModal(
@@ -516,34 +520,27 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                                 ),
                                 Expanded(
                                   flex: 3,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(40.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: <Widget>[
-                                        Expanded(
-                                          child: SingleChildScrollView(
-                                            child: QuizSettingsPanel(
-                                              quizState: quizState,
-                                              isMobile: false,
-                                              successRewardNameController:
-                                                  _successRewardNameController,
-                                              failRewardNameController:
-                                                  _failRewardNameController,
-                                              onPickSuccessRewardImage: () =>
-                                                  _pickImageForReward(true),
-                                              onPickFailRewardImage: () =>
-                                                  _pickImageForReward(false),
-                                            ),
-                                          ),
+                                  child: DesktopSettingsRail(
+                                    settingsBuilder:
+                                        (
+                                          BuildContext context,
+                                          bool isCompactDesktop,
+                                        ) => QuizSettingsPanel(
+                                          quizState: quizState,
+                                          isMobile: false,
+                                          isCompactDesktop: isCompactDesktop,
+                                          successRewardNameController:
+                                              _successRewardNameController,
+                                          failRewardNameController:
+                                              _failRewardNameController,
+                                          onPickSuccessRewardImage: () =>
+                                              _pickImageForReward(true),
+                                          onPickFailRewardImage: () =>
+                                              _pickImageForReward(false),
                                         ),
-                                        const SizedBox(height: 24),
-                                        QuizCompleteButton(
-                                          enabled: _canComplete() && !_isSubmitting,
-                                          onPressed: _completePackage,
-                                        ),
-                                      ],
+                                    bottomAction: QuizCompleteButton(
+                                      enabled: _canComplete() && !_isSubmitting,
+                                      onPressed: _completePackage,
                                     ),
                                   ),
                                 ),
