@@ -18,9 +18,7 @@ class InviteModalContent extends StatelessWidget {
   Widget build(BuildContext context) {
     // LobbyBloc을 이 위젯 트리에 주입 (모달 단위 스코프)
     return BlocProvider(
-      create: (_) => LobbyBloc(
-        repository: getIt<LobbyRepository>(),
-      ),
+      create: (_) => LobbyBloc(repository: getIt<LobbyRepository>()),
       child: const _InviteModalBody(),
     );
   }
@@ -110,12 +108,14 @@ class _InviteModalBodyState extends State<_InviteModalBody>
     if (context.mounted) context.pop();
 
     final Uri giftUrl = Uri.base.resolve('/gift/code/$code');
-    if (await canLaunchUrl(giftUrl)) {
-      unawaited(launchUrl(giftUrl, webOnlyWindowName: '_blank'));
-    } else {
-      // 새 창을 열 수 없는 환경(네이티브 등)에서는 현재 탭에서 이동
-      if (context.mounted) context.push('/gift/code/$code');
-    }
+
+    if (context.mounted) context.push('/gift/code/$code');
+    // if (await canLaunchUrl(giftUrl)) {
+    //   unawaited(launchUrl(giftUrl, webOnlyWindowName: '_blank'));
+    // } else {
+    //   // 새 창을 열 수 없는 환경(네이티브 등)에서는 현재 탭에서 이동
+    //   if (context.mounted) context.push('/gift/code/$code');
+    // }
   }
 
   @override

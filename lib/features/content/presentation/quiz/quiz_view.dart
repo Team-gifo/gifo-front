@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/blocs/download/download_bloc.dart';
@@ -84,6 +85,9 @@ class _QuizViewState extends State<QuizView>
     final bool isDesktop = size.width >= AppBreakpoints.desktop;
 
     return BlocConsumer<QuizBloc, QuizState>(
+      listenWhen: (QuizState previous, QuizState current) =>
+          previous.isLastAnswerCorrect != current.isLastAnswerCorrect &&
+          current.isLastAnswerCorrect != null,
       listener: (BuildContext context, QuizState state) {
         // 제출 시 (정답/오답) 애니메이션 효과 실행
         if (state.isLastAnswerCorrect != null) {
@@ -389,9 +393,30 @@ class _QuizViewState extends State<QuizView>
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: currentQuiz.imageUrl.startsWith('http')
-                  ? Image.network(currentQuiz.imageUrl, fit: BoxFit.contain)
-                  : Image.asset(currentQuiz.imageUrl, fit: BoxFit.contain),
+            child: Image.network(
+              currentQuiz.imageUrl,
+              fit: BoxFit.contain,
+              loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Skeletonizer(
+                  enabled: true,
+                  child: Container(
+                    width: imgMaxWidth,
+                    height: imgMaxHeight,
+                    color: Colors.white10,
+                  ),
+                );
+              },
+              errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                return SizedBox(
+                  width: imgMaxWidth,
+                  height: imgMaxHeight,
+                  child: const Center(
+                    child: Icon(Icons.broken_image, color: Colors.white24, size: 40),
+                  ),
+                );
+              },
+            ),
             ),
           ),
         ],
@@ -654,7 +679,6 @@ class _QuizViewState extends State<QuizView>
                 onPressed: canSubmit
                     ? () {
                         context.read<QuizBloc>().add(const SubmitAnswer());
-                        _textController.clear();
                       }
                     : null,
                 style: ElevatedButton.styleFrom(

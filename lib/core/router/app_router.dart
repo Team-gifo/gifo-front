@@ -28,7 +28,6 @@ import '../../features/lobby/repository/lobby_repository.dart';
 import '../../features/content/repository/content_repository.dart';
 import '../di/service_locator.dart';
 
-
 bool isPackageComplete = false;
 final GiftPackagingBloc giftPackagingBloc = GiftPackagingBloc();
 
@@ -124,9 +123,9 @@ final GoRouter appRouter = GoRouter(
         final String code = state.extra as String? ?? '';
         return NoTransitionPage(
           child: BlocProvider(
-            create: (_) => LobbyBloc(
-              repository: getIt<LobbyRepository>(),
-            )..add(FetchLobbyData(code)),
+            create: (_) =>
+                LobbyBloc(repository: getIt<LobbyRepository>())
+                  ..add(FetchLobbyData(code)),
             child: LobbyView(code: code),
           ),
         );
@@ -140,9 +139,9 @@ final GoRouter appRouter = GoRouter(
         final String code = state.pathParameters['code'] ?? '';
         return NoTransitionPage(
           child: BlocProvider(
-            create: (_) => LobbyBloc(
-              repository: getIt<LobbyRepository>(),
-            )..add(FetchLobbyData(code)),
+            create: (_) =>
+                LobbyBloc(repository: getIt<LobbyRepository>())
+                  ..add(FetchLobbyData(code)),
             child: LobbyView(code: code),
           ),
         );
@@ -152,8 +151,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/memory-gallery',
       pageBuilder: (BuildContext context, GoRouterState state) {
-        final Map<String, dynamic> extra =
-            state.extra! as Map<String, dynamic>;
+        final Map<String, dynamic> extra = state.extra! as Map<String, dynamic>;
         final LobbyData lobbyData = extra['data'] as LobbyData;
         final String inviteCode = extra['code'] as String? ?? '';
         return NoTransitionPage(
@@ -171,8 +169,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/content/gacha',
       pageBuilder: (BuildContext context, GoRouterState state) {
-        final Map<String, dynamic> extra =
-            state.extra! as Map<String, dynamic>;
+        final Map<String, dynamic> extra = state.extra! as Map<String, dynamic>;
         final LobbyData lobbyData = extra['data'] as LobbyData;
         final String inviteCode = extra['code'] as String? ?? '';
         return NoTransitionPage(
@@ -180,7 +177,8 @@ final GoRouter appRouter = GoRouter(
             providers: <BlocProvider<dynamic>>[
               BlocProvider<GachaBloc>(
                 create: (BuildContext context) =>
-                    GachaBloc()..add(InitGacha(lobbyData, inviteCode: inviteCode)),
+                    GachaBloc()
+                      ..add(InitGacha(lobbyData, inviteCode: inviteCode)),
               ),
               BlocProvider<DownloadBloc>(
                 create: (BuildContext context) => DownloadBloc(),
@@ -195,15 +193,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/content/quiz',
       pageBuilder: (BuildContext context, GoRouterState state) {
-        final Map<String, dynamic> extra =
-            state.extra! as Map<String, dynamic>;
+        final Map<String, dynamic> extra = state.extra! as Map<String, dynamic>;
         final LobbyData lobbyData = extra['data'] as LobbyData;
         final String inviteCode = extra['code'] as String? ?? '';
         return NoTransitionPage(
           child: BlocProvider<QuizBloc>(
-            create: (BuildContext context) => QuizBloc(
-              repository: getIt<ContentRepository>(),
-            )..add(InitQuiz(lobbyData, inviteCode: inviteCode)),
+            create: (BuildContext context) =>
+                QuizBloc(repository: getIt<ContentRepository>())
+                  ..add(InitQuiz(lobbyData, inviteCode: inviteCode)),
             child: const QuizView(),
           ),
         );
@@ -213,14 +210,14 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/content/unboxing',
       pageBuilder: (BuildContext context, GoRouterState state) {
-        final Map<String, dynamic> extra =
-            state.extra! as Map<String, dynamic>;
+        final Map<String, dynamic> extra = state.extra! as Map<String, dynamic>;
         final LobbyData lobbyData = extra['data'] as LobbyData;
         final String inviteCode = extra['code'] as String? ?? '';
         return NoTransitionPage(
           child: BlocProvider<UnboxingBloc>(
             create: (BuildContext context) =>
-                UnboxingBloc()..add(InitUnboxing(lobbyData, inviteCode: inviteCode)),
+                UnboxingBloc()
+                  ..add(InitUnboxing(lobbyData, inviteCode: inviteCode)),
             child: const UnboxingView(),
           ),
         );

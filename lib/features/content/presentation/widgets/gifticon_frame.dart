@@ -1,5 +1,6 @@
 import 'package:barcode/barcode.dart';
 import 'package:flutter/material.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -80,7 +81,26 @@ class GifticonFrame extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Image.asset(imageUrl, fit: BoxFit.contain),
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.contain,
+                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Skeletonizer(
+                          enabled: true,
+                          child: Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            color: Colors.white10,
+                          ),
+                        );
+                      },
+                      errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                        return const Center(
+                          child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
+                        );
+                      },
+                    ),
                   ),
                   const SizedBox(height: 60), // 이미지와 이름 사이 간격 확대 (50->60)
                   // 정보 영역 리스트 (간격 및 가독성 조정)

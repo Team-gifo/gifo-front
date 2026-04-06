@@ -12,4 +12,6 @@ abstract class QuizAnswerRequest with _$QuizAnswerRequest {
 
   factory QuizAnswerRequest.fromJson(Map<String, dynamic> json) =>
       _$QuizAnswerRequestFromJson(json);
+
+  Map<String, dynamic> toJson() => _$QuizAnswerRequestToJson(this as _QuizAnswerRequest);
 }

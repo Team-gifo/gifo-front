@@ -13,6 +13,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/blocs/download/download_bloc.dart';
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
+import 'package:dio/dio.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../model/lobby_data.dart';
 
@@ -382,9 +384,25 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
               child: Container(
                 color: Colors.black, // 이미지와 픽셀 사이 여백 공간 색상
                 padding: const EdgeInsets.all(16.0), // 요청하신 '약간의 여백' 공간
-                child: Image.asset(
+                child: Image.network(
                   item.imageUrl,
                   fit: BoxFit.cover, // 빈틈 없이 조절
+                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Skeletonizer(
+                      enabled: true,
+                      child: Container(
+                        width: double.infinity,
+                        height: double.infinity,
+                        color: Colors.white10,
+                      ),
+                    );
+                  },
+                  errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+                    return const Center(
+                      child: Icon(Icons.broken_image, color: Colors.white24, size: 40),
+                    );
+                  },
                 ),
               ),
             ),
@@ -919,10 +937,10 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
       // 1. 원본 이미지
       if (_dlOriginal) {
         try {
-          final ByteData data = await rootBundle.load(item.imageUrl);
+          final Uint8List imageBytes = await _getImageBytes(item.imageUrl);
           filesInfo.add(<String, dynamic>{
             'name': 'Original_${index + 1}_$safeTitle.png',
-            'bytes': data.buffer.asUint8List(),
+            'bytes': imageBytes,
           });
         } catch (e) {
           debugPrint('Original image load error at $index: $e');
@@ -935,7 +953,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
           final Uint8List desktopBytes = await _screenshotController
               .captureFromWidget(
                 _buildCaptureFrame(isDesktop: true, pageIndex: index),
-                // delay: const Duration(milliseconds: 500), // Removed delay
+                delay: const Duration(milliseconds: 1000),
                 context: context,
                 targetSize: const Size(1920, 1080),
               );
@@ -954,7 +972,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
           final Uint8List mobileBytes = await _screenshotController
               .captureFromWidget(
                 _buildCaptureFrame(isDesktop: false, pageIndex: index),
-                // delay: const Duration(milliseconds: 500), // Removed delay
+                delay: const Duration(milliseconds: 1000),
                 context: context,
                 targetSize: const Size(393, 852),
                 pixelRatio: 3.0, // 고해상도 출력
@@ -1346,6 +1364,19 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
         ),
       ],
     );
+  }
+  // --- 이미지 바이트 데이터 가져오기 (Asset/Network 공용) ---
+  Future<Uint8List> _getImageBytes(String urlOrPath) async {
+    if (urlOrPath.startsWith('http')) {
+      final Response<List<int>> response = await Dio().get<List<int>>(
+        urlOrPath,
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return Uint8List.fromList(response.data!);
+    } else {
+      final ByteData data = await rootBundle.load(urlOrPath);
+      return data.buffer.asUint8List();
+    }
   }
 }
 
