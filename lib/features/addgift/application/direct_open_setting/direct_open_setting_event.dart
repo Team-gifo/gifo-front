@@ -4,7 +4,7 @@ sealed class DirectOpenSettingEvent {}
 
 class InitDirectOpenSetting extends DirectOpenSettingEvent {
   final String initialBgm;
-  InitDirectOpenSetting({this.initialBgm = '신나는 생일'});
+  InitDirectOpenSetting({this.initialBgm = ''});
 }
 
 class UpdateBeforeImage extends DirectOpenSettingEvent {

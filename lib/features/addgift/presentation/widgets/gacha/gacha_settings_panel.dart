@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../application/gacha_setting/gacha_setting_bloc.dart';
+import '../shared/bgm_selector_widget.dart';
 
 class GachaSettingsPanel extends StatelessWidget {
   const GachaSettingsPanel({
@@ -121,60 +122,15 @@ class GachaSettingsPanel extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
-        Container(
+        Padding(
           padding: EdgeInsets.symmetric(vertical: bgmVerticalPadding),
-          child: Row(
-            children: <Widget>[
-              Expanded(
-                child: BlocBuilder<GachaSettingBloc, GachaSettingState>(
-                  builder: (BuildContext context, GachaSettingState state) =>
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white12,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            dropdownColor: const Color(0xFF1A1A1A),
-                            style: const TextStyle(color: Colors.white),
-                            iconEnabledColor: Colors.white38,
-                            value: state.selectedBgm,
-                            isExpanded: true,
-                            onChanged: (String? val) {
-                              if (val != null) {
-                                context.read<GachaSettingBloc>().add(
-                                  UpdateBgm(val),
-                                );
-                              }
-                            },
-                            items: <String>['신나는 생일', '잔잔한 음악', '우리의 추억']
-                                .map(
-                                  (String value) => DropdownMenuItem<String>(
-                                    value: value,
-                                    child: Text(
-                                      value,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ),
-                      ),
+          child: BlocBuilder<GachaSettingBloc, GachaSettingState>(
+            builder: (BuildContext context, GachaSettingState state) =>
+                BgmSelectorWidget(
+                  selectedBgmId: state.selectedBgm,
+                  onBgmChanged: (String id) =>
+                      context.read<GachaSettingBloc>().add(UpdateBgm(id)),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white12,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.play_arrow, color: Colors.white38),
-              ),
-            ],
           ),
         ),
         if (!isMobile) ...<Widget>[

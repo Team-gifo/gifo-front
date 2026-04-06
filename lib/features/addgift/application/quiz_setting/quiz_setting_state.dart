@@ -10,7 +10,7 @@ class QuizSettingState {
     List<QuizItemData>? uiItems,
     QuizRewardData? successReward,
     QuizRewardData? failReward,
-    this.selectedBgm = '신나는 생일',
+    this.selectedBgm = '',
   })  : uiItems = uiItems ?? <QuizItemData>[],
         successReward = successReward ?? QuizRewardData(requiredCount: 1),
         failReward = failReward ?? QuizRewardData();

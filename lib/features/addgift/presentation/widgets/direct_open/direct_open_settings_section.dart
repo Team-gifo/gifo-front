@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../application/direct_open_setting/direct_open_setting_bloc.dart';
+import '../shared/bgm_selector_widget.dart';
 
 class DirectOpenSettingsSection extends StatelessWidget {
   const DirectOpenSettingsSection({
@@ -34,52 +35,13 @@ class DirectOpenSettingsSection extends StatelessWidget {
           ),
         ),
         SizedBox(height: spacingAfterTitle),
-        Row(
-          children: <Widget>[
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white12,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: state.selectedBgm,
-                    isExpanded: true,
-                    dropdownColor: const Color(0xFF1A1A1A),
-                    style: const TextStyle(color: Colors.white),
-                    iconEnabledColor: Colors.white38,
-                    onChanged: (String? val) {
-                      if (val != null) {
-                        context.read<DirectOpenSettingBloc>().add(
-                          UpdateDirectOpenBgm(val),
-                        );
-                      }
-                    },
-                    items: <String>['신나는 생일', '잔잔한 음악', '우리의 추억']
-                        .map(
-                          (String value) => DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value, overflow: TextOverflow.ellipsis),
-                          ),
-                        )
-                        .toList(),
-                  ),
-                ),
+        BgmSelectorWidget(
+          selectedBgmId: state.selectedBgm,
+          onBgmChanged: (String id) =>
+              context.read<DirectOpenSettingBloc>().add(
+                UpdateDirectOpenBgm(id),
               ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white12,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.play_arrow, color: Colors.white38),
-            ),
-          ],
+          isCompactDesktop: isCompactDesktop,
         ),
         if (!isMobile) ...<Widget>[
           SizedBox(height: spacingBeforeConditions),

@@ -37,6 +37,7 @@ dependencies:
   archive: ^4.0.9
   barcode: ^2.2.9
   share_plus: ^10.1.4
+  just_audio: ^0.9.40
 
 dev_dependencies:
   flutter_test:

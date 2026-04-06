@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../application/quiz_setting/quiz_setting_bloc.dart';
+import '../shared/bgm_selector_widget.dart';
 import '../../../model/quiz_setting_models.dart';
 
 class QuizSettingsPanel extends StatelessWidget {
@@ -526,55 +527,11 @@ class QuizSettingsPanel extends StatelessWidget {
             ],
           ),
           SizedBox(height: titleBottomSpacing),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white12,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                      value: quizState.selectedBgm,
-                      isExpanded: true,
-                      dropdownColor: const Color(0xFF1A1A1A),
-                      style: const TextStyle(color: Colors.white),
-                      iconEnabledColor: Colors.white38,
-                      onChanged: (String? val) {
-                        if (val != null) {
-                          context.read<QuizSettingBloc>().add(
-                            UpdateQuizBgm(val),
-                          );
-                        }
-                      },
-                      items: <String>['신나는 생일', '잔잔한 음악', '우리의 추억']
-                          .map(
-                            (String value) => DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(
-                                value,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white12,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: const Icon(Icons.play_arrow, color: Colors.white38),
-              ),
-            ],
+          BgmSelectorWidget(
+            selectedBgmId: quizState.selectedBgm,
+            onBgmChanged: (String id) =>
+                context.read<QuizSettingBloc>().add(UpdateQuizBgm(id)),
+            isCompactDesktop: isCompactDesktop,
           ),
         ],
       ),
