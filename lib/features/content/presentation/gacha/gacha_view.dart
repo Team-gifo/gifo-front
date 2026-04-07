@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:skeletonizer/skeletonizer.dart';
+
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
@@ -44,10 +46,13 @@ class _GachaViewState extends State<GachaView> {
           return Title(
             title: 'Happy Birthday, ${state.userName} | Gifo',
             color: Colors.black,
-            child: const Scaffold(
-              backgroundColor: AppColors.darkBg,
-              body: Center(
-                child: CircularProgressIndicator(color: AppColors.neonPurple),
+            child: Skeletonizer(
+              enabled: true,
+              child: Scaffold(
+                backgroundColor: AppColors.darkBg,
+                body: isDesktop
+                    ? _buildDesktopLayout(state)
+                    : _buildMobileLayout(state, isMobileOrSmall),
               ),
             ),
           );
@@ -56,30 +61,33 @@ class _GachaViewState extends State<GachaView> {
         return Title(
           title: 'Happy Birthday, ${state.userName} | Gifo',
           color: Colors.black,
-          child: Scaffold(
-            backgroundColor: AppColors.darkBg,
-            body: SafeArea(
-              child: Stack(
-                children: <Widget>[
-                  // 배경 그리드 패턴
-                  Positioned.fill(
-                    child: CustomPaint(painter: GridBackgroundPainter()),
-                  ),
-                  // 상단 AppBar 영역
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    child: _buildAppBar(state, isMobileOrSmall),
-                  ),
-                  // 메인 콘텐츠 영역
-                  Positioned.fill(
-                    top: isMobileOrSmall ? 64 : 72,
-                    child: isDesktop
-                        ? _buildDesktopLayout(state)
-                        : _buildMobileLayout(state, isMobileOrSmall),
-                  ),
-                ],
+          child: Skeletonizer(
+            enabled: state.isDrawing,
+            child: Scaffold(
+              backgroundColor: AppColors.darkBg,
+              body: SafeArea(
+                child: Stack(
+                  children: <Widget>[
+                    // 배경 그리드 패턴
+                    Positioned.fill(
+                      child: CustomPaint(painter: GridBackgroundPainter()),
+                    ),
+                    // 상단 AppBar 영역
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: _buildAppBar(state, isMobileOrSmall),
+                    ),
+                    // 메인 콘텐츠 영역
+                    Positioned.fill(
+                      top: isMobileOrSmall ? 64 : 72,
+                      child: isDesktop
+                          ? _buildDesktopLayout(state)
+                          : _buildMobileLayout(state, isMobileOrSmall),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -217,7 +225,7 @@ class _GachaViewState extends State<GachaView> {
             child: GachaMachineSection(
               key: _machineKey,
               remainingCount: state.remainingCount,
-              items: state.gachaContent!.list,
+              items: state.gachaContent?.list ?? <GachaItem>[],
               onDraw: state.remainingCount > 0
                   ? () => context.read<GachaBloc>().add(const DrawGacha())
                   : null,
@@ -229,7 +237,7 @@ class _GachaViewState extends State<GachaView> {
           const SizedBox(width: 28),
           Expanded(
             flex: 1,
-            child: GachaPrizeListPanel(items: state.gachaContent!.list),
+            child: GachaPrizeListPanel(items: state.gachaContent?.list ?? <GachaItem>[]),
           ),
         ],
       ),
@@ -246,7 +254,7 @@ class _GachaViewState extends State<GachaView> {
             child: GachaMachineSection(
               key: _machineKey,
               remainingCount: state.remainingCount,
-              items: state.gachaContent!.list,
+              items: state.gachaContent?.list ?? <GachaItem>[],
               onDraw: state.remainingCount > 0
                   ? () => context.read<GachaBloc>().add(const DrawGacha())
                   : null,

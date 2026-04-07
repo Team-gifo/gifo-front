@@ -93,6 +93,8 @@ _GachaItem _$GachaItemFromJson(Map<String, dynamic> json) => _GachaItem(
   imageUrl: json['imageUrl'] as String,
   percent: (json['percent'] as num).toDouble(),
   percentOpen: json['percentOpen'] as bool,
+  capsuleId: (json['capsuleId'] as num?)?.toInt(),
+  description: json['description'] as String?,
 );
 
 Map<String, dynamic> _$GachaItemToJson(_GachaItem instance) =>
@@ -101,6 +103,8 @@ Map<String, dynamic> _$GachaItemToJson(_GachaItem instance) =>
       'imageUrl': instance.imageUrl,
       'percent': instance.percent,
       'percentOpen': instance.percentOpen,
+      'capsuleId': instance.capsuleId,
+      'description': instance.description,
     };
 
 _GachaDrawHistory _$GachaDrawHistoryFromJson(Map<String, dynamic> json) =>

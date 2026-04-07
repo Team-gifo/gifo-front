@@ -1,15 +1,16 @@
-import 'dart:math';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../lobby/model/lobby_data.dart';
+import '../../repository/content_repository.dart';
 
 part 'gacha_event.dart';
 part 'gacha_state.dart';
 
 // 캡슐 뽑기 콘텐츠 상태 관리 BLoC
 class GachaBloc extends Bloc<GachaEvent, GachaState> {
-  GachaBloc() : super(const GachaState()) {
+  final ContentRepository repository;
+
+  GachaBloc({required this.repository}) : super(const GachaState()) {
     on<InitGacha>(_onInitGacha);
     on<DrawGacha>(_onDrawGacha);
     on<ResetGacha>(_onResetGacha);
@@ -34,19 +35,39 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
     );
   }
 
-  // 캡슐 뽑기 실행
-  void _onDrawGacha(DrawGacha event, Emitter<GachaState> emit) {
-    if (state.remainingCount <= 0 || state.gachaContent == null) return;
+  // 캡슐 뽑기 실행 (서버 API 호출)
+  Future<void> _onDrawGacha(DrawGacha event, Emitter<GachaState> emit) async {
+    if (state.remainingCount <= 0 || state.isDrawing) return;
 
-    final List<GachaItem> items = state.gachaContent!.list;
-    final GachaItem randomItem = items[Random().nextInt(items.length)];
+    emit(state.copyWith(isDrawing: true));
 
-    emit(
-      state.copyWith(
-        remainingCount: state.remainingCount - 1,
-        lastDrawnItem: randomItem,
-      ),
-    );
+    try {
+      final response = await repository.drawCapsule(state.inviteCode);
+      
+      if (response != null && response.data != null) {
+        final gachaResult = GachaItem(
+          itemName: response.data!.giftName,
+          imageUrl: response.data!.giftImageUrl,
+          percent: 0.0,
+          percentOpen: false,
+          capsuleId: response.data!.capsuleId,
+          description: response.data!.description,
+        );
+
+        emit(
+          state.copyWith(
+            remainingCount: state.remainingCount - 1,
+            lastDrawnItem: gachaResult,
+            isDrawing: false,
+          ),
+        );
+      } else {
+        // API 실패 시 로컬 더미 처리 혹은 에러 상태 (현재는 로직상 API 성공 가정)
+        emit(state.copyWith(isDrawing: false));
+      }
+    } catch (e) {
+      emit(state.copyWith(isDrawing: false));
+    }
   }
 
   void _onResetGacha(ResetGacha event, Emitter<GachaState> emit) {

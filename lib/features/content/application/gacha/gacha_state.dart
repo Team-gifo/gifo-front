@@ -8,6 +8,7 @@ class GachaState {
   final int remainingCount;
   final List<Map<String, dynamic>> history;
   final GachaItem? lastDrawnItem;
+  final bool isDrawing; // API 호출 중 여부
 
   const GachaState({
     this.userName = '',
@@ -16,6 +17,7 @@ class GachaState {
     this.remainingCount = 0,
     this.history = const <Map<String, dynamic>>[],
     this.lastDrawnItem,
+    this.isDrawing = false,
   });
 
   GachaState copyWith({
@@ -25,6 +27,7 @@ class GachaState {
     int? remainingCount,
     List<Map<String, dynamic>>? history,
     GachaItem? lastDrawnItem,
+    bool? isDrawing,
   }) {
     return GachaState(
       userName: userName ?? this.userName,
@@ -33,6 +36,7 @@ class GachaState {
       remainingCount: remainingCount ?? this.remainingCount,
       history: history ?? this.history,
       lastDrawnItem: lastDrawnItem,
+      isDrawing: isDrawing ?? this.isDrawing,
     );
   }
 }

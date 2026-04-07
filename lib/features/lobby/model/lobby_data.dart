@@ -66,6 +66,8 @@ abstract class GachaItem with _$GachaItem {
     required String imageUrl,
     required double percent,
     required bool percentOpen,
+    int? capsuleId,
+    String? description,
   }) = _GachaItem;
 
   factory GachaItem.fromJson(Map<String, dynamic> json) =>

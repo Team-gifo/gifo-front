@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../model/quiz/quiz_answer_response.dart';
-import '../../model/quiz/quiz_result_response.dart';
 
 import '../../../lobby/model/lobby_data.dart';
 import '../../model/quiz/quiz_answer_request.dart';

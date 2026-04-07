@@ -952,7 +952,7 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
                             shape: BoxShape.circle,
                             border: Border.all(color: AppColors.neonPurple),
                             image: DecorationImage(
-                              image: AssetImage(item.imageUrl),
+                              image: NetworkImage(item.imageUrl),
                               fit: BoxFit.cover,
                             ),
                           ),
@@ -1103,7 +1103,7 @@ class GachaPrizeListPanel extends StatelessWidget {
                             color: Colors.white.withValues(alpha: 0.1),
                           ),
                           image: DecorationImage(
-                            image: AssetImage(item.imageUrl),
+                            image: NetworkImage(item.imageUrl),
                             fit: BoxFit.cover,
                           ),
                         ),

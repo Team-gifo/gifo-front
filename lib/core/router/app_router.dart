@@ -177,7 +177,7 @@ final GoRouter appRouter = GoRouter(
             providers: <BlocProvider<dynamic>>[
               BlocProvider<GachaBloc>(
                 create: (BuildContext context) =>
-                    GachaBloc()
+                    GachaBloc(repository: getIt<ContentRepository>())
                       ..add(InitGacha(lobbyData, inviteCode: inviteCode)),
               ),
               BlocProvider<DownloadBloc>(

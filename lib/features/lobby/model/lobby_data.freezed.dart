@@ -1217,7 +1217,7 @@ as List<GachaDrawHistory>,
 /// @nodoc
 mixin _$GachaItem {
 
- String get itemName; String get imageUrl; double get percent; bool get percentOpen;
+ String get itemName; String get imageUrl; double get percent; bool get percentOpen; int? get capsuleId; String? get description;
 /// Create a copy of GachaItem
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1230,16 +1230,16 @@ $GachaItemCopyWith<GachaItem> get copyWith => _$GachaItemCopyWithImpl<GachaItem>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GachaItem&&(identical(other.itemName, itemName) || other.itemName == itemName)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.percent, percent) || other.percent == percent)&&(identical(other.percentOpen, percentOpen) || other.percentOpen == percentOpen));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GachaItem&&(identical(other.itemName, itemName) || other.itemName == itemName)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.percent, percent) || other.percent == percent)&&(identical(other.percentOpen, percentOpen) || other.percentOpen == percentOpen)&&(identical(other.capsuleId, capsuleId) || other.capsuleId == capsuleId)&&(identical(other.description, description) || other.description == description));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,itemName,imageUrl,percent,percentOpen);
+int get hashCode => Object.hash(runtimeType,itemName,imageUrl,percent,percentOpen,capsuleId,description);
 
 @override
 String toString() {
-  return 'GachaItem(itemName: $itemName, imageUrl: $imageUrl, percent: $percent, percentOpen: $percentOpen)';
+  return 'GachaItem(itemName: $itemName, imageUrl: $imageUrl, percent: $percent, percentOpen: $percentOpen, capsuleId: $capsuleId, description: $description)';
 }
 
 
@@ -1250,7 +1250,7 @@ abstract mixin class $GachaItemCopyWith<$Res>  {
   factory $GachaItemCopyWith(GachaItem value, $Res Function(GachaItem) _then) = _$GachaItemCopyWithImpl;
 @useResult
 $Res call({
- String itemName, String imageUrl, double percent, bool percentOpen
+ String itemName, String imageUrl, double percent, bool percentOpen, int? capsuleId, String? description
 });
 
 
@@ -1267,13 +1267,15 @@ class _$GachaItemCopyWithImpl<$Res>
 
 /// Create a copy of GachaItem
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? itemName = null,Object? imageUrl = null,Object? percent = null,Object? percentOpen = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? itemName = null,Object? imageUrl = null,Object? percent = null,Object? percentOpen = null,Object? capsuleId = freezed,Object? description = freezed,}) {
   return _then(_self.copyWith(
 itemName: null == itemName ? _self.itemName : itemName // ignore: cast_nullable_to_non_nullable
 as String,imageUrl: null == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String,percent: null == percent ? _self.percent : percent // ignore: cast_nullable_to_non_nullable
 as double,percentOpen: null == percentOpen ? _self.percentOpen : percentOpen // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,capsuleId: freezed == capsuleId ? _self.capsuleId : capsuleId // ignore: cast_nullable_to_non_nullable
+as int?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -1358,10 +1360,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String itemName,  String imageUrl,  double percent,  bool percentOpen)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String itemName,  String imageUrl,  double percent,  bool percentOpen,  int? capsuleId,  String? description)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GachaItem() when $default != null:
-return $default(_that.itemName,_that.imageUrl,_that.percent,_that.percentOpen);case _:
+return $default(_that.itemName,_that.imageUrl,_that.percent,_that.percentOpen,_that.capsuleId,_that.description);case _:
   return orElse();
 
 }
@@ -1379,10 +1381,10 @@ return $default(_that.itemName,_that.imageUrl,_that.percent,_that.percentOpen);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String itemName,  String imageUrl,  double percent,  bool percentOpen)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String itemName,  String imageUrl,  double percent,  bool percentOpen,  int? capsuleId,  String? description)  $default,) {final _that = this;
 switch (_that) {
 case _GachaItem():
-return $default(_that.itemName,_that.imageUrl,_that.percent,_that.percentOpen);case _:
+return $default(_that.itemName,_that.imageUrl,_that.percent,_that.percentOpen,_that.capsuleId,_that.description);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1399,10 +1401,10 @@ return $default(_that.itemName,_that.imageUrl,_that.percent,_that.percentOpen);c
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String itemName,  String imageUrl,  double percent,  bool percentOpen)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String itemName,  String imageUrl,  double percent,  bool percentOpen,  int? capsuleId,  String? description)?  $default,) {final _that = this;
 switch (_that) {
 case _GachaItem() when $default != null:
-return $default(_that.itemName,_that.imageUrl,_that.percent,_that.percentOpen);case _:
+return $default(_that.itemName,_that.imageUrl,_that.percent,_that.percentOpen,_that.capsuleId,_that.description);case _:
   return null;
 
 }
@@ -1414,13 +1416,15 @@ return $default(_that.itemName,_that.imageUrl,_that.percent,_that.percentOpen);c
 @JsonSerializable()
 
 class _GachaItem implements GachaItem {
-  const _GachaItem({required this.itemName, required this.imageUrl, required this.percent, required this.percentOpen});
+  const _GachaItem({required this.itemName, required this.imageUrl, required this.percent, required this.percentOpen, this.capsuleId, this.description});
   factory _GachaItem.fromJson(Map<String, dynamic> json) => _$GachaItemFromJson(json);
 
 @override final  String itemName;
 @override final  String imageUrl;
 @override final  double percent;
 @override final  bool percentOpen;
+@override final  int? capsuleId;
+@override final  String? description;
 
 /// Create a copy of GachaItem
 /// with the given fields replaced by the non-null parameter values.
@@ -1435,16 +1439,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GachaItem&&(identical(other.itemName, itemName) || other.itemName == itemName)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.percent, percent) || other.percent == percent)&&(identical(other.percentOpen, percentOpen) || other.percentOpen == percentOpen));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GachaItem&&(identical(other.itemName, itemName) || other.itemName == itemName)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.percent, percent) || other.percent == percent)&&(identical(other.percentOpen, percentOpen) || other.percentOpen == percentOpen)&&(identical(other.capsuleId, capsuleId) || other.capsuleId == capsuleId)&&(identical(other.description, description) || other.description == description));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,itemName,imageUrl,percent,percentOpen);
+int get hashCode => Object.hash(runtimeType,itemName,imageUrl,percent,percentOpen,capsuleId,description);
 
 @override
 String toString() {
-  return 'GachaItem(itemName: $itemName, imageUrl: $imageUrl, percent: $percent, percentOpen: $percentOpen)';
+  return 'GachaItem(itemName: $itemName, imageUrl: $imageUrl, percent: $percent, percentOpen: $percentOpen, capsuleId: $capsuleId, description: $description)';
 }
 
 
@@ -1455,7 +1459,7 @@ abstract mixin class _$GachaItemCopyWith<$Res> implements $GachaItemCopyWith<$Re
   factory _$GachaItemCopyWith(_GachaItem value, $Res Function(_GachaItem) _then) = __$GachaItemCopyWithImpl;
 @override @useResult
 $Res call({
- String itemName, String imageUrl, double percent, bool percentOpen
+ String itemName, String imageUrl, double percent, bool percentOpen, int? capsuleId, String? description
 });
 
 
@@ -1472,13 +1476,15 @@ class __$GachaItemCopyWithImpl<$Res>
 
 /// Create a copy of GachaItem
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? itemName = null,Object? imageUrl = null,Object? percent = null,Object? percentOpen = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? itemName = null,Object? imageUrl = null,Object? percent = null,Object? percentOpen = null,Object? capsuleId = freezed,Object? description = freezed,}) {
   return _then(_GachaItem(
 itemName: null == itemName ? _self.itemName : itemName // ignore: cast_nullable_to_non_nullable
 as String,imageUrl: null == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
 as String,percent: null == percent ? _self.percent : percent // ignore: cast_nullable_to_non_nullable
 as double,percentOpen: null == percentOpen ? _self.percentOpen : percentOpen // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,capsuleId: freezed == capsuleId ? _self.capsuleId : capsuleId // ignore: cast_nullable_to_non_nullable
+as int?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
