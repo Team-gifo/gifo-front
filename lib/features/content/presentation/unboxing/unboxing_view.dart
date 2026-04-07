@@ -2,6 +2,7 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/blocs/download/download_bloc.dart';
@@ -9,6 +10,7 @@ import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/pixel_envelope_widget.dart';
+import '../../../lobby/application/lobby_bloc.dart';
 import '../../application/unboxing/unboxing_bloc.dart';
 import '../result/result_view.dart';
 
@@ -122,22 +124,36 @@ class _UnboxingViewState extends State<UnboxingView>
     final Size size = MediaQuery.of(context).size;
     final bool isDesktop = size.width >= AppBreakpoints.desktop;
 
-    return BlocConsumer<UnboxingBloc, UnboxingState>(
-      listener: (BuildContext context, UnboxingState state) {},
-      builder: (BuildContext context, UnboxingState state) {
-        if (state.isReceived && state.unboxingContent != null) {
-          return BlocProvider<DownloadBloc>(
-            create: (_) => DownloadBloc(),
-            child: ResultView(
-              itemName: state.unboxingContent!.afterOpen.itemName,
-              imageUrl: state.unboxingContent!.afterOpen.imageUrl,
-              userName: state.userName,
-              inviteCode: state.inviteCode,
-            ),
-          );
-        }
+    return MultiBlocListener(
+      listeners: <BlocListener<dynamic, dynamic>>[
+        // 로비 데이터 동기화 리스너 추가 (Gacha/Quiz 패턴 동일 적용)
+        BlocListener<LobbyBloc, LobbyState>(
+          listenWhen: (LobbyState prev, LobbyState curr) =>
+              prev.lobbyData != curr.lobbyData && curr.lobbyData != null,
+          listener: (BuildContext context, LobbyState lobbyState) {
+            final String inviteCode = context.read<UnboxingBloc>().state.inviteCode;
+            context.read<UnboxingBloc>().add(
+                  InitUnboxing(lobbyState.lobbyData!, inviteCode: inviteCode),
+                );
+          },
+        ),
+      ],
+      child: BlocConsumer<UnboxingBloc, UnboxingState>(
+        listener: (BuildContext context, UnboxingState state) {},
+        builder: (BuildContext context, UnboxingState state) {
+          if (state.isReceived && state.unboxingContent != null) {
+            return BlocProvider<DownloadBloc>(
+              create: (_) => DownloadBloc(),
+              child: ResultView(
+                itemName: state.unboxingContent!.afterOpen.itemName,
+                imageUrl: state.unboxingContent!.afterOpen.imageUrl,
+                userName: state.userName,
+                inviteCode: state.inviteCode,
+              ),
+            );
+          }
 
-        if (state.unboxingContent == null) {
+          if (state.unboxingContent == null) {
           return Title(
             title: 'Happy Birthday, ${state.userName} | Gifo',
             color: AppColors.darkBg,
@@ -187,14 +203,37 @@ class _UnboxingViewState extends State<UnboxingView>
                         child: CustomPaint(painter: GridBackgroundPainter()),
                       ),
 
-                      // 2. Background Image
+                      // 2. Background Image (Network Image + Skeletonizer)
                       if (_bgOpacity.value > 0)
                         Positioned.fill(
                           child: Opacity(
                             opacity: _bgOpacity.value,
-                            child: Image.asset(
-                              state.unboxingContent!.beforeOpen.imageUrl,
-                              fit: BoxFit.contain,
+                            child: Skeletonizer(
+                              enabled: false, // 필요 시 로딩 상태에 따라 true 전환 가능
+                              child: Image.network(
+                                state.unboxingContent!.beforeOpen.imageUrl,
+                                fit: BoxFit.contain,
+                                loadingBuilder: (BuildContext context,
+                                    Widget child,
+                                    ImageChunkEvent? loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return const Center(
+                                    child: CircularProgressIndicator(
+                                      color: AppColors.neonPurple,
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (BuildContext context,
+                                    Object error, StackTrace? stackTrace) {
+                                  return const Center(
+                                    child: Icon(
+                                      Icons.broken_image,
+                                      color: Colors.white24,
+                                      size: 48,
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
@@ -324,6 +363,7 @@ class _UnboxingViewState extends State<UnboxingView>
                               child: Center(
                                 child: _buildReceiveButton(
                                   isDesktop: isDesktop,
+                                  state: state,
                                 ),
                               ),
                             ),
@@ -338,13 +378,14 @@ class _UnboxingViewState extends State<UnboxingView>
                         child: _buildAppBar(state, size),
                       ),
                     ],
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -453,7 +494,10 @@ class _UnboxingViewState extends State<UnboxingView>
     );
   }
 
-  Widget _buildReceiveButton({required bool isDesktop}) {
+  Widget _buildReceiveButton({
+    required bool isDesktop,
+    required UnboxingState state,
+  }) {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovering = true),
       onExit: (_) => setState(() => _isHovering = false),
@@ -464,8 +508,9 @@ class _UnboxingViewState extends State<UnboxingView>
         constraints: const BoxConstraints(maxWidth: 400),
         height: 60,
         child: ElevatedButton(
-          onPressed: () =>
-              context.read<UnboxingBloc>().add(const ReceiveGift()),
+          onPressed: state.isOpening
+              ? null
+              : () => context.read<UnboxingBloc>().add(const ReceiveGift()),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.neonPurple,
             foregroundColor: Colors.white,
@@ -479,14 +524,23 @@ class _UnboxingViewState extends State<UnboxingView>
               ), // 네온 스타일 보더
             ),
           ),
-          child: const Text(
-            '🎁 선물 개봉하기',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'PFStardust',
-            ),
-          ),
+          child: state.isOpening
+              ? const SizedBox(
+                  height: 24,
+                  width: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Text(
+                  '🎁 선물 개봉하기',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'PFStardust',
+                  ),
+                ),
         ),
       ),
     );

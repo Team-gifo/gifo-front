@@ -219,10 +219,19 @@ final GoRouter appRouter = GoRouter(
         final LobbyData lobbyData = extra['data'] as LobbyData;
         final String inviteCode = extra['code'] as String? ?? '';
         return NoTransitionPage(
-          child: BlocProvider<UnboxingBloc>(
-            create: (BuildContext context) =>
-                UnboxingBloc()
-                  ..add(InitUnboxing(lobbyData, inviteCode: inviteCode)),
+          child: MultiBlocProvider(
+            providers: <BlocProvider<dynamic>>[
+              BlocProvider<LobbyBloc>(
+                create: (BuildContext context) =>
+                    LobbyBloc(repository: getIt<LobbyRepository>())
+                      ..add(InitLobbyWithData(data: lobbyData, code: inviteCode)),
+              ),
+              BlocProvider<UnboxingBloc>(
+                create: (BuildContext context) => UnboxingBloc(
+                  repository: getIt<ContentRepository>(),
+                )..add(InitUnboxing(lobbyData, inviteCode: inviteCode)),
+              ),
+            ],
             child: const UnboxingView(),
           ),
         );

@@ -7,6 +7,7 @@ class UnboxingState {
   final String inviteCode;
   final UnboxingContent? unboxingContent;
   final bool isReceived;
+  final bool isOpening; // API 호출 중 여부
 
   const UnboxingState({
     this.userName = '',
@@ -14,6 +15,7 @@ class UnboxingState {
     this.inviteCode = '',
     this.unboxingContent,
     this.isReceived = false,
+    this.isOpening = false,
   });
 
   UnboxingState copyWith({
@@ -22,6 +24,7 @@ class UnboxingState {
     String? inviteCode,
     UnboxingContent? unboxingContent,
     bool? isReceived,
+    bool? isOpening,
   }) {
     return UnboxingState(
       userName: userName ?? this.userName,
@@ -29,6 +32,7 @@ class UnboxingState {
       inviteCode: inviteCode ?? this.inviteCode,
       unboxingContent: unboxingContent ?? this.unboxingContent,
       isReceived: isReceived ?? this.isReceived,
+      isOpening: isOpening ?? this.isOpening,
     );
   }
 }
