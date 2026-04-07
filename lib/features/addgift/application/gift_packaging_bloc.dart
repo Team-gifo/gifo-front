@@ -202,9 +202,11 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
     final String rawName = path.split('/').last.split('?').first;
     final String fileName = rawName.isEmpty ? 'image.jpg' : rawName;
 
+    final String ext = fileName.split('.').last.toLowerCase();
     final MultipartFile multipartFile = MultipartFile.fromBytes(
       bytes,
       filename: fileName,
+      contentType: DioMediaType('image', ext),
     );
 
     debugPrint(

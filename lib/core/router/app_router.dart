@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../features/addgift/application/bgm_preset/bgm_preset_bloc.dart';
 import '../../features/addgift/application/gift_packaging_bloc.dart';
 import '../../features/addgift/presentation/views/ai_intro_view.dart';
 import '../../features/addgift/presentation/views/direct_open_setting_view.dart';
@@ -202,8 +203,13 @@ final GoRouter appRouter = GoRouter(
     // 선물 포장하기 전체 플로우 (ShellRoute로 묶어 GiftPackagingBloc 상태 유지)
     ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
-        return BlocProvider<GiftPackagingBloc>.value(
-          value: giftPackagingBloc,
+        return MultiBlocProvider(
+          providers: <BlocProvider<dynamic>>[
+            BlocProvider<GiftPackagingBloc>.value(value: giftPackagingBloc),
+            BlocProvider<BgmPresetBloc>(
+              create: (_) => BgmPresetBloc()..add(FetchBgmPresets()),
+            ),
+          ],
           child: child,
         );
       },

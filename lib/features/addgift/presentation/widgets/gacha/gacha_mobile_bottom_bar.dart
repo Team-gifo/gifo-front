@@ -58,40 +58,45 @@ class GachaMobileBottomBar extends StatelessWidget {
                     ),
                   ),
                 ),
-                RichText(
-                  text: TextSpan(
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'PFStardust',
-                      color: Colors.white,
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'PFStardust',
+                          color: Colors.white,
+                        ),
+                        children: <InlineSpan>[
+                          const TextSpan(text: '전체 확률 : '),
+                          TextSpan(
+                            text: '${totalPercent.toStringAsFixed(2)}%',
+                            style: TextStyle(
+                              color:
+                                  (totalPercent >= 99.99 && totalPercent <= 100.01)
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                          ),
+                          const TextSpan(text: ' / 100.00%'),
+                          const TextSpan(text: ' [ '),
+                          WidgetSpan(
+                            alignment: PlaceholderAlignment.middle,
+                            child: Image.asset(
+                              'assets/images/gacha.png',
+                              width: 28,
+                              height: 28,
+                            ),
+                          ),
+                          TextSpan(
+                            text: ' : $itemCount개 ]',
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
                     ),
-                    children: <InlineSpan>[
-                      const TextSpan(text: '전체 확률 : '),
-                      TextSpan(
-                        text: '${totalPercent.toStringAsFixed(2)}%',
-                        style: TextStyle(
-                          color:
-                              (totalPercent >= 99.99 && totalPercent <= 100.01)
-                              ? Colors.green
-                              : Colors.red,
-                        ),
-                      ),
-                      const TextSpan(text: ' / 100.00%'),
-                      const TextSpan(text: ' [ '),
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.middle,
-                        child: Image.asset(
-                          'assets/images/gacha.png',
-                          width: 28,
-                          height: 28,
-                        ),
-                      ),
-                      TextSpan(
-                        text: ' : $itemCount개 ]',
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ],
                   ),
                 ),
               ],
