@@ -9,6 +9,7 @@ import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/packaging_loading_overlay.dart';
 import '../../application/direct_open_setting/direct_open_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
+import '../widgets/desktop_settings_rail.dart';
 import '../widgets/direct_open/direct_open_complete_button.dart';
 import '../widgets/direct_open/direct_open_content_section.dart';
 import '../widgets/direct_open/direct_open_mobile_bottom_bar.dart';
@@ -106,6 +107,13 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
     } else {
       context.read<DirectOpenSettingBloc>().add(UpdateAfterImage(image));
     }
+  }
+
+  bool _canComplete() {
+    if (_userNameController.text.trim().isEmpty) return false;
+    if (_subTitleController.text.trim().isEmpty) return false;
+    if (_afterNameController.text.trim().isEmpty) return false;
+    return true;
   }
 
   void _completePackage() {
@@ -237,24 +245,20 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                                   ),
                                   Expanded(
                                     flex: 3,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(40.0),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        children: <Widget>[
-                                          Expanded(
-                                            child: SingleChildScrollView(
-                                              child: DirectOpenSettingsSection(
-                                                state: directOpenState,
-                                              ),
-                                            ),
+                                    child: DesktopSettingsRail(
+                                      settingsBuilder:
+                                          (
+                                            BuildContext context,
+                                            bool isCompactDesktop,
+                                          ) => DirectOpenSettingsSection(
+                                            state: directOpenState,
+                                            isMobile: false,
+                                            isCompactDesktop: isCompactDesktop,
                                           ),
-                                          const SizedBox(height: 24),
-                                          DirectOpenCompleteButton(
-                                            onPressed: _completePackage,
-                                          ),
-                                        ],
+                                      bottomAction: DirectOpenCompleteButton(
+                                        onPressed: _canComplete()
+                                            ? _completePackage
+                                            : null,
                                       ),
                                     ),
                                   ),
@@ -267,6 +271,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                   ),
                   bottomNavigationBar: isMobile
                       ? DirectOpenMobileBottomBar(
+                          canComplete: _canComplete(),
                           onShowSettings: _showMobileSettingsModal,
                           onComplete: _completePackage,
                         )
@@ -322,7 +327,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        DirectOpenSettingsSection(state: state),
+                        DirectOpenSettingsSection(state: state, isMobile: true),
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,

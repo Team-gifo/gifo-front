@@ -4,7 +4,7 @@ sealed class QuizSettingEvent {}
 
 class InitQuizSetting extends QuizSettingEvent {
   final String initialBgm;
-  InitQuizSetting({this.initialBgm = '신나는 생일'});
+  InitQuizSetting({this.initialBgm = ''});
 }
 
 class UpdateQuizItems extends QuizSettingEvent {

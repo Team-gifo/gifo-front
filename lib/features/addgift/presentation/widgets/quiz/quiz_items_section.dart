@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/constants/app_colors.dart';
 import '../../../application/quiz_setting/quiz_setting_bloc.dart';
 import '../../../model/quiz_setting_models.dart';
 import 'quiz_list_item.dart';
@@ -33,24 +32,26 @@ class QuizItemsSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: onAddItem,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.neonPurple,
+                backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
                 elevation: 0,
               ),
-              child: const Text('추가'),
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('추가'),
             ),
             const SizedBox(width: 8),
-            ElevatedButton(
+            ElevatedButton.icon(
               onPressed: onRemoveAllItems,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
+                backgroundColor: Colors.red.shade400,
                 foregroundColor: Colors.white,
                 elevation: 0,
               ),
-              child: const Text('모두 제거'),
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: const Text('모두 제거'),
             ),
           ],
         ),

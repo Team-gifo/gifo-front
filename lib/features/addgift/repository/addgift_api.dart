@@ -16,6 +16,10 @@ abstract class AddGiftApi {
     @Body() Map<String, dynamic> request,
   );
 
+  // BGM 프리셋 목록 조회
+  @GET('/api/bgm/presets')
+  Future<HttpResponse<dynamic>> getBgmPresets();
+
   // 이미지 업로드 (type: MEMORY | GIFT | QUIZ)
   @POST('/api/images')
   @MultiPart()

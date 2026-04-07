@@ -5,10 +5,12 @@ import 'direct_open_complete_button.dart';
 class DirectOpenMobileBottomBar extends StatelessWidget {
   const DirectOpenMobileBottomBar({
     super.key,
+    required this.canComplete,
     required this.onShowSettings,
     required this.onComplete,
   });
 
+  final bool canComplete;
   final VoidCallback onShowSettings;
   final VoidCallback onComplete;
 
@@ -23,6 +25,17 @@ class DirectOpenMobileBottomBar extends StatelessWidget {
         ),
         child: Row(
           children: <Widget>[
+            const Tooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              showDuration: Duration(seconds: 4),
+              message: '⚠️ 포장 완료 조건\n'
+                  '• 상단 닉네임 및 서브타이틀 입력\n'
+                  '• 물품 이름 입력',
+              child: Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: Icon(Icons.info_outline, size: 20, color: Colors.white38),
+              ),
+            ),
             InkWell(
               onTap: onShowSettings,
               borderRadius: BorderRadius.circular(16),
@@ -43,7 +56,7 @@ class DirectOpenMobileBottomBar extends StatelessWidget {
             const SizedBox(width: 16),
             Expanded(
               child: DirectOpenCompleteButton(
-                onPressed: onComplete,
+                onPressed: canComplete ? onComplete : null,
                 height: 56,
               ),
             ),

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:toastification/toastification.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
@@ -19,17 +18,8 @@ class PackageCompleteView extends StatefulWidget {
 }
 
 class _PackageCompleteViewState extends State<PackageCompleteView> {
-  Future<void> _copyLink(String shareUrl) async {
-    await Clipboard.setData(ClipboardData(text: shareUrl));
-    if (!mounted) return;
-    toastification.show(
-      context: context,
-      type: ToastificationType.success,
-      style: ToastificationStyle.flat,
-      title: const Text('링크가 복사되었어요!'),
-      description: const Text('친구에게 공유해보세요.'),
-      autoCloseDuration: const Duration(seconds: 3),
-    );
+  Future<void> _shareLink(String shareUrl) async {
+    await Share.share(shareUrl);
   }
 
   @override
@@ -119,7 +109,7 @@ class _PackageCompleteViewState extends State<PackageCompleteView> {
                         height: 60,
                         child: ElevatedButton.icon(
                           onPressed: hasShareUrl
-                              ? () => _copyLink(state.shareUrl)
+                              ? () => _shareLink(state.shareUrl)
                               : null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.neonPurple,
@@ -131,9 +121,9 @@ class _PackageCompleteViewState extends State<PackageCompleteView> {
                             ),
                             elevation: 0,
                           ),
-                          icon: const Icon(Icons.link_rounded, size: 22),
+                          icon: const Icon(Icons.share_rounded, size: 22),
                           label: const Text(
-                            '링크 복사하기',
+                            '공유하기',
                             style: TextStyle(
                               fontFamily: 'WantedSans',
                               fontSize: 18,
