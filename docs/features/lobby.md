@@ -30,9 +30,11 @@
 
 | 컨텐츠 타입 | 이동 경로 |
 |------------|-----------|
-| gacha | `context.go('/content/gacha', extra: code)` |
-| quiz | `context.go('/content/quiz', extra: code)` |
-| unboxing | `context.go('/content/unboxing', extra: code)` |
+| gacha | `context.go('/content/gacha', extra: { 'data': lobbyData, 'code': code })` |
+| quiz | `context.go('/content/quiz', extra: { 'data': lobbyData, 'code': code })` |
+| unboxing | `context.go('/content/unboxing', extra: { 'data': lobbyData, 'code': code })` |
+
+---
 
 ## 코드 검증 흐름
 
@@ -41,28 +43,23 @@
     ↓
 GoRouter.redirect() 실행
     ↓
-LobbyData.getDummyByCode(code) 조회
+LobbyRepository.fetchLobbyData(code) 호출 (LobbyApi GET /api/events/{code})
     ↓
-null이면 → _shouldShowInvalidCodeToast = true → '/' 리다이렉트
+실패(404 등)하면 → _shouldShowInvalidCodeToast = true → '/' 리다이렉트
     ↓
-유효하면 → LobbyView 렌더링
+성공하면 → LobbyView 렌더링 (LobbyBloc에 데이터 주관)
 ```
 
 자세한 검증 로직: [business-logic/lobby-validation.md](../business-logic/lobby-validation.md)
 
-## LobbyData (현재 더미 데이터)
+---
+
+## LobbyData (서버 연동 데이터)
 
 **파일:** `lib/features/lobby/model/lobby_data.dart`
 
-현재 세 개의 더미 코드가 하드코딩됨:
-
-| 코드 | 컨텐츠 타입 |
-|------|------------|
-| `helloworld` | gacha (캡슐 뽑기) |
-| `quiz123` | quiz (퀴즈) |
-| `open123` | unboxing (바로 오픈) |
-
-추후 실제 서버 API와 연동 시 `LobbyRepository.fetchByCode(code)`를 교체하면 됨.
+기초적인 정보(user, subTitle, bgm, gallery)와 더불어 하위 컨텐츠 데이터(`gacha`, `quiz`, `unboxing`)를 모두 포함하는 루트 모델이다. 
+로비 진입 시 서버에서 한 번에 가져오며, 개별 컨텐츠 화면으로 이동할 때 이 데이터를 `extra` 파라미터로 전달하여 중복 API 호출을 방지한다.
 
 로비에서 메모리 갤러리 전체 보기 버튼 클릭 시 이동 (`/memory-gallery`).
 발신자가 등록한 추억 사진/제목/설명을 그리드 형태로 표시.
