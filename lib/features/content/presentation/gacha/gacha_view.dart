@@ -207,6 +207,10 @@ class _GachaViewState extends State<GachaView> {
               ),
             ),
             const Spacer(),
+            // 데스크탑/태블릿(모바일 이외)에서 남은 횟수 표시
+            if (!isMobileOrSmall) ...<Widget>[
+              GachaRemainingBadge(count: state.remainingCount),
+            ],
             // 모바일에서 히스토리 및 경품 목록 버튼
             if (isMobileOrSmall) ...<Widget>[
               IconButton(

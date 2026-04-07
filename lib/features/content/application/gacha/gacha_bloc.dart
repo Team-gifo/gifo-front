@@ -42,7 +42,7 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
         userName: lobbyData.user,
         inviteCode: event.inviteCode,
         gachaContent: gacha,
-        remainingCount: gacha.playCount,
+        remainingCount: gacha.remainingDrawCount,
         history: loadedHistory,
         lastDrawnItem: null,
         isResultRefreshing: false,

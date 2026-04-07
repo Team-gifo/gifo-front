@@ -166,6 +166,7 @@ class GachaMachineSectionState extends State<GachaMachineSection>
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
     final bool isDesktop = screenWidth >= AppBreakpoints.desktop;
+    final bool isMobileOrSmall = screenWidth < AppBreakpoints.tablet;
     double machineScale = 1.0;
 
     if (isDesktop) {
@@ -178,8 +179,10 @@ class GachaMachineSectionState extends State<GachaMachineSection>
 
     return Column(
       children: <Widget>[
-        SizedBox(height: isDesktop ? 24 : 24),
-        _buildRemainingBadge(),
+        if (isMobileOrSmall) ...<Widget>[
+          const SizedBox(height: 24),
+          GachaRemainingBadge(count: widget.remainingCount),
+        ],
         SizedBox(height: isDesktop ? 24 : 24),
         Expanded(
           child: AnimatedBuilder(
@@ -346,46 +349,7 @@ class GachaMachineSectionState extends State<GachaMachineSection>
     );
   }
 
-  Widget _buildRemainingBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF130E1F),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.4)),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: AppColors.neonPurple.withValues(alpha: 0.2),
-            blurRadius: 12,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(
-            '남은 뽑기 횟수',
-            style: TextStyle(
-              fontFamily: 'PFStardust',
-              fontSize: 16,
-              color: Colors.white.withValues(alpha: 0.8),
-              letterSpacing: 1,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            widget.remainingCount.toString().padLeft(2, '0'),
-            style: const TextStyle(
-              fontFamily: 'PFStardust',
-              fontSize: 22,
-              color: AppColors.neonPurple,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildPixelMachineFrame() {
     return SizedBox(
@@ -1096,87 +1060,171 @@ class GachaPrizeListPanel extends StatelessWidget {
           ),
           SizedBox(height: 20 * scale),
           Expanded(
-            child: ListView.separated(
-              padding: EdgeInsets.zero,
-              itemCount: items.length,
-              separatorBuilder: (BuildContext context, int index) =>
-                  SizedBox(height: 12 * scale),
-              itemBuilder: (BuildContext context, int index) {
-                final GachaItem item = items[index];
-                return Container(
-                  padding: EdgeInsets.all(12 * scale),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(8),
-                    // 아이템 좌측에 네온 포인트 바 추가
-                    border: Border(
-                      left: BorderSide(
-                        color: AppColors.neonPurple.withValues(alpha: 0.4),
-                        width: 4,
-                      ),
-                    ),
-                  ),
-                  child: Row(
-                    children: <Widget>[
-                      Container(
-                        width: 44 * scale,
-                        height: 44 * scale,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
-                          ),
-                          image: DecorationImage(
-                            image: NetworkImage(item.imageUrl),
-                            fit: BoxFit.cover,
+            child: items.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
+                        Icon(
+                          Icons.inbox_outlined,
+                          color: Colors.white.withValues(alpha: 0.2),
+                          size: 40 * scale,
+                        ),
+                        SizedBox(height: 12 * scale),
+                        Text(
+                          '경품이 없습니다.',
+                          style: TextStyle(
+                            fontFamily: 'WantedSans',
+                            color: Colors.white.withValues(alpha: 0.3),
+                            fontSize: 12 * scale,
                           ),
                         ),
-                      ),
-                      SizedBox(width: 12 * scale),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      ],
+                    ),
+                  )
+                : ListView.separated(
+                    padding: EdgeInsets.zero,
+                    itemCount: items.length,
+                    separatorBuilder: (BuildContext context, int index) =>
+                        SizedBox(height: 12 * scale),
+                    itemBuilder: (BuildContext context, int index) {
+                      final GachaItem item = items[index];
+                      return Container(
+                        padding: EdgeInsets.all(12 * scale),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.03),
+                          borderRadius: BorderRadius.circular(8),
+                          // 아이템 좌측에 네온 포인트 바 추가
+                          border: Border(
+                            left: BorderSide(
+                              color: AppColors.neonPurple.withValues(alpha: 0.4),
+                              width: 4,
+                            ),
+                          ),
+                        ),
+                        child: Row(
                           children: <Widget>[
-                            Text(
-                              item.itemName,
-                              style: TextStyle(
-                                fontFamily: 'WantedSans',
-                                color: Colors.white.withValues(alpha: 0.9),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13 * scale,
+                            Container(
+                              width: 44 * scale,
+                              height: 44 * scale,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(4),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.1),
+                                ),
+                                image: DecorationImage(
+                                  image: NetworkImage(item.imageUrl),
+                                  fit: BoxFit.cover,
+                                ),
                               ),
                             ),
-                            SizedBox(height: 4 * scale),
-                            Row(
-                              children: <Widget>[
-                                Icon(
-                                  Icons.bolt_rounded,
-                                  size: 10 * scale,
-                                  color: AppColors.neonPurple,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  item.percentOpen
-                                      ? '${(item.percent * 100).toStringAsFixed(2)}%'
-                                      : '확률 미공개',
-                                  style: TextStyle(
-                                    color: AppColors.neonPurple.withValues(
-                                      alpha: 0.8,
+                            SizedBox(width: 12 * scale),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Text(
+                                    item.itemName,
+                                    style: TextStyle(
+                                      fontFamily: 'WantedSans',
+                                      color: Colors.white.withValues(alpha: 0.9),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13 * scale,
                                     ),
-                                    fontFamily: 'WantedSans',
-                                    fontSize: 11 * scale,
-                                    fontWeight: FontWeight.w600,
                                   ),
-                                ),
-                              ],
+                                  SizedBox(height: 4 * scale),
+                                  Row(
+                                    children: <Widget>[
+                                      Icon(
+                                        Icons.bolt_rounded,
+                                        size: 10 * scale,
+                                        color: AppColors.neonPurple,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        item.percentOpen
+                                            ? '${(item.percent * 100).toStringAsFixed(2)}%'
+                                            : '확률 미공개',
+                                        style: TextStyle(
+                                          color: AppColors.neonPurple.withValues(
+                                            alpha: 0.8,
+                                          ),
+                                          fontFamily: 'WantedSans',
+                                          fontSize: 11 * scale,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
-                );
-              },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GachaRemainingBadge extends StatelessWidget {
+  final int count;
+
+  const GachaRemainingBadge({super.key, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF130E1F),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.6)),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.neonPurple.withValues(alpha: 0.2),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: <Widget>[
+          const Icon(
+            Icons.generating_tokens_rounded,
+            color: AppColors.neonPurple,
+            size: 18,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '남은 기회',
+            style: TextStyle(
+              fontFamily: 'WantedSans',
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.white.withValues(alpha: 0.9),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.neonPurple.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.5)),
+            ),
+            child: Text(
+              count.toString().padLeft(2, '0'),
+              style: const TextStyle(
+                fontFamily: 'PFStardust',
+                fontSize: 14,
+                color: AppColors.neonPurple,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
