@@ -12,7 +12,7 @@ class DirectOpenSettingState {
     this.beforeDescription = '내가 준비한 선물이 과연 무엇일까?',
     this.afterImageFile,
     this.afterItemName = '',
-    this.selectedBgm = '신나는 생일',
+    this.selectedBgm = '',
   });
 
   DirectOpenSettingState copyWith({

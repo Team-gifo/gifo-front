@@ -10,6 +10,7 @@ import '../../../../core/widgets/packaging_loading_overlay.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../application/quiz_setting/quiz_setting_bloc.dart';
 import '../../model/quiz_setting_models.dart';
+import '../widgets/desktop_settings_rail.dart';
 import '../widgets/quiz/quiz_complete_button.dart';
 import '../widgets/quiz/quiz_edit_form.dart';
 import '../widgets/quiz/quiz_items_section.dart';
@@ -205,12 +206,19 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('문제 유형 선택'),
+          backgroundColor: AppColors.darkBg,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            '문제 유형 선택',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               ListTile(
-                title: const Text('객관식'),
+                title: const Text('객관식', style: TextStyle(color: Colors.white)),
                 onTap: () {
                   Navigator.pop(context);
                   _showEditModal(
@@ -223,7 +231,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                 },
               ),
               ListTile(
-                title: const Text('주관식'),
+                title: const Text('주관식', style: TextStyle(color: Colors.white)),
                 onTap: () {
                   Navigator.pop(context);
                   _showEditModal(
@@ -236,7 +244,10 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                 },
               ),
               ListTile(
-                title: const Text('OX 퀴즈'),
+                title: const Text(
+                  'OX 퀴즈',
+                  style: TextStyle(color: Colors.white),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   _showEditModal(
@@ -335,7 +346,8 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                 child: Align(
                   alignment: Alignment.centerRight,
                   child: Material(
-                    color: Colors.transparent,
+                    color: AppColors.darkBg,
+                    elevation: 8,
                     child: SizedBox(
                       width: 500,
                       height: double.infinity,
@@ -362,6 +374,24 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
             },
       );
     }
+  }
+
+  // --- [완료 조건] ---
+
+  bool _canComplete() {
+    final QuizSettingState quizState = context.read<QuizSettingBloc>().state;
+    if (quizState.uiItems.isEmpty) return false;
+    if (_userNameController.text.trim().isEmpty) return false;
+    if (_subTitleController.text.trim().isEmpty) return false;
+    if (quizState.successReward.itemName.trim().isEmpty) return false;
+    for (final QuizItemData item in quizState.uiItems) {
+      if (item.title.trim().isEmpty) return false;
+      if (item.answer.isEmpty) return false;
+      if (item.type == QuizType.multipleChoice && item.options.length < 2) {
+        return false;
+      }
+    }
+    return true;
   }
 
   // --- [포장 완료] ---
@@ -490,34 +520,27 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                                 ),
                                 Expanded(
                                   flex: 3,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(40.0),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: <Widget>[
-                                        Expanded(
-                                          child: SingleChildScrollView(
-                                            child: QuizSettingsPanel(
-                                              quizState: quizState,
-                                              isMobile: false,
-                                              successRewardNameController:
-                                                  _successRewardNameController,
-                                              failRewardNameController:
-                                                  _failRewardNameController,
-                                              onPickSuccessRewardImage: () =>
-                                                  _pickImageForReward(true),
-                                              onPickFailRewardImage: () =>
-                                                  _pickImageForReward(false),
-                                            ),
-                                          ),
+                                  child: DesktopSettingsRail(
+                                    settingsBuilder:
+                                        (
+                                          BuildContext context,
+                                          bool isCompactDesktop,
+                                        ) => QuizSettingsPanel(
+                                          quizState: quizState,
+                                          isMobile: false,
+                                          isCompactDesktop: isCompactDesktop,
+                                          successRewardNameController:
+                                              _successRewardNameController,
+                                          failRewardNameController:
+                                              _failRewardNameController,
+                                          onPickSuccessRewardImage: () =>
+                                              _pickImageForReward(true),
+                                          onPickFailRewardImage: () =>
+                                              _pickImageForReward(false),
                                         ),
-                                        const SizedBox(height: 24),
-                                        QuizCompleteButton(
-                                          enabled: !_isSubmitting,
-                                          onPressed: _completePackage,
-                                        ),
-                                      ],
+                                    bottomAction: QuizCompleteButton(
+                                      enabled: _canComplete() && !_isSubmitting,
+                                      onPressed: _completePackage,
                                     ),
                                   ),
                                 ),
@@ -531,6 +554,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                 bottomNavigationBar: isMobile
                     ? QuizMobileBottomBar(
                         isSubmitting: _isSubmitting,
+                        canComplete: _canComplete(),
                         onShowSettings: _showMobileSettingsModal,
                         onComplete: _completePackage,
                       )

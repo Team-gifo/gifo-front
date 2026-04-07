@@ -4,10 +4,12 @@ abstract class UnboxingEvent {
   const UnboxingEvent();
 }
 
-// 코드 기반 언박싱 데이터 초기화
+// LobbyBloc에서 수신한 LobbyData와 초대 코드를 직접 전달받아 초기화
 class InitUnboxing extends UnboxingEvent {
-  final String code;
-  const InitUnboxing(this.code);
+  final LobbyData lobbyData;
+  // 결과 화면 공유 링크에 사용되는 초대 코드
+  final String inviteCode;
+  const InitUnboxing(this.lobbyData, {this.inviteCode = ''});
 }
 
 // 선물 받기 실행

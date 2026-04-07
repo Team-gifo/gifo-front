@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../application/gacha_setting/gacha_setting_bloc.dart';
+import '../common/edit_form_styles.dart';
 
 class GachaItemEditForm extends StatelessWidget {
   const GachaItemEditForm({
@@ -98,7 +99,7 @@ class GachaItemEditForm extends StatelessWidget {
             }
 
             return Container(
-              color: const Color(0xFF1A1A2E),
+              color: EditFormStyles.formBackground,
               child: SafeArea(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -106,26 +107,22 @@ class GachaItemEditForm extends StatelessWidget {
                   Expanded(
                     child: SingleChildScrollView(
                       padding: EdgeInsets.only(
-                        left: 32.0,
-                        right: 32.0,
-                        top: 32.0,
-                        bottom: MediaQuery.viewInsetsOf(context).bottom + 32.0,
+                        left: 24.0,
+                        right: 24.0,
+                        top: 24.0,
+                        bottom: MediaQuery.viewInsetsOf(context).bottom + 24.0,
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: <Widget>[
+                          EditFormStyles.dragHandle(),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
                               const SizedBox(width: 24),
                               const Text(
                                 '캡슐 상세 설정',
-                                style: TextStyle(
-                                  fontFamily: 'WantedSans',
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
+                                style: EditFormStyles.headerTitleStyle,
                               ),
                               IconButton(
                                 icon: const Icon(
@@ -137,16 +134,8 @@ class GachaItemEditForm extends StatelessWidget {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 32),
-                          const Text(
-                            '제목',
-                            style: TextStyle(
-                              fontFamily: 'WantedSans',
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
+                          const SizedBox(height: 24),
+                          EditFormStyles.sectionTitle('제목'),
                           const SizedBox(height: 8),
                           TextFormField(
                             controller: nameController,
@@ -159,15 +148,12 @@ class GachaItemEditForm extends StatelessWidget {
                                 UpdateGachaItemName(currentItemData.id, val),
                               );
                             },
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: Colors.white.withValues(alpha: 0.07),
-                              hintText: '제목을 입력해주세요',
-                              hintStyle: const TextStyle(
-                                color: Colors.white38,
-                                fontFamily: 'WantedSans',
-                              ),
-                              errorStyle: const TextStyle(fontFamily: 'WantedSans'),
+                            decoration: EditFormStyles.inputDecorationWithValidation(
+                              hint: '제목을 입력해주세요',
+                              isValid: isTitleValid,
+                              errorText: !isTitleValid
+                                  ? '제목은 최소 1글자 이상이어야 합니다.'
+                                  : null,
                               suffixIcon: currentItemData.itemName.isNotEmpty
                                   ? IconButton(
                                       icon: const Icon(
@@ -186,152 +172,29 @@ class GachaItemEditForm extends StatelessWidget {
                                       },
                                     )
                                   : null,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: !isTitleValid
-                                    ? const BorderSide(
-                                        color: Colors.red,
-                                        width: 1.5,
-                                      )
-                                    : const BorderSide(
-                                        color: Color(0xFF6DE1F1),
-                                        width: 1.5,
-                                      ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: !isTitleValid
-                                    ? const BorderSide(
-                                        color: Colors.red,
-                                        width: 1.5,
-                                      )
-                                    : BorderSide(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                        width: 1,
-                                      ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: !isTitleValid
-                                    ? const BorderSide(
-                                        color: Colors.red,
-                                        width: 1.5,
-                                      )
-                                    : const BorderSide(
-                                        color: Color(0xFF6DE1F1),
-                                        width: 1.5,
-                                      ),
-                              ),
-                              errorText: !isTitleValid
-                                  ? '제목은 최소 1글자 이상이어야 합니다.'
-                                  : null,
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          const Text(
-                            '이미지',
-                            style: TextStyle(
-                              fontFamily: 'WantedSans',
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
+                          EditFormStyles.sectionTitle('이미지'),
                           if (currentItemData.imageFile == null)
-                            InkWell(
+                            EditFormStyles.emptyImagePicker(
                               onTap: () =>
                                   onPickImage(currentItemData, updateModal),
-                              child: Container(
-                                height: 120,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.07),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: Colors.white24,
-                                    width: 1,
-                                  ),
-                                ),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.add_photo_alternate,
-                                    size: 40,
-                                    color: Colors.white38,
-                                  ),
-                                ),
-                              ),
                             )
                           else
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: <Widget>[
-                                Container(
-                                  constraints: const BoxConstraints(
-                                    maxHeight: 500,
+                            EditFormStyles.imagePreviewWithActions(
+                              imagePath: currentItemData.imageFile!.path,
+                              onEdit: () => onPickImage(
+                                currentItemData,
+                                updateModal,
+                              ),
+                              onDelete: () {
+                                context.read<GachaSettingBloc>().add(
+                                  RemoveGachaItemImage(
+                                    currentItemData.id,
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.05),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: Colors.white24,
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.network(
-                                      currentItemData.imageFile!.path,
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: <Widget>[
-                                    OutlinedButton.icon(
-                                      onPressed: () => onPickImage(
-                                        currentItemData,
-                                        updateModal,
-                                      ),
-                                      icon: const Icon(Icons.edit, size: 16),
-                                      label: const Text(
-                                        '수정',
-                                        style: TextStyle(fontFamily: 'WantedSans'),
-                                      ),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.blue,
-                                        side: const BorderSide(
-                                          color: Colors.blue,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    OutlinedButton.icon(
-                                      onPressed: () {
-                                        context.read<GachaSettingBloc>().add(
-                                          RemoveGachaItemImage(
-                                            currentItemData.id,
-                                          ),
-                                        );
-                                      },
-                                      icon: const Icon(Icons.delete, size: 16),
-                                      label: const Text(
-                                        '삭제',
-                                        style: TextStyle(fontFamily: 'WantedSans'),
-                                      ),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.red,
-                                        side: const BorderSide(
-                                          color: Colors.red,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                );
+                              },
                             ),
                           const SizedBox(height: 24),
                           const Text(
@@ -342,17 +205,8 @@ class GachaItemEditForm extends StatelessWidget {
                               fontFamily: 'WantedSans',
                             ),
                           ),
-                          const SizedBox(height: 24),
-                          const Text(
-                            '확률 (%)',
-                            style: TextStyle(
-                              fontFamily: 'WantedSans',
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
+                          EditFormStyles.sectionTitle('확률 (%)'),
                           TextFormField(
                             controller: percentController,
                             keyboardType: const TextInputType.numberWithOptions(
@@ -367,14 +221,12 @@ class GachaItemEditForm extends StatelessWidget {
                                 UpdateGachaItemPercent(currentItemData.id, val),
                               );
                             },
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: Colors.white.withValues(alpha: 0.07),
-                              hintText: '확률을 입력해주세요',
-                              hintStyle: const TextStyle(
-                                color: Colors.white38,
-                                fontFamily: 'WantedSans',
-                              ),
+                            decoration: EditFormStyles.inputDecorationWithValidation(
+                              hint: '확률을 입력해주세요',
+                              isValid: isPercentValid,
+                              errorText: !isPercentValid
+                                  ? '확률은 0.01% 이상 100% 이하입니다.'
+                                  : null,
                               suffixIcon: currentItemData.percentStr.isNotEmpty
                                   ? IconButton(
                                       icon: const Icon(
@@ -393,51 +245,6 @@ class GachaItemEditForm extends StatelessWidget {
                                       },
                                     )
                                   : null,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: !isPercentValid
-                                    ? const BorderSide(
-                                        color: Colors.red,
-                                        width: 1.5,
-                                      )
-                                    : const BorderSide(
-                                        color: Color(0xFF6DE1F1),
-                                        width: 1.5,
-                                      ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: !isPercentValid
-                                    ? const BorderSide(
-                                        color: Colors.red,
-                                        width: 1.5,
-                                      )
-                                    : BorderSide(
-                                        color: Colors.white.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                        width: 1,
-                                      ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: !isPercentValid
-                                    ? const BorderSide(
-                                        color: Colors.red,
-                                        width: 1.5,
-                                      )
-                                    : const BorderSide(
-                                        color: Color(0xFF6DE1F1),
-                                        width: 1.5,
-                                      ),
-                              ),
-                              errorText: !isPercentValid
-                                  ? '확률은 0.01% 이상 100% 이하입니다.'
-                                  : null,
-                              errorStyle: const TextStyle(
-                                fontSize: 14,
-                                fontFamily: 'WantedSans',
-                              ),
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -498,7 +305,7 @@ class GachaItemEditForm extends StatelessWidget {
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
+                      horizontal: 24,
                       vertical: 16,
                     ),
                     decoration: BoxDecoration(

@@ -1,248 +1,187 @@
-class LobbyData {
-  final String user;
-  final String subTitle;
-  final String bgm;
-  final List<GalleryItem> gallery;
-  final LobbyContent? content;
+import 'package:freezed_annotation/freezed_annotation.dart';
 
-  LobbyData({
-    required this.user,
-    required this.subTitle,
-    required this.bgm,
-    required this.gallery,
-    this.content,
-  });
+part 'lobby_data.freezed.dart';
+part 'lobby_data.g.dart';
 
-  /// 전달받은 코드를 기준으로 3가지 콘텐츠 유형의 더미 데이터를 반환합니다
-  static LobbyData? getDummyByCode(String code) {
-    if (code == 'helloworld') {
-      return LobbyData(
-        user: '박준영', // 캡슐 뽑기 테스트 유저
-        subTitle: '우리의 특별한 기록 (캡슐 뽑기)',
-        bgm: 'track_sweet_01',
-        gallery: <GalleryItem>[
-          GalleryItem(
-            title: '다같이 만난 소중한 기억',
-            imageUrl: 'assets/images/gallery_1.jpeg',
-            description:
-                '우리가 만난지 벌써 8년이 지났어.\n그동안 함께 웃고 울었던 시간들이 엊그제 같은데\n벌써 이렇게 시간이 흘렀네. 앞으로도 잘 부탁해\n항상 고맙고 사랑해.',
-          ),
-          GalleryItem(
-            title: '잊지 못할 추억',
-            imageUrl: 'assets/images/gallery_2.jpeg',
-            description: '앞으로도 더 많은 추억을 함께 만들어가자. 항상 고마워.',
-          ),
-        ],
-        content: LobbyContent(gacha: _getDummyGacha()),
-      );
-    } else if (code == 'quiz123') {
-      return LobbyData(
-        user: '김철수', // 퀴즈 맞추기 테스트 유저
-        subTitle: '살 떨리는',
-        bgm: 'track_sweet_02',
-        gallery: <GalleryItem>[],
-        content: LobbyContent(quiz: _getDummyQuiz()),
-      );
-    } else if (code == 'open123') {
-      return LobbyData(
-        user: '이영희', // 바로 오픈 테스트 유저
-        subTitle: '두근두근',
-        bgm: 'track_sweet_03',
-        gallery: <GalleryItem>[],
-        content: LobbyContent(unboxing: _getDummyUnboxing()),
-      );
-    }
-    return null; // 없는 코드일 경우
-  }
+@freezed
+abstract class LobbyData with _$LobbyData {
+  const factory LobbyData({
+    required String user,
+    required String subTitle,
+    required String bgm,
+    @Default(<GalleryItem>[]) List<GalleryItem> gallery,
+    LobbyContent? content,
+  }) = _LobbyData;
 
-  // 1. 캡슐 뽑기 더미 데이터
-  static GachaContent _getDummyGacha() {
-    return GachaContent(
-      playCount: 30,
-      list: <GachaItem>[
-        GachaItem(
-          itemName: '닌텐도 스위치2',
-          imageUrl: 'assets/images/item/nitendo.jpg',
-          percent: 0.001,
-          percentOpen: false,
-        ),
-      ],
-    );
-  }
-
-  // 2. 문제 맞추기 더미 데이터
-  static QuizContent _getDummyQuiz() {
-    return QuizContent(
-      successReward: RewardItem(
-        requiredCount: 3,
-        itemName: '특급 한우 세트',
-        imageUrl: 'assets/images/item/cow.jpg',
-      ),
-      failReward: RewardItem(
-        itemName: '비타500',
-        imageUrl: 'assets/images/item/500.jpg',
-      ),
-      list: <QuizItem>[
-        QuizItem(
-          quizId: 1,
-          type: 'multiple_choice',
-          title: '내가 제일 좋아하는 음식은?',
-          imageUrl: 'assets/images/item/quiz_sample.jpg',
-          description: '힌트: 매콤한 소스가 특징입니다.',
-          hint: '어제 저녁에도 먹었어요!',
-          options: <String>['치킨', '마라탕', '초밥', '삼겹살', '파스타'],
-          answer: <String>['마라탕'],
-          playLimit: 2,
-        ),
-        QuizItem(
-          quizId: 2,
-          type: 'subjective',
-          title: '우리가 처음 만난 장소는?',
-          imageUrl: '',
-          description: '기억나시나요? 그날 비가 왔었죠.',
-          hint: '강남역 근처의 유명한 카페 브랜드입니다.',
-          options: <String>[],
-          answer: <String>['스타벅스', 'Starbucks', '스벅'],
-          playLimit: 3,
-        ),
-        QuizItem(
-          quizId: 3,
-          type: 'ox',
-          title: '나는 아침형 인간이다.',
-          imageUrl: 'assets/images/item/quiz_sample_2.jpg',
-          description: '진실 혹은 거짓!',
-          hint: '',
-          options: <String>[],
-          answer: <String>['X'],
-          playLimit: 1,
-        ),
-      ],
-    );
-  }
-
-  // 3. 바로 오픈 더미 데이터
-  static UnboxingContent _getDummyUnboxing() {
-    return UnboxingContent(
-      beforeOpen: UnboxingBefore(
-        imageUrl: 'assets/images/item/open_before.png',
-        description: '네가 제~일 가지고 싶어했던 선물이야!',
-      ),
-      afterOpen: UnboxingAfter(
-        itemName: '아이패드 프로 M4',
-        imageUrl: 'assets/images/item/ipad.jpeg',
-      ),
-    );
-  }
+  factory LobbyData.fromJson(Map<String, dynamic> json) =>
+      _$LobbyDataFromJson(json);
 }
 
-class GalleryItem {
-  final String title;
-  final String imageUrl;
-  final String description;
+@freezed
+abstract class GalleryItem with _$GalleryItem {
+  const factory GalleryItem({
+    required String title,
+    required String imageUrl,
+    required String description,
+  }) = _GalleryItem;
 
-  GalleryItem({
-    required this.title,
-    required this.imageUrl,
-    required this.description,
-  });
+  factory GalleryItem.fromJson(Map<String, dynamic> json) =>
+      _$GalleryItemFromJson(json);
 }
 
-class LobbyContent {
-  final GachaContent? gacha;
-  final QuizContent? quiz;
-  final UnboxingContent? unboxing;
+@freezed
+abstract class LobbyContent with _$LobbyContent {
+  const factory LobbyContent({
+    GachaContent? gacha,
+    QuizContent? quiz,
+    UnboxingContent? unboxing,
+  }) = _LobbyContent;
 
-  LobbyContent({this.gacha, this.quiz, this.unboxing});
-
-  // Deprecated dummy factory removed. Data is provided through getDummyByCode.
+  factory LobbyContent.fromJson(Map<String, dynamic> json) =>
+      _$LobbyContentFromJson(json);
 }
 
-class GachaContent {
-  final int playCount;
-  final List<GachaItem> list;
+// -------------------------------------------------------
+// 캡슐 뽑기 (Gacha) 관련 모델
+// -------------------------------------------------------
 
-  GachaContent({required this.playCount, required this.list});
+@freezed
+abstract class GachaContent with _$GachaContent {
+  const factory GachaContent({
+    required int playCount,
+    @Default(0) int remainingDrawCount,
+    @Default(false) bool selected,
+    @Default(<GachaItem>[]) List<GachaItem> list,
+    @Default(<GachaDrawHistory>[]) List<GachaDrawHistory> drawHistory,
+  }) = _GachaContent;
+
+  factory GachaContent.fromJson(Map<String, dynamic> json) =>
+      _$GachaContentFromJson(json);
 }
 
-class GachaItem {
-  final String itemName;
-  final String imageUrl;
-  final double percent;
-  final bool percentOpen;
+@freezed
+abstract class GachaItem with _$GachaItem {
+  const factory GachaItem({
+    required String itemName,
+    required String imageUrl,
+    required double percent,
+    required bool percentOpen,
+    int? capsuleId,
+    String? description,
+  }) = _GachaItem;
 
-  GachaItem({
-    required this.itemName,
-    required this.imageUrl,
-    required this.percent,
-    required this.percentOpen,
-  });
+  factory GachaItem.fromJson(Map<String, dynamic> json) =>
+      _$GachaItemFromJson(json);
 }
 
-class QuizContent {
-  final RewardItem successReward;
-  final RewardItem failReward;
-  final List<QuizItem> list;
+@freezed
+abstract class GachaDrawHistory with _$GachaDrawHistory {
+  const factory GachaDrawHistory({
+    required int capsuleId,
+    String? giftName,
+    String? giftImageUrl,
+    String? description,
+    @Default(false) bool selected,
+  }) = _GachaDrawHistory;
 
-  QuizContent({
-    required this.successReward,
-    required this.failReward,
-    required this.list,
-  });
+  factory GachaDrawHistory.fromJson(Map<String, dynamic> json) =>
+      _$GachaDrawHistoryFromJson(json);
 }
 
-class RewardItem {
-  final int? requiredCount;
-  final String itemName;
-  final String imageUrl;
+// -------------------------------------------------------
+// 퀴즈 (Quiz) 관련 모델
+// -------------------------------------------------------
 
-  RewardItem({
-    this.requiredCount,
-    required this.itemName,
-    required this.imageUrl,
-  });
+@freezed
+abstract class QuizContent with _$QuizContent {
+  const factory QuizContent({
+    @Default(0) int currentQuizIndex,
+    @Default(0) int remainingAttempts,
+    required RewardItem successReward,
+    required RewardItem failReward,
+    @Default(<QuizItem>[]) List<QuizItem> list,
+    @Default(<QuizAnswerHistory>[]) List<QuizAnswerHistory> answerHistory,
+  }) = _QuizContent;
+
+  factory QuizContent.fromJson(Map<String, dynamic> json) =>
+      _$QuizContentFromJson(json);
 }
 
-class QuizItem {
-  final int quizId;
-  final String type;
-  final String title;
-  final String imageUrl;
-  final String description;
-  final String hint;
-  final List<String> options;
-  final List<String> answer;
-  final int playLimit;
+@freezed
+abstract class RewardItem with _$RewardItem {
+  const factory RewardItem({
+    int? requiredCount,
+    required String itemName,
+    required String imageUrl,
+  }) = _RewardItem;
 
-  QuizItem({
-    required this.quizId,
-    required this.type,
-    required this.title,
-    required this.imageUrl,
-    required this.description,
-    required this.hint,
-    required this.options,
-    required this.answer,
-    required this.playLimit,
-  });
+  factory RewardItem.fromJson(Map<String, dynamic> json) =>
+      _$RewardItemFromJson(json);
 }
 
-class UnboxingContent {
-  final UnboxingBefore beforeOpen;
-  final UnboxingAfter afterOpen;
+@freezed
+abstract class QuizItem with _$QuizItem {
+  const factory QuizItem({
+    required int quizId,
+    required String type,
+    required String title,
+    @Default('') String imageUrl,
+    @Default('') String description,
+    @Default('') String hint,
+    @Default(<String>[]) List<String> options,
+    // 정답 목록 (채점 시 대소문자 무관 비교)
+    @Default(<String>[]) List<String> answer,
+    @Default(1) int playLimit,
+  }) = _QuizItem;
 
-  UnboxingContent({required this.beforeOpen, required this.afterOpen});
+  factory QuizItem.fromJson(Map<String, dynamic> json) =>
+      _$QuizItemFromJson(json);
 }
 
-class UnboxingBefore {
-  final String imageUrl;
-  final String description;
+@freezed
+abstract class QuizAnswerHistory with _$QuizAnswerHistory {
+  const factory QuizAnswerHistory({
+    required int quizId,
+    required bool correct,
+  }) = _QuizAnswerHistory;
 
-  UnboxingBefore({required this.imageUrl, required this.description});
+  factory QuizAnswerHistory.fromJson(Map<String, dynamic> json) =>
+      _$QuizAnswerHistoryFromJson(json);
 }
 
-class UnboxingAfter {
-  final String itemName;
-  final String imageUrl;
+// -------------------------------------------------------
+// 바로 오픈 (Unboxing) 관련 모델
+// -------------------------------------------------------
 
-  UnboxingAfter({required this.itemName, required this.imageUrl});
+@freezed
+abstract class UnboxingContent with _$UnboxingContent {
+  const factory UnboxingContent({
+    required UnboxingBefore beforeOpen,
+    required UnboxingAfter afterOpen,
+  }) = _UnboxingContent;
+
+  factory UnboxingContent.fromJson(Map<String, dynamic> json) =>
+      _$UnboxingContentFromJson(json);
+}
+
+@freezed
+abstract class UnboxingBefore with _$UnboxingBefore {
+  const factory UnboxingBefore({
+    required String imageUrl,
+    required String description,
+  }) = _UnboxingBefore;
+
+  factory UnboxingBefore.fromJson(Map<String, dynamic> json) =>
+      _$UnboxingBeforeFromJson(json);
+}
+
+@freezed
+abstract class UnboxingAfter with _$UnboxingAfter {
+  const factory UnboxingAfter({
+    required String itemName,
+    required String imageUrl,
+  }) = _UnboxingAfter;
+
+  factory UnboxingAfter.fromJson(Map<String, dynamic> json) =>
+      _$UnboxingAfterFromJson(json);
 }

@@ -200,11 +200,14 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
     final XFile xFile = XFile(path);
     final Uint8List bytes = await xFile.readAsBytes();
     final String rawName = path.split('/').last.split('?').first;
-    final String fileName = rawName.isEmpty ? 'image.jpg' : rawName;
 
+    final String mimeSubtype = _detectImageSubtype(bytes, rawName);
+    final String fileName =
+        rawName.contains('.') ? rawName : '$rawName.$mimeSubtype';
     final MultipartFile multipartFile = MultipartFile.fromBytes(
       bytes,
       filename: fileName,
+      contentType: DioMediaType('image', mimeSubtype),
     );
 
     debugPrint(
@@ -361,6 +364,25 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
     if (content.quiz != null) return 'quiz';
     if (content.unboxing != null) return 'unboxing';
     return 'unknown';
+  }
+
+  String _detectImageSubtype(Uint8List bytes, String fileName) {
+    if (bytes.length >= 4 &&
+        bytes[0] == 0x89 &&
+        bytes[1] == 0x50 &&
+        bytes[2] == 0x4E &&
+        bytes[3] == 0x47) {
+      return 'png';
+    }
+    if (bytes.length >= 3 &&
+        bytes[0] == 0xFF &&
+        bytes[1] == 0xD8 &&
+        bytes[2] == 0xFF) {
+      return 'jpeg';
+    }
+    final String ext = fileName.split('.').last.toLowerCase();
+    if (ext == 'png' || ext == 'jpg' || ext == 'jpeg') return ext;
+    return 'jpeg';
   }
 
   String _shortText(String value) {

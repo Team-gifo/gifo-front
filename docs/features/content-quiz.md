@@ -45,9 +45,9 @@
 
 | 이벤트 | 설명 |
 |--------|------|
-| `InitQuiz(code)` | 코드로 더미 데이터 조회, 첫 번째 퀴즈 초기화 |
+| `InitQuiz(lobbyData, code)` | LobbyData와 초대코드를 받아 상태 초기화. 서버 `currentQuizIndex`를 반영. 만약 이미 완료된 상태라면 결과 조회 API 호출. |
 | `SetUserAnswer(answer)` | 사용자 입력 답 업데이트 |
-| `SubmitAnswer()` | 정답 제출, 채점 처리 |
+| `SubmitAnswer()` | 서버 API(`/quiz/answer`) 호출하여 채점 및 상태 동기화 |
 | `ResetQuiz()` | 상태 초기화 |
 
 ---
@@ -58,13 +58,15 @@
 class QuizState {
   final String userName;
   final String subTitle;
-  final QuizContent? quizContent;       // 전체 퀴즈 데이터
-  final int currentQuizIndex;           // 현재 문제 인덱스
-  final int correctCount;               // 정답 개수
-  final int currentLives;               // 현재 문제 남은 기회 수
+  final String inviteCode;               // API 요청을 위한 초대코드
+  final QuizContent? quizContent;       // 전체 퀴즈 데이터 및 서버 상태
+  final int currentQuizIndex;           // 현재 문제 인덱스 (서버 동기화)
+  final int correctCount;               // 정답 개수 (서버 동기화)
+  final int currentLives;               // 현재 문제 남은 기회 수 (서버 동기화)
   final String userAnswer;              // 사용자 현재 입력
+  final bool isSubmitting;              // API 통신 중 여부
   final bool isFinished;                // 모든 문제 완료 여부
-  final bool? isLastAnswerCorrect;      // 마지막 제출 결과 (null = 아직 미제출)
+  final bool? isLastAnswerCorrect;      // 마지막 제출 결과 (null = 아직 미제출, reset on submit)
 }
 ```
 
@@ -73,22 +75,26 @@ class QuizState {
 ## 화면 진입 → 게임 흐름
 
 ```
-LobbyView "시작" 버튼
-    ↓ context.go('/content/quiz', extra: code)
+LobbyBloc/LobbyView 로딩 성공
+    ↓ context.go('/content/quiz', extra: { 'data': lobbyData, 'code': code })
 QuizView 빌드
-    ↓ initState()에서 QuizBloc.add(InitQuiz(code))
-BLoC: LobbyData.getDummyByCode(code) 조회
-    ↓ emit state with quizContent, currentLives = list[0].playLimit
-UI: 첫 번째 문제 표시, 입력창 활성화
+    ↓ initState()에서 QuizBloc.add(InitQuiz(lobbyData, code))
+BLoC: 전달받은 lobbyData.content.quiz 기반 초기화
+    ↓ currentQuizIndex, remainingAttempts, correctCount(history 기반) 설정
+    ↓ 만약 currentQuizIndex >= total 이라면:
+        ↓ ContentRepository.getQuizResult(code) API 호출
+        ↓ emit state with isFinished: true, correctCount: 서버결과
+UI: 현재 문제 표시, 입력창 활성화 (이미지 로딩 시 Skeletonizer 적용)
     ↓ 사용자 답 입력 / 객관식 버튼 선택
 QuizBloc.add(SetUserAnswer(text))
     ↓ emit state.copyWith(userAnswer: text)
-    ↓ 사용자 제출 버튼 클릭 (userAnswer가 비어있으면 버튼 비활성화)
+    ↓ 사용자 제출 버튼 클릭 (isSubmitting이거나 userAnswer 비어있으면 비활성화)
 QuizBloc.add(SubmitAnswer())
-    ↓ 정답 확인
-    ↓ isLastAnswerCorrect 갱신 → BlocListener에서 O/X 애니메이션 트리거
-    ↓ 다음 문제 이동 or 완료
-UI(BlocListener): isFinished == true → 결과 화면 렌더링 준비
+    ↓ API: POST /api/events/{code}/quiz/answer
+    ↓ Response: correct 여부, 다음 문제 인덱스, 남은 기회 수 수신
+    ↓ emit state with isLastAnswerCorrect, currentQuizIndex 등 갱신
+UI(BlocListener): isLastAnswerCorrect 변경 시 O/X 애니메이션 트리거
+    ↓ 애니메이션 내부적으로 _textController.clear() 수행 (경쟁 상태 방지)
 UI: isFinished 상태에 따라 기존 뷰를 페이드아웃 하고 ResultView 인라인 렌더링
 ```
 
@@ -96,17 +102,12 @@ UI: isFinished 상태에 따라 기존 뷰를 페이드아웃 하고 ResultView 
 
 ## 채점 로직
 
-정답 비교:
-```dart
-final bool isCorrect = currentQuiz.answer.any(
-  (ans) => ans.toLowerCase() == state.userAnswer.trim().toLowerCase(),
-);
-```
-- 대소문자 무시 (`toLowerCase()`)
-- 앞뒤 공백 제거 (`trim()`)
-- 복수 정답 지원 (`any(...)`)
+정답 비교는 **서버 API에서 수행**하며, 클라이언트는 서버에서 응답받은 `correct` 필드를 신뢰한다.
 
-라이프 시스템: 오답 시 `currentLives - 1`, 0이 되면 다음 문제로 강제 이동
+서버 응답 데이터 기반 상태 갱신:
+- `isCorrect`: O/X 애니메이션 트리거
+- `newIndex`: `currentQuizIndex` 갱신
+- `remainingAttempts`: `currentLives` 갱신 (0일 경우 해당 문제 종료)
 
 ---
 
@@ -162,18 +163,11 @@ if (state.isLastAnswerCorrect != null) {
 
 ---
 
-## 이미지 표시
-
 `QuizItem.imageUrl`이 비어있지 않을 경우에만 이미지 위젯을 렌더링한다.
 
-| 구간 | 최대 너비 | 최대 높이 |
-|------|-----------|-----------|
-| desktop | 600px | 350px |
-| tablet | 500px | 280px |
-| mobile | infinity | 220px |
-
+- `Skeletonizer` 적용: 이미지 로딩 중 혹은 API 응답 대기 시 스켈레톤 UI를 노출하여 레이아웃 튐(Layout Shift) 현상 방지
 - `BoxFit.contain` 적용으로 이미지 비율 보존 (가로/세로 방향 모두 대응)
-- URL이 `http`로 시작하면 `Image.network`, 아니면 `Image.asset`으로 분기
+- `Image.network`를 기본으로 사용하며, 웹 환경 최적화를 위해 `loadingBuilder`와 `errorBuilder`에서 일관된 스켈레톤/에러 UI 제공
 
 ---
 

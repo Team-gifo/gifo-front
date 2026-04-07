@@ -1,6 +1,7 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:skeletonizer/skeletonizer.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -229,9 +230,26 @@ class _ResultBodyState extends State<_ResultBody>
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(19),
-          child: widget.imageUrl.startsWith('http')
-              ? Image.network(widget.imageUrl, fit: BoxFit.contain)
-              : Image.asset(widget.imageUrl, fit: BoxFit.contain),
+          child: Image.network(
+            widget.imageUrl,
+            fit: BoxFit.contain,
+            loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Skeletonizer(
+                enabled: true,
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: Colors.white10,
+                ),
+              );
+            },
+            errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
+              return const Center(
+                child: Icon(Icons.broken_image, color: Colors.white24, size: 48),
+              );
+            },
+          ),
         ),
       ),
     );

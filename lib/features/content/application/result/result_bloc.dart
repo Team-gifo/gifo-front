@@ -41,7 +41,7 @@ class ResultBloc extends Bloc<ResultEvent, ResultState> {
               inviteCode: event.inviteCode,
               qrUrl: qrUrl,
             ),
-            delay: const Duration(milliseconds: 100),
+            delay: const Duration(milliseconds: 800),
           );
 
       if (event.context.mounted) {

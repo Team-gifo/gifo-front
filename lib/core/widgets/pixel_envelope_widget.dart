@@ -39,23 +39,23 @@ class _PixelEnvelopePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     // 24x16 grid envelope
-    final List<String> pixelMap = [
-      "                        ",
-      "  oooooooooooooooooooo  ",
-      "  o                  o  ",
-      "  o oooooooooooooooo o  ",
-      "  o o              o o  ",
-      "  o  o            o  o  ",
-      "  o   o          o   o  ",
-      "  o    o        o    o  ",
-      "  o     o      o     o  ",
-      "  o      o    o      o  ",
-      "  o       o  o       o  ",
-      "  o        oo        o  ",
-      "  o                  o  ",
-      "  o                  o  ",
-      "  oooooooooooooooooooo  ",
-      "                        ",
+    final List<String> pixelMap = <String>[
+      '                        ',
+      '  oooooooooooooooooooo  ',
+      '  o                  o  ',
+      '  o oooooooooooooooo o  ',
+      '  o o              o o  ',
+      '  o  o            o  o  ',
+      '  o   o          o   o  ',
+      '  o    o        o    o  ',
+      '  o     o      o     o  ',
+      '  o      o    o      o  ',
+      '  o       o  o       o  ',
+      '  o        oo        o  ',
+      '  o                  o  ',
+      '  o                  o  ',
+      '  oooooooooooooooooooo  ',
+      '                        ',
     ];
 
     final int cols = pixelMap[0].length;

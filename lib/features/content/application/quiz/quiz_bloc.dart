@@ -1,34 +1,59 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../model/quiz/quiz_answer_response.dart';
 
 import '../../../lobby/model/lobby_data.dart';
+import '../../model/quiz/quiz_answer_request.dart';
+import '../../repository/content_repository.dart';
 
 part 'quiz_event.dart';
 part 'quiz_state.dart';
 
 // 퀴즈 콘텐츠 상태 관리 BLoC
 class QuizBloc extends Bloc<QuizEvent, QuizState> {
-  QuizBloc() : super(const QuizState()) {
+  final ContentRepository repository;
+
+  QuizBloc({required this.repository}) : super(const QuizState()) {
     on<InitQuiz>(_onInitQuiz);
     on<SetUserAnswer>(_onSetUserAnswer);
     on<SubmitAnswer>(_onSubmitAnswer);
     on<ResetQuiz>(_onResetQuiz);
   }
 
-  void _onInitQuiz(InitQuiz event, Emitter<QuizState> emit) {
-    final LobbyData? lobbyData = LobbyData.getDummyByCode(event.code);
-    if (lobbyData == null || lobbyData.content?.quiz == null) return;
+  // LobbyBloc에서 전달받은 LobbyData로 퀴즈 상태 초기화
+  Future<void> _onInitQuiz(InitQuiz event, Emitter<QuizState> emit) async {
+    final LobbyData lobbyData = event.lobbyData;
+    if (lobbyData.content?.quiz == null) return;
 
     final QuizContent quiz = lobbyData.content!.quiz!;
+    final int serverIndex = quiz.currentQuizIndex;
+    
+    // 이미 완료된 퀴즈인지 체크 (인덱스가 전체 길이를 넘어가면 종료 상태로 시작)
+    final bool isAlreadyFinished = serverIndex >= quiz.list.length;
+    
+    int initialCorrectCount = quiz.answerHistory.where((h) => h.correct).length;
+
+    // 만약 이미 완료된 상태라면, 서버에서 최종 결과를 다시 한번 확인하여 정확한 점수 표기
+    if (isAlreadyFinished) {
+      final response = await repository.getQuizResult(event.inviteCode);
+      if (response?.data != null) {
+        initialCorrectCount = response!.data!.correctCount;
+      }
+    }
+
     emit(
       state.copyWith(
         userName: lobbyData.user,
         subTitle: lobbyData.subTitle,
+        inviteCode: event.inviteCode,
         quizContent: quiz,
-        currentQuizIndex: 0,
-        correctCount: 0,
-        currentLives: quiz.list.isNotEmpty ? quiz.list[0].playLimit : 0,
+        currentQuizIndex: serverIndex,
+        correctCount: initialCorrectCount,
+        // 현재 인덱스의 남은 시도 횟수 설정 (문제가 없으면 0)
+        currentLives: isAlreadyFinished 
+            ? 0 
+            : (quiz.remainingAttempts > 0 ? quiz.remainingAttempts : quiz.list[serverIndex].playLimit),
         userAnswer: '',
-        isFinished: false,
+        isFinished: isAlreadyFinished,
         isLastAnswerCorrect: null,
       ),
     );
@@ -39,76 +64,88 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
   }
 
   // 정답 제출 처리
-  void _onSubmitAnswer(SubmitAnswer event, Emitter<QuizState> emit) {
-    if (state.quizContent == null) return;
-    if (state.userAnswer.trim().isEmpty) return;
+  Future<void> _onSubmitAnswer(
+    SubmitAnswer event,
+    Emitter<QuizState> emit,
+  ) async {
+    if (state.quizContent == null || state.userAnswer.trim().isEmpty) return;
+    if (state.isSubmitting) return;
 
-    final QuizItem currentQuiz = state.quizContent!.list[state.currentQuizIndex];
-    final bool isCorrect = currentQuiz.answer.any(
-      (String ans) =>
-          ans.toLowerCase() == state.userAnswer.trim().toLowerCase(),
+    // 제출 시작 시점에 이전 정답 여부 초기화 및 로딩 상태 진입
+    emit(state.copyWith(isSubmitting: true, isLastAnswerCorrect: null));
+
+    final QuizItem currentQuiz =
+        state.quizContent!.list[state.currentQuizIndex];
+
+    final QuizAnswerRequest request = QuizAnswerRequest(
+      quizId: currentQuiz.quizId,
+      selectedAnswer: state.userAnswer.trim(),
     );
 
-    if (isCorrect) {
-      final int newCorrectCount = state.correctCount + 1;
-      final int nextIndex = state.currentQuizIndex + 1;
+    try {
+      final QuizAnswerResponse? response = await repository.submitQuizAnswer(
+        state.inviteCode,
+        request,
+      );
 
-      // 마지막 문제 여부 체크
-      if (nextIndex >= state.quizContent!.list.length) {
-        emit(
-          state.copyWith(
-            correctCount: newCorrectCount,
-            currentQuizIndex: nextIndex,
-            isFinished: true,
-            isLastAnswerCorrect: true,
-            userAnswer: '',
-          ),
-        );
-      } else {
-        emit(
-          state.copyWith(
-            correctCount: newCorrectCount,
-            currentQuizIndex: nextIndex,
-            currentLives: state.quizContent!.list[nextIndex].playLimit,
-            isLastAnswerCorrect: true,
-            userAnswer: '',
-          ),
-        );
+      if (response == null) {
+        // 통신 실패 처리: 로딩 해제 및 상태 유지
+        emit(state.copyWith(isSubmitting: false));
+        return;
       }
-    } else {
-      final int newLives = state.currentLives - 1;
 
-      if (newLives <= 0) {
-        // 기회 소진 시 다음 문제로 이동
-        final int nextIndex = state.currentQuizIndex + 1;
-        if (nextIndex >= state.quizContent!.list.length) {
+      if (response.code == 'QUIZ_ALREADY_ANSWERED') {
+        // 이미 답변한 퀴즈 예외 처리
+        emit(state.copyWith(isSubmitting: false, userAnswer: ''));
+        return;
+      }
+
+      if (response.code == 'SUCCESS' && response.data != null) {
+        final QuizAnswerData answerData = response.data!;
+        final bool isCorrect = answerData.correct;
+        final int newIndex = answerData.currentQuizIndex;
+        final int newLives = answerData.remainingAttempts;
+
+        final int newCorrectCount = isCorrect
+            ? state.correctCount + 1
+            : state.correctCount;
+
+        // 결과 반영 - isLastAnswerCorrect를 통해 UI 애니메이션 트리거
+        if (newIndex >= state.quizContent!.list.length) {
+          // 마지막 문제 통과 후 종료 처리
           emit(
             state.copyWith(
-              currentQuizIndex: nextIndex,
+              correctCount: newCorrectCount,
+              currentQuizIndex: newIndex,
+              currentLives: newLives,
               isFinished: true,
-              isLastAnswerCorrect: false,
+              isLastAnswerCorrect: isCorrect,
               userAnswer: '',
+              isSubmitting: false,
             ),
           );
         } else {
+          // 다음 문제로 이동 또는 현재 문제 상태 유지 (틀렸을 때 등)
           emit(
             state.copyWith(
-              currentQuizIndex: nextIndex,
-              currentLives: state.quizContent!.list[nextIndex].playLimit,
-              isLastAnswerCorrect: false,
+              correctCount: newCorrectCount,
+              currentQuizIndex: newIndex,
+              currentLives: newLives > 0
+                  ? newLives
+                  : state.quizContent!.list[newIndex].playLimit,
+              isLastAnswerCorrect: isCorrect,
               userAnswer: '',
+              isSubmitting: false,
             ),
           );
         }
       } else {
-        emit(
-          state.copyWith(
-            currentLives: newLives, 
-            isLastAnswerCorrect: false,
-            userAnswer: '',
-          ),
-        );
+        // 정의되지 않은 응답 상태 코드 처리
+        emit(state.copyWith(isSubmitting: false));
       }
+    } catch (e) {
+      // 예상치 못한 런타임 에러 발생 시 처리
+      emit(state.copyWith(isSubmitting: false));
     }
   }
 

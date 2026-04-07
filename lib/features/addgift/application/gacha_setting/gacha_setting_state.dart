@@ -64,7 +64,7 @@ class GachaSettingState extends Equatable {
   const GachaSettingState({
     this.uiItems = const <DefaultGachaItemData>[],
     this.nextId = 1,
-    this.selectedBgm = '신나는 생일',
+    this.selectedBgm = '',
   });
 
   GachaSettingState copyWith({

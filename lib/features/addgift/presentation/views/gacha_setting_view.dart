@@ -12,6 +12,7 @@ import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/packaging_loading_overlay.dart';
 import '../../application/gacha_setting/gacha_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
+import '../widgets/desktop_settings_rail.dart';
 import '../widgets/gacha/gacha_item_edit_form.dart';
 import '../widgets/gacha/gacha_items_section.dart';
 import '../widgets/gacha/gacha_mobile_bottom_bar.dart';
@@ -380,6 +381,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                 0.0,
                 (double sum, GachaItem item) => sum + item.percent,
               );
+              final bool canComplete = _canComplete();
 
               final bool isLoading =
                   packagingState.submitStatus == SubmitStatus.loading;
@@ -434,133 +436,177 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                         body: SizedBox.expand(
                           child: Stack(
                             children: <Widget>[
-                            Positioned.fill(
-                              child: CustomPaint(
-                                painter: GridBackgroundPainter(),
+                              Positioned.fill(
+                                child: CustomPaint(
+                                  painter: GridBackgroundPainter(),
+                                ),
                               ),
-                            ),
-                            SafeArea(
-                              child: isMobile
-                                  ? SingleChildScrollView(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(24.0),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.stretch,
-                                          children: <Widget>[
-                                            GachaItemsSection(
-                                              totalPercent: totalPercent,
-                                              isMobile: isMobile,
-                                              uiItems: gachaState.uiItems,
-                                              hoveredItemId: _hoveredItemId,
-                                              selectedItemId: _selectedItemId,
-                                              onAddItem: _addGachaItem,
-                                              onRemoveAllItems: () => context
-                                                  .read<GachaSettingBloc>()
-                                                  .add(RemoveAllGachaItems()),
-                                              onTapItem:
-                                                  (DefaultGachaItemData item) =>
-                                                      _showEditModal(
-                                                        context,
-                                                        item,
-                                                      ),
-                                              onRemoveItem: (int itemId) {
-                                                context
+                              SafeArea(
+                                child: isMobile
+                                    ? SingleChildScrollView(
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(24.0),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
+                                            children: <Widget>[
+                                              GachaItemsSection(
+                                                totalPercent: totalPercent,
+                                                isMobile: isMobile,
+                                                uiItems: gachaState.uiItems,
+                                                hoveredItemId: _hoveredItemId,
+                                                selectedItemId: _selectedItemId,
+                                                onAddItem: _addGachaItem,
+                                                onRemoveAllItems: () => context
                                                     .read<GachaSettingBloc>()
-                                                    .add(
-                                                      RemoveGachaItem(itemId),
-                                                    );
-                                                setState(() {
-                                                  _hoveredItemId = null;
-                                                });
-                                              },
-                                              onHoverEnter: (int itemId) =>
+                                                    .add(RemoveAllGachaItems()),
+                                                onTapItem:
+                                                    (
+                                                      DefaultGachaItemData item,
+                                                    ) => _showEditModal(
+                                                      context,
+                                                      item,
+                                                    ),
+                                                onRemoveItem: (int itemId) {
+                                                  context
+                                                      .read<GachaSettingBloc>()
+                                                      .add(
+                                                        RemoveGachaItem(itemId),
+                                                      );
                                                   setState(() {
-                                                    _hoveredItemId = itemId;
-                                                  }),
-                                              onHoverExit: () => setState(() {
-                                                _hoveredItemId = null;
-                                              }),
-                                            ),
-                                          ],
+                                                    _hoveredItemId = null;
+                                                  });
+                                                },
+                                                onHoverEnter: (int itemId) =>
+                                                    setState(() {
+                                                      _hoveredItemId = itemId;
+                                                    }),
+                                                onHoverExit: () => setState(() {
+                                                  _hoveredItemId = null;
+                                                }),
+                                              ),
+                                            ],
+                                          ),
                                         ),
+                                      )
+                                    : Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: <Widget>[
+                                          Expanded(
+                                            flex: 7,
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(
+                                                40.0,
+                                              ),
+                                              child: GachaItemsSection(
+                                                totalPercent: totalPercent,
+                                                isMobile: isMobile,
+                                                uiItems: gachaState.uiItems,
+                                                hoveredItemId: _hoveredItemId,
+                                                selectedItemId: _selectedItemId,
+                                                onAddItem: _addGachaItem,
+                                                onRemoveAllItems: () => context
+                                                    .read<GachaSettingBloc>()
+                                                    .add(RemoveAllGachaItems()),
+                                                onTapItem:
+                                                    (
+                                                      DefaultGachaItemData item,
+                                                    ) => _showEditModal(
+                                                      context,
+                                                      item,
+                                                    ),
+                                                onRemoveItem: (int itemId) {
+                                                  context
+                                                      .read<GachaSettingBloc>()
+                                                      .add(
+                                                        RemoveGachaItem(itemId),
+                                                      );
+                                                  setState(() {
+                                                    _hoveredItemId = null;
+                                                  });
+                                                },
+                                                onHoverEnter: (int itemId) =>
+                                                    setState(() {
+                                                      _hoveredItemId = itemId;
+                                                    }),
+                                                onHoverExit: () => setState(() {
+                                                  _hoveredItemId = null;
+                                                }),
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            width: 1,
+                                            color: Colors.white.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                          ),
+                                          Expanded(
+                                            flex: 4,
+                                            child: DesktopSettingsRail(
+                                              settingsBuilder:
+                                                  (
+                                                    BuildContext context,
+                                                    bool isCompactDesktop,
+                                                  ) => GachaSettingsPanel(
+                                                    isMobile: false,
+                                                    isCompactDesktop:
+                                                        isCompactDesktop,
+                                                    playCountController:
+                                                        _playCountController,
+                                                  ),
+                                              bottomAction: SizedBox(
+                                                height: 60,
+                                                child: ElevatedButton(
+                                                  onPressed: canComplete
+                                                      ? _completePackage
+                                                      : null,
+                                                  style: ElevatedButton.styleFrom(
+                                                    backgroundColor: canComplete
+                                                        ? const Color(
+                                                            0xFF6DE1F1,
+                                                          )
+                                                        : Colors.grey.shade300,
+                                                    disabledBackgroundColor:
+                                                        Colors.grey.shade800,
+                                                    shape: RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            16,
+                                                          ),
+                                                    ),
+                                                    elevation: 0,
+                                                  ),
+                                                  child: Text(
+                                                    '포장 완료',
+                                                    style: TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: canComplete
+                                                          ? Colors.black
+                                                          : Colors
+                                                                .grey
+                                                                .shade500,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    )
-                                  : Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: <Widget>[
-                                        Expanded(
-                                          flex: 7,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(40.0),
-                                            child: GachaItemsSection(
-                                              totalPercent: totalPercent,
-                                              isMobile: isMobile,
-                                              uiItems: gachaState.uiItems,
-                                              hoveredItemId: _hoveredItemId,
-                                              selectedItemId: _selectedItemId,
-                                              onAddItem: _addGachaItem,
-                                              onRemoveAllItems: () => context
-                                                  .read<GachaSettingBloc>()
-                                                  .add(RemoveAllGachaItems()),
-                                              onTapItem:
-                                                  (DefaultGachaItemData item) =>
-                                                      _showEditModal(
-                                                        context,
-                                                        item,
-                                                      ),
-                                              onRemoveItem: (int itemId) {
-                                                context
-                                                    .read<GachaSettingBloc>()
-                                                    .add(
-                                                      RemoveGachaItem(itemId),
-                                                    );
-                                                setState(() {
-                                                  _hoveredItemId = null;
-                                                });
-                                              },
-                                              onHoverEnter: (int itemId) =>
-                                                  setState(() {
-                                                    _hoveredItemId = itemId;
-                                                  }),
-                                              onHoverExit: () => setState(() {
-                                                _hoveredItemId = null;
-                                              }),
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: 1,
-                                          color: Colors.white.withValues(
-                                            alpha: 0.1,
-                                          ),
-                                        ),
-                                        Expanded(
-                                          flex: 4,
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(40.0),
-                                            child: GachaSettingsPanel(
-                                              isMobile: false,
-                                              playCountController:
-                                                  _playCountController,
-                                              canComplete: _canComplete(),
-                                              onComplete: _completePackage,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
                         // 모바일인 경우 하단 네비게이션 적용 (톱니바퀴 모달 + 완료버튼)
                         bottomNavigationBar: isMobile
                             ? GachaMobileBottomBar(
                                 totalPercent: totalPercent,
                                 itemCount: gachaState.uiItems.length,
-                                canComplete: _canComplete(),
+                                canComplete: canComplete,
                                 onComplete: _completePackage,
                                 onShowSettings: () =>
                                     _showMobileSettingsModal(context),
@@ -628,9 +674,8 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                       const SizedBox(height: 24),
                       GachaSettingsPanel(
                         isMobile: true,
+                        isCompactDesktop: false,
                         playCountController: _playCountController,
-                        canComplete: _canComplete(),
-                        onComplete: _completePackage,
                       ),
                       Row(
                         children: <Widget>[

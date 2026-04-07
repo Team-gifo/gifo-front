@@ -78,8 +78,13 @@ Future<void> _onSubmitPackage(
 
 | BLoC | 파일 | 역할 |
 |------|------|------|
-| `LobbyBloc` | `lib/features/lobby/application/lobby_bloc.dart` | 초대 코드 검증 |
+| `LobbyBloc` | `lib/features/lobby/application/lobby_bloc.dart` | 초대 코드 검증 및 전역 로비 데이터 관리. 컨텐츠 화면 이동 후에도 백그라운드 갱신 담당 |
 | `DownloadBloc` | `lib/core/blocs/download/download_bloc.dart` | **공용** 파일 다운로드 (단일 PNG / ZIP 압축). 추억 갤러리, 가챠 기프티콘 등에서 공유하여 사용 |
+
+**LobbyBloc 주요 이벤트:**
+- `FetchLobbyData(code)`: 서버에서 해당 코드의 로비 데이터를 신규로 가져옴
+- `InitLobbyWithData(data)`: 이미 소유한 데이터를 통해 BLoC 상태를 즉시 초기화 (네트워크 호출 없음)
+- `SilentRefreshLobbyData(code)`: 화면 전환 없이 백그라운드에서 데이터를 최신으로 갱신 (뽑기 시도 후 사용)
 
 ## GiftPackagingBloc 상세
 

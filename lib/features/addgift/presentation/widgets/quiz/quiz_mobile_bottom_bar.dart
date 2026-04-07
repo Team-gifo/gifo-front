@@ -6,11 +6,13 @@ class QuizMobileBottomBar extends StatelessWidget {
   const QuizMobileBottomBar({
     super.key,
     required this.isSubmitting,
+    required this.canComplete,
     required this.onShowSettings,
     required this.onComplete,
   });
 
   final bool isSubmitting;
+  final bool canComplete;
   final VoidCallback onShowSettings;
   final VoidCallback onComplete;
 
@@ -25,6 +27,19 @@ class QuizMobileBottomBar extends StatelessWidget {
         ),
         child: Row(
           children: <Widget>[
+            const Tooltip(
+              triggerMode: TooltipTriggerMode.tap,
+              showDuration: Duration(seconds: 4),
+              message: '⚠️ 포장 완료 조건\n'
+                  '• 문제 최소 1개 이상 생성\n'
+                  '• 상단 닉네임 및 서브타이틀 입력\n'
+                  '• 미완성 문제 없음 (제목 + 정답 필수)\n'
+                  '• 성공 보상 물품 이름 입력',
+              child: Padding(
+                padding: EdgeInsets.only(right: 8),
+                child: Icon(Icons.info_outline, size: 20, color: Colors.white38),
+              ),
+            ),
             InkWell(
               onTap: onShowSettings,
               borderRadius: BorderRadius.circular(16),
@@ -45,7 +60,7 @@ class QuizMobileBottomBar extends StatelessWidget {
             const SizedBox(width: 16),
             Expanded(
               child: QuizCompleteButton(
-                enabled: !isSubmitting,
+                enabled: canComplete && !isSubmitting,
                 onPressed: onComplete,
                 height: 56,
               ),

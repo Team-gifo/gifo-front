@@ -89,7 +89,7 @@ lib/features/content/application/quiz/quiz_bloc.dart
 lib/features/content/application/unboxing/unboxing_bloc.dart
 
 # 로비
-lib/features/lobby/model/lobby_data.dart                   # 더미 데이터 + 코드 검증
+lib/features/lobby/model/lobby_data.dart                   # 로비 데이터 모델 및 공용 데이터 스토어
 lib/features/lobby/application/lobby_bloc.dart
 
 # 상수/공통
