@@ -4,6 +4,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../features/addgift/repository/addgift_api.dart';
+import '../../features/content/repository/content_api.dart';
+import '../../features/content/repository/content_repository.dart';
+import '../../features/lobby/repository/lobby_api.dart';
+import '../../features/lobby/repository/lobby_repository.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -49,6 +53,22 @@ void setupServiceLocator() {
 
   // AddGiftApi 등록
   getIt.registerLazySingleton<AddGiftApi>(() => AddGiftApi(dio));
+
+  // LobbyApi 등록 (GET /api/events/{eventUrl})
+  getIt.registerLazySingleton<LobbyApi>(() => LobbyApi(dio));
+
+  // LobbyRepository 등록 (LobbyApi를 주입)
+  getIt.registerLazySingleton<LobbyRepository>(
+    () => LobbyRepository(getIt<LobbyApi>()),
+  );
+
+  // ContentApi 등록
+  getIt.registerLazySingleton<ContentApi>(() => ContentApi(dio));
+
+  // ContentRepository 등록
+  getIt.registerLazySingleton<ContentRepository>(
+    () => ContentRepository(getIt<ContentApi>()),
+  );
 }
 
 String _sanitizeBaseUrl(String rawBaseUrl) {

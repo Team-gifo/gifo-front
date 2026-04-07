@@ -4,10 +4,12 @@ abstract class GachaEvent {
   const GachaEvent();
 }
 
-// 코드 기반 가차 데이터 초기화
+// LobbyBloc에서 수신한 LobbyData와 초대 코드를 직접 전달받아 초기화
 class InitGacha extends GachaEvent {
-  final String code;
-  const InitGacha(this.code);
+  final LobbyData lobbyData;
+  // QR 코드 및 공유 링크 생성에 사용되는 초대 코드
+  final String inviteCode;
+  const InitGacha(this.lobbyData, {this.inviteCode = ''});
 }
 
 // 캡슐 뽑기 실행

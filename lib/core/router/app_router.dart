@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../core/blocs/download/download_bloc.dart';
 import '../../features/addgift/application/bgm_preset/bgm_preset_bloc.dart';
 import '../../features/addgift/application/gift_packaging_bloc.dart';
 import '../../features/addgift/presentation/views/ai_intro_view.dart';
@@ -20,10 +22,12 @@ import '../../features/content/presentation/quiz/quiz_view.dart';
 import '../../features/content/presentation/unboxing/unboxing_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
 import '../../features/lobby/application/lobby_bloc.dart';
-import '../../core/blocs/download/download_bloc.dart';
 import '../../features/lobby/model/lobby_data.dart';
 import '../../features/lobby/presentation/views/lobby_view.dart';
 import '../../features/lobby/presentation/views/memory_gallery_view.dart';
+import '../../features/lobby/repository/lobby_repository.dart';
+import '../../features/content/repository/content_repository.dart';
+import '../di/service_locator.dart';
 
 bool isPackageComplete = false;
 final GiftPackagingBloc giftPackagingBloc = GiftPackagingBloc();
@@ -87,13 +91,13 @@ final GoRouter appRouter = GoRouter(
         return '/';
       }
     }
-    // /gift/code/:code 진입 시 코드 유효성 사전 검증
-    // 유효하지 않으면 errorBuilder 대신 redirect로 처리
+    // /gift/code/:code 진입 시 코드 형식 기본 검증 (빈 값 체크만 수행)
+    // 실제 유효성 검증은 LobbyBloc이 API 호출을 통해 처리
     if (state.matchedLocation.startsWith('/gift/code/')) {
       final String code = state.matchedLocation
           .replaceFirst('/gift/code/', '')
           .trim();
-      if (code.isEmpty || LobbyData.getDummyByCode(code) == null) {
+      if (code.isEmpty) {
         _shouldShowInvalidCodeToast = true;
         return '/';
       }
@@ -112,90 +116,124 @@ final GoRouter appRouter = GoRouter(
         return HomeView(showInvalidCodeToast: showToast);
       },
     ),
-    // 콘텐츠 이용 전 로비 화면 (초대코드 직접 입력 후 내부 이동용, 레거시)
+    // 콘텐츠 이용 전 로비 화면 (레거시: 앱 내부 extra 전달용)
+    // 더 이상 더미 데이터를 사용하지 않으므로 /gift/code/:code 경로로 통합 예정
     GoRoute(
       path: '/lobby',
       pageBuilder: (BuildContext context, GoRouterState state) {
-        final String code = state.extra as String? ?? 'helloworld';
-        final LobbyData lobbyData =
-            LobbyData.getDummyByCode(code) ??
-            LobbyData.getDummyByCode('helloworld')!;
+        final String code = state.extra as String? ?? '';
         return NoTransitionPage(
-          child: LobbyView(data: lobbyData, code: code),
+          child: BlocProvider(
+            create: (_) =>
+                LobbyBloc(repository: getIt<LobbyRepository>())
+                  ..add(FetchLobbyData(code)),
+            child: LobbyView(code: code),
+          ),
         );
       },
     ),
     // 초대 코드 기반 로비 화면 - URL 경로에 코드가 포함되는 공유 가능한 형태
-    // redirect에서 유효성 검증을 이미 통과한 코드만 진입
+    // LobbyBloc이 진입 즉시 API를 호출하여 이벤트 데이터를 로드한다
     GoRoute(
       path: '/gift/code/:code',
       pageBuilder: (BuildContext context, GoRouterState state) {
         final String code = state.pathParameters['code'] ?? '';
-        // redirect에서 유효성 검증 완료: null-fallback 불필요
-        final LobbyData lobbyData = LobbyData.getDummyByCode(code)!;
         return NoTransitionPage(
           child: BlocProvider(
-            create: (_) => LobbyBloc(),
-            child: LobbyView(data: lobbyData, code: code),
+            create: (_) =>
+                LobbyBloc(repository: getIt<LobbyRepository>())
+                  ..add(FetchLobbyData(code)),
+            child: LobbyView(code: code),
           ),
         );
       },
     ),
-    // 수신자용 추억 갤러리 화면 (입장 후 화면)
+    // 수신자용 추억 갤러리 화면 (extra Map에서 LobbyData와 inviteCode 추출)
     GoRoute(
       path: '/memory-gallery',
       pageBuilder: (BuildContext context, GoRouterState state) {
-        final String code = state.extra as String? ?? 'helloworld';
+        final Map<String, dynamic> extra = state.extra! as Map<String, dynamic>;
+        final LobbyData lobbyData = extra['data'] as LobbyData;
+        final String inviteCode = extra['code'] as String? ?? '';
         return NoTransitionPage(
           child: BlocProvider(
             create: (_) => DownloadBloc(),
-            child: MemoryGalleryView(code: code),
+            child: MemoryGalleryView(
+              lobbyData: lobbyData,
+              inviteCode: inviteCode,
+            ),
           ),
         );
       },
     ),
-    // 콘텐츠 진행 - 캡슐 뽑기 화면
+    // 콘텐츠 진행 - 캡슐 뽑기 화면 (extra Map에서 LobbyData와 inviteCode 추출)
     GoRoute(
       path: '/content/gacha',
       pageBuilder: (BuildContext context, GoRouterState state) {
-        final String code = state.extra as String? ?? 'helloworld';
+        final Map<String, dynamic> extra = state.extra! as Map<String, dynamic>;
+        final LobbyData lobbyData = extra['data'] as LobbyData;
+        final String inviteCode = extra['code'] as String? ?? '';
         return NoTransitionPage(
           child: MultiBlocProvider(
             providers: <BlocProvider<dynamic>>[
+              BlocProvider<LobbyBloc>(
+                create: (BuildContext context) =>
+                    LobbyBloc(repository: getIt<LobbyRepository>())
+                      ..add(InitLobbyWithData(data: lobbyData, code: inviteCode)),
+              ),
               BlocProvider<GachaBloc>(
-                create: (BuildContext context) => GachaBloc(),
+                create: (BuildContext context) =>
+                    GachaBloc(repository: getIt<ContentRepository>())
+                      ..add(InitGacha(lobbyData, inviteCode: inviteCode)),
               ),
               BlocProvider<DownloadBloc>(
                 create: (BuildContext context) => DownloadBloc(),
               ),
             ],
-            child: GachaView(code: code),
+            child: const GachaView(),
           ),
         );
       },
     ),
-    // 콘텐츠 진행 - 퀴즈 맞추기 화면
+    // 콘텐츠 진행 - 퀴즈 맞추기 화면 (extra Map에서 LobbyData와 inviteCode 추출)
     GoRoute(
       path: '/content/quiz',
       pageBuilder: (BuildContext context, GoRouterState state) {
-        final String code = state.extra as String? ?? 'quiz123';
+        final Map<String, dynamic> extra = state.extra! as Map<String, dynamic>;
+        final LobbyData lobbyData = extra['data'] as LobbyData;
+        final String inviteCode = extra['code'] as String? ?? '';
         return NoTransitionPage(
           child: BlocProvider<QuizBloc>(
-            create: (BuildContext context) => QuizBloc(),
-            child: QuizView(code: code),
+            create: (BuildContext context) =>
+                QuizBloc(repository: getIt<ContentRepository>())
+                  ..add(InitQuiz(lobbyData, inviteCode: inviteCode)),
+            child: const QuizView(),
           ),
         );
       },
     ),
-    // 콘텐츠 진행 - 바로 오픈 화면
+    // 콘텐츠 진행 - 바로 오픈 화면 (extra Map에서 LobbyData와 inviteCode 추출)
     GoRoute(
       path: '/content/unboxing',
       pageBuilder: (BuildContext context, GoRouterState state) {
-        final String code = state.extra as String? ?? 'open123';
+        final Map<String, dynamic> extra = state.extra! as Map<String, dynamic>;
+        final LobbyData lobbyData = extra['data'] as LobbyData;
+        final String inviteCode = extra['code'] as String? ?? '';
         return NoTransitionPage(
-          child: BlocProvider<UnboxingBloc>(
-            create: (BuildContext context) => UnboxingBloc(),
-            child: UnboxingView(code: code),
+          child: MultiBlocProvider(
+            providers: <BlocProvider<dynamic>>[
+              BlocProvider<LobbyBloc>(
+                create: (BuildContext context) =>
+                    LobbyBloc(repository: getIt<LobbyRepository>())
+                      ..add(InitLobbyWithData(data: lobbyData, code: inviteCode)),
+              ),
+              BlocProvider<UnboxingBloc>(
+                create: (BuildContext context) => UnboxingBloc(
+                  repository: getIt<ContentRepository>(),
+                )..add(InitUnboxing(lobbyData, inviteCode: inviteCode)),
+              ),
+            ],
+            child: const UnboxingView(),
           ),
         );
       },

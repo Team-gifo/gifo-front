@@ -41,9 +41,7 @@ class _GachaViewState extends State<GachaView> {
           listener: (BuildContext context, LobbyState state) {
             final GachaState gachaState = context.read<GachaBloc>().state;
             if (gachaState.isResultRefreshing) {
-              context.read<GachaBloc>().add(
-                InitGacha(state.lobbyData!, inviteCode: gachaState.inviteCode),
-              );
+              context.read<GachaBloc>().add(InitGacha(state.lobbyData!, inviteCode: gachaState.inviteCode));
             }
           },
         ),
@@ -55,9 +53,7 @@ class _GachaViewState extends State<GachaView> {
             prev.lastDrawnItem != curr.lastDrawnItem,
         listener: (BuildContext context, GachaState state) {
           if (state.lastDrawnItem != null) {
-            _machineKey.currentState?.startResultAnimation(
-              state.lastDrawnItem!,
-            );
+            _machineKey.currentState?.startResultAnimation(state.lastDrawnItem!);
           }
         },
         builder: (BuildContext context, GachaState state) {
@@ -120,9 +116,7 @@ class _GachaViewState extends State<GachaView> {
               if (state.isResultRefreshing)
                 Positioned.fill(
                   child: Container(
-                    color: Colors.black.withValues(
-                      alpha: 0.5,
-                    ), // 배경을 살짝 어둡게 (터치 방지)
+                    color: Colors.black.withValues(alpha: 0.5), // 배경을 살짝 어둡게 (터치 방지)
                     child: const Center(
                       child: CircularProgressIndicator(
                         color: AppColors.neonPurple,
@@ -136,6 +130,7 @@ class _GachaViewState extends State<GachaView> {
       ),
     );
   }
+
 
   // AppBar: 로고 + 타이틀
   Widget _buildAppBar(GachaState state, bool isMobileOrSmall) {
@@ -282,9 +277,7 @@ class _GachaViewState extends State<GachaView> {
           const SizedBox(width: 28),
           Expanded(
             flex: 1,
-            child: GachaPrizeListPanel(
-              items: state.gachaContent?.list ?? <GachaItem>[],
-            ),
+            child: GachaPrizeListPanel(items: state.gachaContent?.list ?? <GachaItem>[]),
           ),
         ],
       ),
