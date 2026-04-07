@@ -284,27 +284,25 @@ class _GachaViewState extends State<GachaView> {
     );
   }
 
-  // 모바일: 단일 컬럼 (머신 전체 활용)
+  // 모바일/태블릿: 단일 컬럼 (머신 전체 활용, 중앙 정렬)
   Widget _buildMobileLayout(GachaState state, bool isMobileOrSmall) {
-    return Column(
-      children: <Widget>[
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 0, 8, 16),
-            child: GachaMachineSection(
-              key: _machineKey,
-              remainingCount: state.remainingCount,
-              items: state.gachaContent?.list ?? <GachaItem>[],
-              onDraw: state.remainingCount > 0
-                  ? () => context.read<GachaBloc>().add(const DrawGacha())
-                  : null,
-              onAnimationComplete: (GachaItem item) {
-                showGachaResultModal(context, item);
-              },
-            ),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 0, 8, 32),
+        child: Center(
+          child: GachaMachineSection(
+            key: _machineKey,
+            remainingCount: state.remainingCount,
+            items: state.gachaContent?.list ?? <GachaItem>[],
+            onDraw: state.remainingCount > 0
+                ? () => context.read<GachaBloc>().add(const DrawGacha())
+                : null,
+            onAnimationComplete: (GachaItem item) {
+              showGachaResultModal(context, item);
+            },
           ),
         ),
-      ],
+      ),
     );
   }
 

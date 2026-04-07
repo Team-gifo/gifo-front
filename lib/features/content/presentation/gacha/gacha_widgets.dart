@@ -184,57 +184,113 @@ class GachaMachineSectionState extends State<GachaMachineSection>
           GachaRemainingBadge(count: widget.remainingCount),
         ],
         SizedBox(height: isDesktop ? 24 : 24),
-        Expanded(
-          child: AnimatedBuilder(
-            animation: Listenable.merge(<Listenable>[
-              _dropController,
-              _openController,
-            ]),
-            builder: (BuildContext context, Widget? child) {
-              return Stack(
-                alignment: Alignment.center,
-                clipBehavior: Clip.none,
-                children: <Widget>[
-                  // 머신 본체 (흔들림 적용 + 스케일 적용)
-                  AnimatedBuilder(
-                    animation: _shakeAnimation,
-                    builder: (BuildContext context, Widget? child) {
-                      final double offsetX = _shakeController.isAnimating
-                          ? math.sin(_shakeController.value * math.pi * 10) *
-                                _shakeAnimation.value
-                          : 0;
-                      return Transform.translate(
-                        offset: Offset(offsetX, 0),
-                        child: Transform.scale(
-                          scale: machineScale,
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: _buildPixelMachineFrame(),
-                  ),
+        // 데스크탑일 때는 꽉 차게(Expanded), 모바일(SingleChildScrollView)에서는 Expanded 없이 높이를 지정(또는 그냥 그림의 원래 높이를 따르도록)
+        if (isMobileOrSmall)
+          Container(
+            height: 600 * machineScale + 50, // 애니메이션 상단 바운스 고려
+            alignment: Alignment.center,
+            child: AnimatedBuilder(
+              animation: Listenable.merge(<Listenable>[
+                _dropController,
+                _openController,
+              ]),
+              builder: (BuildContext context, Widget? child) {
+                return Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: <Widget>[
+                    // 머신 본체 (흔들림 적용 + 스케일 적용)
+                    AnimatedBuilder(
+                      animation: _shakeAnimation,
+                      builder: (BuildContext context, Widget? child) {
+                        final double offsetX = _shakeController.isAnimating
+                            ? math.sin(_shakeController.value * math.pi * 10) *
+                                  _shakeAnimation.value
+                            : 0;
+                        return Transform.translate(
+                          offset: Offset(offsetX, 0),
+                          child: Transform.scale(
+                            scale: machineScale,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: _buildPixelMachineFrame(),
+                    ),
 
-                  // 노브에서 나와서 중앙으로 이동하는 캡슐 - 이펙트 앞에 배치
-                  if (_isAnimating && _dropController.value > 0)
-                    Positioned(
-                      // Y좌표: 노브 위치(440) -> 중앙(300)
-                      // 스케일에 따라 위치 보정 (기본 440에서 스케일 중심 기준 조정)
-                      top:
-                          (440 * machineScale) -
-                          (200 * machineScale * _dropAnimation.value),
-                      child: Transform.scale(
-                        scale: machineScale * _dropScaleAnimation.value,
-                        child: _buildCapsule(
-                          _dispensedCapsuleColor,
-                          _openAnimation.value,
+                    // 노브에서 나와서 중앙으로 이동하는 캡슐 - 이펙트 앞에 배치
+                    if (_isAnimating && _dropController.value > 0)
+                      Positioned(
+                        // Y좌표: 노브 위치(440) -> 중앙(300)
+                        // 스케일에 따라 위치 보정 (기본 440에서 스케일 중심 기준 조정)
+                        top:
+                            (440 * machineScale) -
+                            (200 * machineScale * _dropAnimation.value),
+                        child: Transform.scale(
+                          scale: machineScale * _dropScaleAnimation.value,
+                          child: _buildCapsule(
+                            _dispensedCapsuleColor,
+                            _openAnimation.value,
+                          ),
                         ),
                       ),
+                  ],
+                );
+              },
+            ),
+          )
+        else
+          Expanded(
+            child: AnimatedBuilder(
+              animation: Listenable.merge(<Listenable>[
+                _dropController,
+                _openController,
+              ]),
+              builder: (BuildContext context, Widget? child) {
+                return Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: <Widget>[
+                    // 머신 본체 (흔들림 적용 + 스케일 적용)
+                    AnimatedBuilder(
+                      animation: _shakeAnimation,
+                      builder: (BuildContext context, Widget? child) {
+                        final double offsetX = _shakeController.isAnimating
+                            ? math.sin(_shakeController.value * math.pi * 10) *
+                                  _shakeAnimation.value
+                            : 0;
+                        return Transform.translate(
+                          offset: Offset(offsetX, 0),
+                          child: Transform.scale(
+                            scale: machineScale,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: _buildPixelMachineFrame(),
                     ),
-                ],
-              );
-            },
+
+                    // 노브에서 나와서 중앙으로 이동하는 캡슐 - 이펙트 앞에 배치
+                    if (_isAnimating && _dropController.value > 0)
+                      Positioned(
+                        // Y좌표: 노브 위치(440) -> 중앙(300)
+                        // 스케일에 따라 위치 보정 (기본 440에서 스케일 중심 기준 조정)
+                        top:
+                            (440 * machineScale) -
+                            (200 * machineScale * _dropAnimation.value),
+                        child: Transform.scale(
+                          scale: machineScale * _dropScaleAnimation.value,
+                          child: _buildCapsule(
+                            _dispensedCapsuleColor,
+                            _openAnimation.value,
+                          ),
+                        ),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
-        ),
       ],
     );
   }
@@ -348,8 +404,6 @@ class GachaMachineSectionState extends State<GachaMachineSection>
       ),
     );
   }
-
-
 
   Widget _buildPixelMachineFrame() {
     return SizedBox(
@@ -927,7 +981,9 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
                       final GachaItem? item = record['item'] is GachaItem
                           ? record['item'] as GachaItem
                           : null;
-                      final String time = record['time']?.toString() ?? '';
+                      final String time =
+                          record['time']?.toString() ??
+                          ''; // 추후 제대로 된 date 필드가 들어오면 변경
 
                       if (item == null) return const SizedBox.shrink();
 
@@ -1097,7 +1153,9 @@ class GachaPrizeListPanel extends StatelessWidget {
                           // 아이템 좌측에 네온 포인트 바 추가
                           border: Border(
                             left: BorderSide(
-                              color: AppColors.neonPurple.withValues(alpha: 0.4),
+                              color: AppColors.neonPurple.withValues(
+                                alpha: 0.4,
+                              ),
                               width: 4,
                             ),
                           ),
@@ -1127,7 +1185,9 @@ class GachaPrizeListPanel extends StatelessWidget {
                                     item.itemName,
                                     style: TextStyle(
                                       fontFamily: 'WantedSans',
-                                      color: Colors.white.withValues(alpha: 0.9),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.9,
+                                      ),
                                       fontWeight: FontWeight.bold,
                                       fontSize: 13 * scale,
                                     ),
@@ -1146,9 +1206,8 @@ class GachaPrizeListPanel extends StatelessWidget {
                                             ? '${(item.percent * 100).toStringAsFixed(2)}%'
                                             : '확률 미공개',
                                         style: TextStyle(
-                                          color: AppColors.neonPurple.withValues(
-                                            alpha: 0.8,
-                                          ),
+                                          color: AppColors.neonPurple
+                                              .withValues(alpha: 0.8),
                                           fontFamily: 'WantedSans',
                                           fontSize: 11 * scale,
                                           fontWeight: FontWeight.w600,
@@ -1215,7 +1274,9 @@ class GachaRemainingBadge extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.neonPurple.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.5)),
+              border: Border.all(
+                color: AppColors.neonPurple.withValues(alpha: 0.5),
+              ),
             ),
             child: Text(
               count.toString().padLeft(2, '0'),
