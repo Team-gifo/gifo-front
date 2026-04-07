@@ -19,9 +19,9 @@ abstract class CapsuleDrawResponse with _$CapsuleDrawResponse {
 abstract class CapsuleDrawData with _$CapsuleDrawData {
   const factory CapsuleDrawData({
     required int capsuleId,
-    required String giftName,
-    required String giftImageUrl,
-    required String description,
+    String? giftName,
+    String? giftImageUrl,
+    String? description,
   }) = _CapsuleDrawData;
 
   factory CapsuleDrawData.fromJson(Map<String, dynamic> json) =>

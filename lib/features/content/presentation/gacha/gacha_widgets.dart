@@ -15,6 +15,7 @@ import '../widgets/gifticon_frame.dart';
 class GachaMachineSection extends StatefulWidget {
   final int remainingCount;
   final List<GachaItem> items;
+  final bool isDrawing;
   final VoidCallback? onDraw;
   final Function(GachaItem)? onAnimationComplete;
 
@@ -22,6 +23,7 @@ class GachaMachineSection extends StatefulWidget {
     super.key,
     required this.remainingCount,
     required this.items,
+    this.isDrawing = false,
     this.onDraw,
     this.onAnimationComplete,
   });
@@ -112,10 +114,12 @@ class GachaMachineSectionState extends State<GachaMachineSection>
   }
 
   Color _dispensedCapsuleColor = Colors.white;
+  bool _isWaitingForServer = false;
 
   // 외부(부모)에서 결과가 나오면 호출하여 애니메이션 시작
   Future<void> startResultAnimation(GachaItem item) async {
     setState(() {
+      _isWaitingForServer = false;
       _dispensedCapsuleColor =
           _dotPalette[math.Random().nextInt(_dotPalette.length)];
     });
@@ -145,7 +149,10 @@ class GachaMachineSectionState extends State<GachaMachineSection>
 
   Future<void> _handleDraw() async {
     if (_isAnimating || widget.onDraw == null) return;
-    setState(() => _isAnimating = true);
+    setState(() {
+      _isAnimating = true;
+      _isWaitingForServer = true;
+    });
 
     // 1. 흔들림 애니메이션 시작
     await _shakeController.forward();
@@ -547,6 +554,7 @@ class GachaMachineSectionState extends State<GachaMachineSection>
                 const Spacer(),
                 GachaDrawButton(
                   isEnabled: widget.remainingCount > 0 && !_isAnimating,
+                  isLoading: _isWaitingForServer,
                   onTap: _handleDraw,
                 ),
               ],
@@ -666,9 +674,15 @@ class GachaMachineSectionState extends State<GachaMachineSection>
 
 class GachaDrawButton extends StatefulWidget {
   final bool isEnabled;
+  final bool isLoading;
   final VoidCallback? onTap;
 
-  const GachaDrawButton({super.key, required this.isEnabled, this.onTap});
+  const GachaDrawButton({
+    super.key,
+    required this.isEnabled,
+    this.isLoading = false,
+    this.onTap,
+  });
 
   @override
   State<GachaDrawButton> createState() => _GachaDrawButtonState();
@@ -700,12 +714,12 @@ class _GachaDrawButtonState extends State<GachaDrawButton>
 
   @override
   Widget build(BuildContext context) {
-    if (!widget.isEnabled) {
+    if (!widget.isEnabled && !widget.isLoading) {
       return _buildButton(isEnabled: false);
     }
     return ScaleTransition(
       scale: _pulseAnimation,
-      child: _buildButton(isEnabled: true),
+      child: _buildButton(isEnabled: widget.isEnabled),
     );
   }
 
@@ -717,7 +731,7 @@ class _GachaDrawButtonState extends State<GachaDrawButton>
         borderRadius: BorderRadius.circular(12),
         color: Colors.transparent,
         child: InkWell(
-          onTap: isEnabled ? widget.onTap : null,
+          onTap: isEnabled && !widget.isLoading ? widget.onTap : null,
           borderRadius: BorderRadius.circular(12),
           child: Ink(
             decoration: BoxDecoration(
@@ -741,16 +755,26 @@ class _GachaDrawButtonState extends State<GachaDrawButton>
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text(
-                    'DRAW NOW',
-                    style: TextStyle(
-                      fontFamily: 'PFStardust',
-                      fontSize: 18,
-                      color: isEnabled ? Colors.white : Colors.grey,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
+                  if (widget.isLoading)
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  else
+                    Text(
+                      'DRAW NOW',
+                      style: TextStyle(
+                        fontFamily: 'PFStardust',
+                        fontSize: 18,
+                        color: isEnabled ? Colors.white : Colors.grey,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),

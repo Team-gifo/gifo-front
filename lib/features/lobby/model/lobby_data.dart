@@ -78,10 +78,10 @@ abstract class GachaItem with _$GachaItem {
 abstract class GachaDrawHistory with _$GachaDrawHistory {
   const factory GachaDrawHistory({
     required int capsuleId,
-    required String giftName,
-    required String giftImageUrl,
-    required String description,
-    required bool selected,
+    String? giftName,
+    String? giftImageUrl,
+    String? description,
+    @Default(false) bool selected,
   }) = _GachaDrawHistory;
 
   factory GachaDrawHistory.fromJson(Map<String, dynamic> json) =>

@@ -52,9 +52,7 @@ class _LoadingView extends StatelessWidget {
       backgroundColor: AppColors.darkBg,
       body: Stack(
         children: <Widget>[
-          Positioned.fill(
-            child: CustomPaint(painter: GridBackgroundPainter()),
-          ),
+          Positioned.fill(child: CustomPaint(painter: GridBackgroundPainter())),
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -109,14 +107,16 @@ class _ErrorView extends StatelessWidget {
       backgroundColor: AppColors.darkBg,
       body: Stack(
         children: <Widget>[
-          Positioned.fill(
-            child: CustomPaint(painter: GridBackgroundPainter()),
-          ),
+          Positioned.fill(child: CustomPaint(painter: GridBackgroundPainter())),
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.redAccent,
+                  size: 48,
+                ),
                 const SizedBox(height: 20),
                 Text(
                   message,
@@ -297,7 +297,9 @@ class _LobbyContentState extends State<_LobbyContent> {
                                           color: Colors.white,
                                           width: 2,
                                         ),
-                                        borderRadius: BorderRadius.circular(12.0),
+                                        borderRadius: BorderRadius.circular(
+                                          12.0,
+                                        ),
                                       ),
                                     ),
                                     child: Text(

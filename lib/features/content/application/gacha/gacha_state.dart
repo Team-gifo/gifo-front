@@ -9,6 +9,7 @@ class GachaState {
   final List<Map<String, dynamic>> history;
   final GachaItem? lastDrawnItem;
   final bool isDrawing; // API 호출 중 여부
+  final bool isResultRefreshing; // 결과 모달 닫힌 후 데이터 백그라운드 새로고침 상태
 
   const GachaState({
     this.userName = '',
@@ -18,6 +19,7 @@ class GachaState {
     this.history = const <Map<String, dynamic>>[],
     this.lastDrawnItem,
     this.isDrawing = false,
+    this.isResultRefreshing = false,
   });
 
   GachaState copyWith({
@@ -28,6 +30,7 @@ class GachaState {
     List<Map<String, dynamic>>? history,
     GachaItem? lastDrawnItem,
     bool? isDrawing,
+    bool? isResultRefreshing,
   }) {
     return GachaState(
       userName: userName ?? this.userName,
@@ -37,6 +40,7 @@ class GachaState {
       history: history ?? this.history,
       lastDrawnItem: lastDrawnItem,
       isDrawing: isDrawing ?? this.isDrawing,
+      isResultRefreshing: isResultRefreshing ?? this.isResultRefreshing,
     );
   }
 }

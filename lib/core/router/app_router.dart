@@ -175,6 +175,11 @@ final GoRouter appRouter = GoRouter(
         return NoTransitionPage(
           child: MultiBlocProvider(
             providers: <BlocProvider<dynamic>>[
+              BlocProvider<LobbyBloc>(
+                create: (BuildContext context) =>
+                    LobbyBloc(repository: getIt<LobbyRepository>())
+                      ..add(InitLobbyWithData(data: lobbyData, code: inviteCode)),
+              ),
               BlocProvider<GachaBloc>(
                 create: (BuildContext context) =>
                     GachaBloc(repository: getIt<ContentRepository>())

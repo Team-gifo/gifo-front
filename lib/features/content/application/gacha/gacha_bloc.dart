@@ -23,14 +23,29 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
     if (lobbyData.content?.gacha == null) return;
 
     final GachaContent gacha = lobbyData.content!.gacha!;
+    final List<Map<String, dynamic>> loadedHistory = gacha.drawHistory.map((h) {
+      return <String, dynamic>{
+        'time': '이전 기록', 
+        'item': GachaItem(
+          itemName: h.giftName ?? '알 수 없음',
+          imageUrl: h.giftImageUrl ?? '',
+          percent: 0.0,
+          percentOpen: false,
+          capsuleId: h.capsuleId,
+          description: h.description,
+        ),
+      };
+    }).toList();
+
     emit(
       state.copyWith(
         userName: lobbyData.user,
         inviteCode: event.inviteCode,
         gachaContent: gacha,
         remainingCount: gacha.playCount,
-        history: const <Map<String, dynamic>>[],
+        history: loadedHistory,
         lastDrawnItem: null,
+        isResultRefreshing: false,
       ),
     );
   }
@@ -46,8 +61,8 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
       
       if (response != null && response.data != null) {
         final gachaResult = GachaItem(
-          itemName: response.data!.giftName,
-          imageUrl: response.data!.giftImageUrl,
+          itemName: response.data!.giftName ?? '',
+          imageUrl: response.data!.giftImageUrl ?? '',
           percent: 0.0,
           percentOpen: false,
           capsuleId: response.data!.capsuleId,
@@ -74,34 +89,18 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
     emit(const GachaState());
   }
 
-  // 결과 모달 닫기 후 lastDrawnItem 초기화 및 히스토리 추가
+  // 결과 모달 닫기 후 lastDrawnItem 초기화 및 터치 불가용 로딩 플래그 활성화
   void _onClearLastDrawnItem(
     ClearLastDrawnItem event,
     Emitter<GachaState> emit,
   ) {
     if (state.lastDrawnItem == null) return;
 
-    final String timeStr = _formatTime(DateTime.now());
-    final List<Map<String, dynamic>> newHistory = <Map<String, dynamic>>[
-      <String, dynamic>{'time': timeStr, 'item': state.lastDrawnItem},
-      ...state.history,
-    ];
-
     emit(
       state.copyWith(
         lastDrawnItem: null,
-        history: newHistory,
+        isResultRefreshing: true, // 로비 데이터 갱신을 기다리는 상태 진입
       ),
     );
-  }
-
-  String _formatTime(DateTime time) {
-    final int month = time.month;
-    final int day = time.day;
-    final int hour = time.hour;
-    final String minute = time.minute.toString().padLeft(2, '0');
-    final String ampm = hour < 12 ? '오전' : '오후';
-    final int hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
-    return '$month월 $day일 $ampm $hour12시 $minute분';
   }
 }

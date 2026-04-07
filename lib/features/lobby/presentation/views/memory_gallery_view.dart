@@ -387,22 +387,36 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                 child: Image.network(
                   item.imageUrl,
                   fit: BoxFit.cover, // 빈틈 없이 조절
-                  loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Skeletonizer(
-                      enabled: true,
-                      child: Container(
-                        width: double.infinity,
-                        height: double.infinity,
-                        color: Colors.white10,
-                      ),
-                    );
-                  },
-                  errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                    return const Center(
-                      child: Icon(Icons.broken_image, color: Colors.white24, size: 40),
-                    );
-                  },
+                  loadingBuilder:
+                      (
+                        BuildContext context,
+                        Widget child,
+                        ImageChunkEvent? loadingProgress,
+                      ) {
+                        if (loadingProgress == null) return child;
+                        return Skeletonizer(
+                          enabled: true,
+                          child: Container(
+                            width: double.infinity,
+                            height: double.infinity,
+                            color: Colors.white10,
+                          ),
+                        );
+                      },
+                  errorBuilder:
+                      (
+                        BuildContext context,
+                        Object error,
+                        StackTrace? stackTrace,
+                      ) {
+                        return const Center(
+                          child: Icon(
+                            Icons.broken_image,
+                            color: Colors.white24,
+                            size: 40,
+                          ),
+                        );
+                      },
                 ),
               ),
             ),
@@ -820,7 +834,11 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
             ),
           ],
         ),
-        if (<bool>[_dlOriginal, _dlDesktop, _dlMobile].where((bool e) => e).length >=
+        if (<bool>[
+                  _dlOriginal,
+                  _dlDesktop,
+                  _dlMobile,
+                ].where((bool e) => e).length >=
                 2 ||
             _dlAllPages)
           Padding(
@@ -961,7 +979,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
             'name': 'Desktop_Frame_${index + 1}_$safeTitle.png',
             'bytes': desktopBytes,
           });
-                } catch (e) {
+        } catch (e) {
           debugPrint('Desktop capture error at index $index: $e');
         }
       }
@@ -981,7 +999,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
             'name': 'Mobile_Frame_${index + 1}_$safeTitle.png',
             'bytes': mobileBytes,
           });
-                } catch (e) {
+        } catch (e) {
           debugPrint('Mobile capture error at index $index: $e');
         }
       }
@@ -1134,10 +1152,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                 (Widget? currentChild, List<Widget> previousChildren) {
                   return Stack(
                     alignment: Alignment.topLeft,
-                    children: <Widget>[
-                      ...previousChildren,
-                      ?currentChild,
-                    ],
+                    children: <Widget>[...previousChildren, ?currentChild],
                   );
                 },
             child: Column(
@@ -1365,6 +1380,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
       ],
     );
   }
+
   // --- 이미지 바이트 데이터 가져오기 (Asset/Network 공용) ---
   Future<Uint8List> _getImageBytes(String urlOrPath) async {
     if (urlOrPath.startsWith('http')) {

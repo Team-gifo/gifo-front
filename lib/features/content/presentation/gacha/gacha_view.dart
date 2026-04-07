@@ -8,6 +8,7 @@ import 'package:skeletonizer/skeletonizer.dart';
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
+import '../../../lobby/application/lobby_bloc.dart';
 import '../../../lobby/model/lobby_data.dart';
 import '../../application/gacha/gacha_bloc.dart';
 import 'gacha_result_modal.dart';
@@ -31,70 +32,105 @@ class _GachaViewState extends State<GachaView> {
     final bool isDesktop = screenWidth >= AppBreakpoints.desktop;
     final bool isMobileOrSmall = screenWidth < AppBreakpoints.desktop;
 
-    return BlocConsumer<GachaBloc, GachaState>(
-      // 뽑기 결과가 나오면 머신 애니메이션 시작 후 완료 시 모달 표시
-      listenWhen: (GachaState prev, GachaState curr) =>
-          curr.lastDrawnItem != null &&
-          prev.lastDrawnItem != curr.lastDrawnItem,
-      listener: (BuildContext context, GachaState state) {
-        if (state.lastDrawnItem != null) {
-          _machineKey.currentState?.startResultAnimation(state.lastDrawnItem!);
-        }
-      },
-      builder: (BuildContext context, GachaState state) {
-        if (state.gachaContent == null) {
-          return Title(
-            title: 'Happy Birthday, ${state.userName} | Gifo',
-            color: Colors.black,
-            child: Skeletonizer(
-              enabled: true,
-              child: Scaffold(
-                backgroundColor: AppColors.darkBg,
-                body: isDesktop
-                    ? _buildDesktopLayout(state)
-                    : _buildMobileLayout(state, isMobileOrSmall),
-              ),
-            ),
-          );
-        }
-
-        return Title(
-          title: 'Happy Birthday, ${state.userName} | Gifo',
-          color: Colors.black,
-          child: Skeletonizer(
-            enabled: state.isDrawing,
-            child: Scaffold(
-              backgroundColor: AppColors.darkBg,
-              body: SafeArea(
-                child: Stack(
-                  children: <Widget>[
-                    // 배경 그리드 패턴
-                    Positioned.fill(
-                      child: CustomPaint(painter: GridBackgroundPainter()),
-                    ),
-                    // 상단 AppBar 영역
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: _buildAppBar(state, isMobileOrSmall),
-                    ),
-                    // 메인 콘텐츠 영역
-                    Positioned.fill(
-                      top: isMobileOrSmall ? 64 : 72,
-                      child: isDesktop
-                          ? _buildDesktopLayout(state)
-                          : _buildMobileLayout(state, isMobileOrSmall),
-                    ),
-                  ],
+    return MultiBlocListener(
+      listeners: <BlocListener>[
+        // 백그라운드 로딩(SilentRefreshLobbyData)으로 인해 새로운 로비 데이터가 도착하면 가챠 모델을 갱신
+        BlocListener<LobbyBloc, LobbyState>(
+          listenWhen: (LobbyState prev, LobbyState curr) =>
+              prev.lobbyData != curr.lobbyData && curr.lobbyData != null,
+          listener: (BuildContext context, LobbyState state) {
+            final GachaState gachaState = context.read<GachaBloc>().state;
+            if (gachaState.isResultRefreshing) {
+              context.read<GachaBloc>().add(InitGacha(state.lobbyData!, inviteCode: gachaState.inviteCode));
+            }
+          },
+        ),
+      ],
+      child: BlocConsumer<GachaBloc, GachaState>(
+        // 뽑기 결과가 나오면 머신 애니메이션 시작 후 완료 시 모달 표시
+        listenWhen: (GachaState prev, GachaState curr) =>
+            curr.lastDrawnItem != null &&
+            prev.lastDrawnItem != curr.lastDrawnItem,
+        listener: (BuildContext context, GachaState state) {
+          if (state.lastDrawnItem != null) {
+            _machineKey.currentState?.startResultAnimation(state.lastDrawnItem!);
+          }
+        },
+        builder: (BuildContext context, GachaState state) {
+          Widget mainContent;
+          if (state.gachaContent == null) {
+            mainContent = Title(
+              title: 'Happy Birthday, ${state.userName} | Gifo',
+              color: Colors.black,
+              child: Skeletonizer(
+                enabled: true,
+                child: Scaffold(
+                  backgroundColor: AppColors.darkBg,
+                  body: isDesktop
+                      ? _buildDesktopLayout(state)
+                      : _buildMobileLayout(state, isMobileOrSmall),
                 ),
               ),
-            ),
-          ),
-        );
-      },
+            );
+          } else {
+            mainContent = Title(
+              title: 'Happy Birthday, ${state.userName} | Gifo',
+              color: Colors.black,
+              child: Skeletonizer(
+                enabled: state.isDrawing,
+                child: Scaffold(
+                  backgroundColor: AppColors.darkBg,
+                  body: SafeArea(
+                    child: Stack(
+                      children: <Widget>[
+                        // 배경 그리드 패턴
+                        Positioned.fill(
+                          child: CustomPaint(painter: GridBackgroundPainter()),
+                        ),
+                        // 상단 AppBar 영역
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: _buildAppBar(state, isMobileOrSmall),
+                        ),
+                        // 메인 콘텐츠 영역
+                        Positioned.fill(
+                          top: isMobileOrSmall ? 64 : 72,
+                          child: isDesktop
+                              ? _buildDesktopLayout(state)
+                              : _buildMobileLayout(state, isMobileOrSmall),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return Stack(
+            children: <Widget>[
+              mainContent,
+              // 터치 방지 및 진행 표시: 백그라운드 데이터 갱신 중
+              if (state.isResultRefreshing)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.5), // 배경을 살짝 어둡게 (터치 방지)
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        color: AppColors.neonPurple,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
+
 
   // AppBar: 로고 + 타이틀
   Widget _buildAppBar(GachaState state, bool isMobileOrSmall) {

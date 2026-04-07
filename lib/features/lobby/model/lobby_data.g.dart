@@ -110,10 +110,10 @@ Map<String, dynamic> _$GachaItemToJson(_GachaItem instance) =>
 _GachaDrawHistory _$GachaDrawHistoryFromJson(Map<String, dynamic> json) =>
     _GachaDrawHistory(
       capsuleId: (json['capsuleId'] as num).toInt(),
-      giftName: json['giftName'] as String,
-      giftImageUrl: json['giftImageUrl'] as String,
-      description: json['description'] as String,
-      selected: json['selected'] as bool,
+      giftName: json['giftName'] as String?,
+      giftImageUrl: json['giftImageUrl'] as String?,
+      description: json['description'] as String?,
+      selected: json['selected'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$GachaDrawHistoryToJson(_GachaDrawHistory instance) =>

@@ -15,6 +15,16 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
         super(LobbyState.initial()) {
     on<FetchLobbyData>(_onFetchLobbyData);
     on<ResetLobby>(_onResetLobby);
+    on<SilentRefreshLobbyData>(_onSilentRefreshLobbyData);
+    on<InitLobbyWithData>(_onInitLobbyWithData);
+  }
+
+  void _onInitLobbyWithData(InitLobbyWithData event, Emitter<LobbyState> emit) {
+    emit(state.copyWith(
+      status: LobbyStatus.success,
+      lobbyData: event.data,
+      validatedCode: event.code,
+    ));
   }
 
   // 초대 코드로 서버에 이벤트 데이터를 요청하고 상태를 갱신
@@ -54,5 +64,26 @@ class LobbyBloc extends Bloc<LobbyEvent, LobbyState> {
 
   void _onResetLobby(ResetLobby event, Emitter<LobbyState> emit) {
     emit(LobbyState.initial());
+  }
+
+  // 화면 로딩(상태 초기화) 없이 기존 데이터를 바탕으로 서버 데이터만 다시 가져옴 (팝업 닫힌 후 화면 갱신용)
+  Future<void> _onSilentRefreshLobbyData(
+    SilentRefreshLobbyData event,
+    Emitter<LobbyState> emit,
+  ) async {
+    final String? code = state.validatedCode;
+    if (code == null || code.isEmpty) return;
+
+    try {
+      final LobbyData? data = await _repository.fetchByCode(code);
+      if (data != null) {
+        emit(state.copyWith(
+          status: LobbyStatus.success,
+          lobbyData: data,
+        ));
+      }
+    } catch (e) {
+      debugPrint('[LobbyBloc] 백그라운드 데이터 갱신 중 오류 발생: $e');
+    }
   }
 }

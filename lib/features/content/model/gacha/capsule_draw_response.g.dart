@@ -26,9 +26,9 @@ Map<String, dynamic> _$CapsuleDrawResponseToJson(
 _CapsuleDrawData _$CapsuleDrawDataFromJson(Map<String, dynamic> json) =>
     _CapsuleDrawData(
       capsuleId: (json['capsuleId'] as num).toInt(),
-      giftName: json['giftName'] as String,
-      giftImageUrl: json['giftImageUrl'] as String,
-      description: json['description'] as String,
+      giftName: json['giftName'] as String?,
+      giftImageUrl: json['giftImageUrl'] as String?,
+      description: json['description'] as String?,
     );
 
 Map<String, dynamic> _$CapsuleDrawDataToJson(_CapsuleDrawData instance) =>

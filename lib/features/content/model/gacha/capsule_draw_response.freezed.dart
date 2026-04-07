@@ -308,7 +308,7 @@ $CapsuleDrawDataCopyWith<$Res>? get data {
 /// @nodoc
 mixin _$CapsuleDrawData {
 
- int get capsuleId; String get giftName; String get giftImageUrl; String get description;
+ int get capsuleId; String? get giftName; String? get giftImageUrl; String? get description;
 /// Create a copy of CapsuleDrawData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -341,7 +341,7 @@ abstract mixin class $CapsuleDrawDataCopyWith<$Res>  {
   factory $CapsuleDrawDataCopyWith(CapsuleDrawData value, $Res Function(CapsuleDrawData) _then) = _$CapsuleDrawDataCopyWithImpl;
 @useResult
 $Res call({
- int capsuleId, String giftName, String giftImageUrl, String description
+ int capsuleId, String? giftName, String? giftImageUrl, String? description
 });
 
 
@@ -358,13 +358,13 @@ class _$CapsuleDrawDataCopyWithImpl<$Res>
 
 /// Create a copy of CapsuleDrawData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? capsuleId = null,Object? giftName = null,Object? giftImageUrl = null,Object? description = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? capsuleId = null,Object? giftName = freezed,Object? giftImageUrl = freezed,Object? description = freezed,}) {
   return _then(_self.copyWith(
 capsuleId: null == capsuleId ? _self.capsuleId : capsuleId // ignore: cast_nullable_to_non_nullable
-as int,giftName: null == giftName ? _self.giftName : giftName // ignore: cast_nullable_to_non_nullable
-as String,giftImageUrl: null == giftImageUrl ? _self.giftImageUrl : giftImageUrl // ignore: cast_nullable_to_non_nullable
-as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,
+as int,giftName: freezed == giftName ? _self.giftName : giftName // ignore: cast_nullable_to_non_nullable
+as String?,giftImageUrl: freezed == giftImageUrl ? _self.giftImageUrl : giftImageUrl // ignore: cast_nullable_to_non_nullable
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -449,7 +449,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int capsuleId,  String giftName,  String giftImageUrl,  String description)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int capsuleId,  String? giftName,  String? giftImageUrl,  String? description)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CapsuleDrawData() when $default != null:
 return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.description);case _:
@@ -470,7 +470,7 @@ return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.descript
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int capsuleId,  String giftName,  String giftImageUrl,  String description)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int capsuleId,  String? giftName,  String? giftImageUrl,  String? description)  $default,) {final _that = this;
 switch (_that) {
 case _CapsuleDrawData():
 return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.description);case _:
@@ -490,7 +490,7 @@ return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.descript
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int capsuleId,  String giftName,  String giftImageUrl,  String description)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int capsuleId,  String? giftName,  String? giftImageUrl,  String? description)?  $default,) {final _that = this;
 switch (_that) {
 case _CapsuleDrawData() when $default != null:
 return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.description);case _:
@@ -505,13 +505,13 @@ return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.descript
 @JsonSerializable()
 
 class _CapsuleDrawData implements CapsuleDrawData {
-  const _CapsuleDrawData({required this.capsuleId, required this.giftName, required this.giftImageUrl, required this.description});
+  const _CapsuleDrawData({required this.capsuleId, this.giftName, this.giftImageUrl, this.description});
   factory _CapsuleDrawData.fromJson(Map<String, dynamic> json) => _$CapsuleDrawDataFromJson(json);
 
 @override final  int capsuleId;
-@override final  String giftName;
-@override final  String giftImageUrl;
-@override final  String description;
+@override final  String? giftName;
+@override final  String? giftImageUrl;
+@override final  String? description;
 
 /// Create a copy of CapsuleDrawData
 /// with the given fields replaced by the non-null parameter values.
@@ -546,7 +546,7 @@ abstract mixin class _$CapsuleDrawDataCopyWith<$Res> implements $CapsuleDrawData
   factory _$CapsuleDrawDataCopyWith(_CapsuleDrawData value, $Res Function(_CapsuleDrawData) _then) = __$CapsuleDrawDataCopyWithImpl;
 @override @useResult
 $Res call({
- int capsuleId, String giftName, String giftImageUrl, String description
+ int capsuleId, String? giftName, String? giftImageUrl, String? description
 });
 
 
@@ -563,13 +563,13 @@ class __$CapsuleDrawDataCopyWithImpl<$Res>
 
 /// Create a copy of CapsuleDrawData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? capsuleId = null,Object? giftName = null,Object? giftImageUrl = null,Object? description = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? capsuleId = null,Object? giftName = freezed,Object? giftImageUrl = freezed,Object? description = freezed,}) {
   return _then(_CapsuleDrawData(
 capsuleId: null == capsuleId ? _self.capsuleId : capsuleId // ignore: cast_nullable_to_non_nullable
-as int,giftName: null == giftName ? _self.giftName : giftName // ignore: cast_nullable_to_non_nullable
-as String,giftImageUrl: null == giftImageUrl ? _self.giftImageUrl : giftImageUrl // ignore: cast_nullable_to_non_nullable
-as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,
+as int,giftName: freezed == giftName ? _self.giftName : giftName // ignore: cast_nullable_to_non_nullable
+as String?,giftImageUrl: freezed == giftImageUrl ? _self.giftImageUrl : giftImageUrl // ignore: cast_nullable_to_non_nullable
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

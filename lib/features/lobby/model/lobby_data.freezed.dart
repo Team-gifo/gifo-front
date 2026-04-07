@@ -1495,7 +1495,7 @@ as String?,
 /// @nodoc
 mixin _$GachaDrawHistory {
 
- int get capsuleId; String get giftName; String get giftImageUrl; String get description; bool get selected;
+ int get capsuleId; String? get giftName; String? get giftImageUrl; String? get description; bool get selected;
 /// Create a copy of GachaDrawHistory
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1528,7 +1528,7 @@ abstract mixin class $GachaDrawHistoryCopyWith<$Res>  {
   factory $GachaDrawHistoryCopyWith(GachaDrawHistory value, $Res Function(GachaDrawHistory) _then) = _$GachaDrawHistoryCopyWithImpl;
 @useResult
 $Res call({
- int capsuleId, String giftName, String giftImageUrl, String description, bool selected
+ int capsuleId, String? giftName, String? giftImageUrl, String? description, bool selected
 });
 
 
@@ -1545,13 +1545,13 @@ class _$GachaDrawHistoryCopyWithImpl<$Res>
 
 /// Create a copy of GachaDrawHistory
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? capsuleId = null,Object? giftName = null,Object? giftImageUrl = null,Object? description = null,Object? selected = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? capsuleId = null,Object? giftName = freezed,Object? giftImageUrl = freezed,Object? description = freezed,Object? selected = null,}) {
   return _then(_self.copyWith(
 capsuleId: null == capsuleId ? _self.capsuleId : capsuleId // ignore: cast_nullable_to_non_nullable
-as int,giftName: null == giftName ? _self.giftName : giftName // ignore: cast_nullable_to_non_nullable
-as String,giftImageUrl: null == giftImageUrl ? _self.giftImageUrl : giftImageUrl // ignore: cast_nullable_to_non_nullable
-as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,selected: null == selected ? _self.selected : selected // ignore: cast_nullable_to_non_nullable
+as int,giftName: freezed == giftName ? _self.giftName : giftName // ignore: cast_nullable_to_non_nullable
+as String?,giftImageUrl: freezed == giftImageUrl ? _self.giftImageUrl : giftImageUrl // ignore: cast_nullable_to_non_nullable
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,selected: null == selected ? _self.selected : selected // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
@@ -1637,7 +1637,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int capsuleId,  String giftName,  String giftImageUrl,  String description,  bool selected)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int capsuleId,  String? giftName,  String? giftImageUrl,  String? description,  bool selected)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GachaDrawHistory() when $default != null:
 return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.description,_that.selected);case _:
@@ -1658,7 +1658,7 @@ return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.descript
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int capsuleId,  String giftName,  String giftImageUrl,  String description,  bool selected)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int capsuleId,  String? giftName,  String? giftImageUrl,  String? description,  bool selected)  $default,) {final _that = this;
 switch (_that) {
 case _GachaDrawHistory():
 return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.description,_that.selected);case _:
@@ -1678,7 +1678,7 @@ return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.descript
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int capsuleId,  String giftName,  String giftImageUrl,  String description,  bool selected)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int capsuleId,  String? giftName,  String? giftImageUrl,  String? description,  bool selected)?  $default,) {final _that = this;
 switch (_that) {
 case _GachaDrawHistory() when $default != null:
 return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.description,_that.selected);case _:
@@ -1693,14 +1693,14 @@ return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.descript
 @JsonSerializable()
 
 class _GachaDrawHistory implements GachaDrawHistory {
-  const _GachaDrawHistory({required this.capsuleId, required this.giftName, required this.giftImageUrl, required this.description, required this.selected});
+  const _GachaDrawHistory({required this.capsuleId, this.giftName, this.giftImageUrl, this.description, this.selected = false});
   factory _GachaDrawHistory.fromJson(Map<String, dynamic> json) => _$GachaDrawHistoryFromJson(json);
 
 @override final  int capsuleId;
-@override final  String giftName;
-@override final  String giftImageUrl;
-@override final  String description;
-@override final  bool selected;
+@override final  String? giftName;
+@override final  String? giftImageUrl;
+@override final  String? description;
+@override@JsonKey() final  bool selected;
 
 /// Create a copy of GachaDrawHistory
 /// with the given fields replaced by the non-null parameter values.
@@ -1735,7 +1735,7 @@ abstract mixin class _$GachaDrawHistoryCopyWith<$Res> implements $GachaDrawHisto
   factory _$GachaDrawHistoryCopyWith(_GachaDrawHistory value, $Res Function(_GachaDrawHistory) _then) = __$GachaDrawHistoryCopyWithImpl;
 @override @useResult
 $Res call({
- int capsuleId, String giftName, String giftImageUrl, String description, bool selected
+ int capsuleId, String? giftName, String? giftImageUrl, String? description, bool selected
 });
 
 
@@ -1752,13 +1752,13 @@ class __$GachaDrawHistoryCopyWithImpl<$Res>
 
 /// Create a copy of GachaDrawHistory
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? capsuleId = null,Object? giftName = null,Object? giftImageUrl = null,Object? description = null,Object? selected = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? capsuleId = null,Object? giftName = freezed,Object? giftImageUrl = freezed,Object? description = freezed,Object? selected = null,}) {
   return _then(_GachaDrawHistory(
 capsuleId: null == capsuleId ? _self.capsuleId : capsuleId // ignore: cast_nullable_to_non_nullable
-as int,giftName: null == giftName ? _self.giftName : giftName // ignore: cast_nullable_to_non_nullable
-as String,giftImageUrl: null == giftImageUrl ? _self.giftImageUrl : giftImageUrl // ignore: cast_nullable_to_non_nullable
-as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
-as String,selected: null == selected ? _self.selected : selected // ignore: cast_nullable_to_non_nullable
+as int,giftName: freezed == giftName ? _self.giftName : giftName // ignore: cast_nullable_to_non_nullable
+as String?,giftImageUrl: freezed == giftImageUrl ? _self.giftImageUrl : giftImageUrl // ignore: cast_nullable_to_non_nullable
+as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
+as String?,selected: null == selected ? _self.selected : selected // ignore: cast_nullable_to_non_nullable
 as bool,
   ));
 }
