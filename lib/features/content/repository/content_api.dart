@@ -4,6 +4,7 @@ import 'package:retrofit/retrofit.dart';
 import '../model/quiz/quiz_answer_request.dart';
 import '../model/quiz/quiz_answer_response.dart';
 import '../model/quiz/quiz_result_response.dart';
+import '../model/gacha/capsule_draw_response.dart';
 
 part 'content_api.g.dart';
 
@@ -23,7 +24,10 @@ abstract class ContentApi {
   // 퀴즈 결과 조회
   @POST('/api/events/{eventUrl}/quiz/result')
   @Headers(<String, dynamic>{'Content-Type': 'application/json'})
-  Future<QuizResultResponse> getQuizResult(
-    @Path('eventUrl') String eventUrl,
-  );
+  Future<QuizResultResponse> getQuizResult(@Path('eventUrl') String eventUrl);
+
+  // 캡슐 뽑기
+  @POST('/api/events/{eventUrl}/capsules/draw')
+  @Headers(<String, dynamic>{'Content-Type': 'application/json'})
+  Future<CapsuleDrawResponse> drawCapsule(@Path('eventUrl') String eventUrl);
 }

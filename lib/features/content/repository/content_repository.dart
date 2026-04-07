@@ -1,6 +1,7 @@
 import '../model/quiz/quiz_answer_request.dart';
 import '../model/quiz/quiz_answer_response.dart';
 import '../model/quiz/quiz_result_response.dart';
+import '../model/gacha/capsule_draw_response.dart';
 import 'content_api.dart';
 
 // 콘텐츠와 관련된 데이터 요청을 담당하는 repository
@@ -26,6 +27,16 @@ class ContentRepository {
   Future<QuizResultResponse?> getQuizResult(String eventUrl) async {
     try {
       final QuizResultResponse response = await _api.getQuizResult(eventUrl);
+      return response;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // 캡슐 뽑기 실행
+  Future<CapsuleDrawResponse?> drawCapsule(String eventUrl) async {
+    try {
+      final CapsuleDrawResponse response = await _api.drawCapsule(eventUrl);
       return response;
     } catch (e) {
       return null;
