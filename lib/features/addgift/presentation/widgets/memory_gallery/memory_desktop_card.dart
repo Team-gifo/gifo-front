@@ -35,134 +35,132 @@ class MemoryDesktopCard extends StatelessWidget {
       child: ReorderableDragStartListener(
         index: index,
         child: Stack(
-            clipBehavior: Clip.none,
-            children: <Widget>[
-              Positioned.fill(
-                child: Material(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16.0),
-                    side: BorderSide(
-                      color: isSelected ? AppColors.neonPurple : Colors.white24,
-                      width: isSelected ? 2.5 : 1.0,
-                    ),
+          clipBehavior: Clip.none,
+          children: <Widget>[
+            Positioned.fill(
+              child: Material(
+                color: Colors.white.withValues(alpha: 0.05),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16.0),
+                  side: BorderSide(
+                    color: isSelected ? AppColors.neonPurple : Colors.white24,
+                    width: isSelected ? 2.5 : 1.0,
                   ),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: onTap,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20.0,
-                        vertical: 24.0,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: <Widget>[
-                          Expanded(
-                            child: Container(
-                              width: double.infinity,
-                              clipBehavior: Clip.antiAlias,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(12.0),
-                              ),
-                              child: itemData.imageFile != null
-                                  ? Image.network(
-                                      itemData.imageFile!.path,
-                                      fit: BoxFit.cover,
-                                    )
-                                  : Icon(
-                                      Icons.photo,
-                                      size: 40,
-                                      color: Colors.grey.shade300,
-                                    ),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: onTap,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 24.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Expanded(
+                          child: Container(
+                            width: double.infinity,
+                            clipBehavior: Clip.antiAlias,
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(12.0),
                             ),
+                            child: itemData.imageFile != null
+                                ? Image.network(
+                                    itemData.imageFile!.path,
+                                    fit: BoxFit.contain,
+                                  )
+                                : Icon(
+                                    Icons.photo,
+                                    size: 40,
+                                    color: Colors.grey.withAlpha(100),
+                                  ),
                           ),
-                          const SizedBox(height: 20),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Text(
-                                itemData.title.isEmpty
-                                    ? '제목 없음'
-                                    : itemData.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontFamily: 'WantedSans',
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: itemData.title.isEmpty
-                                      ? Colors.white38
-                                      : Colors.white,
-                                ),
+                        ),
+                        const SizedBox(height: 20),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              itemData.title.isEmpty ? '제목 없음' : itemData.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: 'WantedSans',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: itemData.title.isEmpty
+                                    ? Colors.white38
+                                    : Colors.white,
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                itemData.description.isEmpty
-                                    ? '설명 없음'
-                                    : itemData.description,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontFamily: 'WantedSans',
-                                  fontSize: 14,
-                                  height: 1.5,
-                                  color: itemData.description.isEmpty
-                                      ? Colors.white38
-                                      : Colors.white70,
-                                ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              itemData.description.isEmpty
+                                  ? '설명 없음'
+                                  : itemData.description.replaceAll('\n', ' '),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: 'WantedSans',
+                                fontSize: 14,
+                                height: 1.5,
+                                color: itemData.description.isEmpty
+                                    ? Colors.white38
+                                    : Colors.white70,
                               ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-              if (isIncomplete)
-                Positioned(
-                  top: -6,
-                  left: -6,
+            ),
+            if (isIncomplete)
+              Positioned(
+                top: -6,
+                left: -6,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.orange,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: const Icon(
+                    Icons.priority_high,
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+              ),
+            if (isHovered)
+              Positioned(
+                top: -6,
+                right: -6,
+                child: GestureDetector(
+                  onTap: onRemove,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.orange,
+                      color: Colors.red.shade400,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
                     padding: const EdgeInsets.all(4),
                     child: const Icon(
-                      Icons.priority_high,
+                      Icons.close,
                       color: Colors.white,
                       size: 16,
                     ),
                   ),
                 ),
-              if (isHovered)
-                Positioned(
-                  top: -6,
-                  right: -6,
-                  child: GestureDetector(
-                    onTap: onRemove,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade400,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      padding: const EdgeInsets.all(4),
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.white,
-                        size: 16,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+              ),
+          ],
         ),
-      );
+      ),
+    );
   }
 }

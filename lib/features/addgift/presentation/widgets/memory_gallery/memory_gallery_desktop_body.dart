@@ -198,7 +198,7 @@ class _DesktopAddCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        backgroundColor: AppColors.neonPurple.withValues(alpha: 0.05),
+        backgroundColor: AppColors.neonPurple.withValues(alpha: 0.2),
         side: BorderSide(
           color: AppColors.neonPurple.withValues(alpha: 0.4),
           width: 1.5,
@@ -215,14 +215,14 @@ class _DesktopAddCard extends StatelessWidget {
           Icon(
             Icons.add_circle_outline,
             size: 28,
-            color: AppColors.neonPurple.withValues(alpha: 0.7),
+            color: Colors.white.withValues(alpha: 0.7),
           ),
           const SizedBox(width: 10),
           Text(
             '추억 추가하기',
             style: TextStyle(
               fontFamily: 'WantedSans',
-              color: AppColors.neonPurple.withValues(alpha: 0.8),
+              color: Colors.white.withValues(alpha: 0.7),
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
