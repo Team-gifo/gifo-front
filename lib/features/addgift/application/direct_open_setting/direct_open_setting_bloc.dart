@@ -45,7 +45,13 @@ class DirectOpenSettingBloc
     InitDirectOpenSetting event,
     Emitter<DirectOpenSettingState> emit,
   ) {
-    emit(state.copyWith(selectedBgm: event.initialBgm));
+    emit(state.copyWith(
+      selectedBgm: event.initialBgm,
+      beforeImageFile: event.beforeImageFile ?? state.beforeImageFile,
+      beforeDescription: event.beforeDescription ?? state.beforeDescription,
+      afterImageFile: event.afterImageFile ?? state.afterImageFile,
+      afterItemName: event.afterItemName ?? state.afterItemName,
+    ));
   }
 
   void _onUpdateBeforeImage(

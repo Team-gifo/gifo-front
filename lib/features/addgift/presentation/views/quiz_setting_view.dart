@@ -63,15 +63,81 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
       _subTitleController.text = packagingState.subTitle;
     }
 
+    final quizContent = packagingState.quizContent;
+    List<QuizItemData>? uiItems;
+    QuizRewardData? successReward;
+    QuizRewardData? failReward;
+
+    if (quizContent != null) {
+      uiItems = quizContent.list.map((item) {
+        QuizType type;
+        if (item.type == 'ox') {
+          type = QuizType.ox;
+        } else if (item.type == 'subjective') {
+          type = QuizType.subjective;
+        } else {
+          type = QuizType.multipleChoice;
+        }
+
+        List<String> answer = item.answer;
+        if (type == QuizType.multipleChoice) {
+          answer = item.answer.map((ans) {
+            final idx = item.options.indexOf(ans);
+            return idx != -1 ? idx.toString() : ans;
+          }).toList();
+        }
+
+        return QuizItemData(
+          id: item.quizId.toString(),
+          type: type,
+          title: item.title,
+          imageUrl: item.imageUrl,
+          imageFile: item.imageUrl != null && item.imageUrl!.isNotEmpty ? XFile(item.imageUrl!) : null,
+          description: item.description ?? '',
+          hint: item.hint ?? '',
+          options: item.options,
+          answer: answer,
+          playLimit: item.playLimit,
+        );
+      }).toList();
+
+      successReward = QuizRewardData(
+        requiredCount: quizContent.successReward.requiredCount,
+        itemName: quizContent.successReward.itemName,
+        imageUrl: quizContent.successReward.imageUrl,
+        imageFile: quizContent.successReward.imageUrl.isNotEmpty ? XFile(quizContent.successReward.imageUrl) : null,
+      );
+
+      failReward = QuizRewardData(
+        itemName: quizContent.failReward.itemName,
+        imageUrl: quizContent.failReward.imageUrl,
+        imageFile: quizContent.failReward.imageUrl.isNotEmpty ? XFile(quizContent.failReward.imageUrl) : null,
+      );
+
+      _successRewardNameController.text = successReward.itemName;
+      _failRewardNameController.text = failReward.itemName;
+    }
+
+    final initialBgm = packagingState.bgm.isNotEmpty ? packagingState.bgm : '신나는 생일';
+
+    context.read<QuizSettingBloc>().add(InitQuizSetting(
+      initialBgm: initialBgm,
+      uiItems: uiItems,
+      successReward: successReward,
+      failReward: failReward,
+    ));
+
     _userNameController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetReceiverName(_userNameController.text),
       );
+      setState(() {});
     });
     _subTitleController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetSubTitle(_subTitleController.text),
       );
+      setState(() {});
     });
     _successRewardNameController.addListener(() {
       final QuizSettingState s = context.read<QuizSettingBloc>().state;
@@ -84,6 +150,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
           ),
         ),
       );
+      setState(() {});
     });
     _failRewardNameController.addListener(() {
       final QuizSettingState s = context.read<QuizSettingBloc>().state;
@@ -95,6 +162,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
           ),
         ),
       );
+      setState(() {});
     });
   }
 
@@ -621,6 +689,15 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                               _pickImageForReward(true),
                           onPickFailRewardImage: () =>
                               _pickImageForReward(false),
+                          hasItems: quizState.uiItems.isNotEmpty,
+                          hasNameAndSubTitle: _userNameController.text.trim().isNotEmpty && _subTitleController.text.trim().isNotEmpty,
+                          hasNoIncompleteItems: quizState.uiItems.isNotEmpty && quizState.uiItems.every((item) {
+                            if (item.title.trim().isEmpty) return false;
+                            if (item.answer.isEmpty) return false;
+                            if (item.type == QuizType.multipleChoice && item.options.length < 2) return false;
+                            return true;
+                          }),
+                          hasSuccessRewardName: quizState.successReward.itemName.trim().isNotEmpty,
                         ),
                         const SizedBox(height: 16),
                         SizedBox(

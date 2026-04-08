@@ -4,7 +4,16 @@ sealed class QuizSettingEvent {}
 
 class InitQuizSetting extends QuizSettingEvent {
   final String initialBgm;
-  InitQuizSetting({this.initialBgm = ''});
+  final List<QuizItemData>? uiItems;
+  final QuizRewardData? successReward;
+  final QuizRewardData? failReward;
+
+  InitQuizSetting({
+    this.initialBgm = '',
+    this.uiItems,
+    this.successReward,
+    this.failReward,
+  });
 }
 
 class UpdateQuizItems extends QuizSettingEvent {

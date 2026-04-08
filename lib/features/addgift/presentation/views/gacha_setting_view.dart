@@ -555,6 +555,14 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                                         isCompactDesktop,
                                                     playCountController:
                                                         _playCountController,
+                                                    hasCapsule: gachaState.uiItems.isNotEmpty,
+                                                    hasNameAndSubTitle: _userNameController.text.trim().isNotEmpty && _subTitleController.text.trim().isNotEmpty,
+                                                    hasPlayCount: (int.tryParse(_playCountController.text) ?? 0) >= 1,
+                                                    isCapsuleComplete: gachaState.uiItems.isNotEmpty && gachaState.uiItems.every((item) {
+                                                      final double percent = double.tryParse(item.percentStr) ?? 0.0;
+                                                      return item.itemName.trim().isNotEmpty && percent >= 0.01 && percent <= 100.0;
+                                                    }),
+                                                    isPercent100: gachaState.uiItems.isNotEmpty && (gachaState.uiItems.fold(0.0, (double sum, DefaultGachaItemData item) => sum + (double.tryParse(item.percentStr) ?? 0.0)) >= 99.99 && gachaState.uiItems.fold(0.0, (double sum, DefaultGachaItemData item) => sum + (double.tryParse(item.percentStr) ?? 0.0)) <= 100.01),
                                                   ),
                                               bottomAction: SizedBox(
                                                 height: 60,
@@ -676,6 +684,14 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                         isMobile: true,
                         isCompactDesktop: false,
                         playCountController: _playCountController,
+                        hasCapsule: gachaBloc.state.uiItems.isNotEmpty,
+                        hasNameAndSubTitle: _userNameController.text.trim().isNotEmpty && _subTitleController.text.trim().isNotEmpty,
+                        hasPlayCount: (int.tryParse(_playCountController.text) ?? 0) >= 1,
+                        isCapsuleComplete: gachaBloc.state.uiItems.isNotEmpty && gachaBloc.state.uiItems.every((item) {
+                          final double percent = double.tryParse(item.percentStr) ?? 0.0;
+                          return item.itemName.trim().isNotEmpty && percent >= 0.01 && percent <= 100.0;
+                        }),
+                        isPercent100: gachaBloc.state.uiItems.isNotEmpty && (gachaBloc.state.uiItems.fold(0.0, (double sum, DefaultGachaItemData item) => sum + (double.tryParse(item.percentStr) ?? 0.0)) >= 99.99 && gachaBloc.state.uiItems.fold(0.0, (double sum, DefaultGachaItemData item) => sum + (double.tryParse(item.percentStr) ?? 0.0)) <= 100.01),
                       ),
                       Row(
                         children: <Widget>[

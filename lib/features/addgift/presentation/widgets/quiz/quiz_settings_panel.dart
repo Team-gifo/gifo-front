@@ -17,6 +17,10 @@ class QuizSettingsPanel extends StatelessWidget {
     required this.failRewardNameController,
     required this.onPickSuccessRewardImage,
     required this.onPickFailRewardImage,
+    this.hasItems = false,
+    this.hasNameAndSubTitle = false,
+    this.hasNoIncompleteItems = false,
+    this.hasSuccessRewardName = false,
   });
 
   final QuizSettingState quizState;
@@ -26,6 +30,10 @@ class QuizSettingsPanel extends StatelessWidget {
   final TextEditingController failRewardNameController;
   final VoidCallback onPickSuccessRewardImage;
   final VoidCallback onPickFailRewardImage;
+  final bool hasItems;
+  final bool hasNameAndSubTitle;
+  final bool hasNoIncompleteItems;
+  final bool hasSuccessRewardName;
 
   @override
   Widget build(BuildContext context) {
@@ -460,16 +468,17 @@ class QuizSettingsPanel extends StatelessWidget {
             ],
           ),
           SizedBox(height: titleGap),
-          _buildConditionItem('문제 최소 1개 이상 생성'),
-          _buildConditionItem('상단 닉네임 및 서브타이틀 입력'),
-          _buildConditionItem('미완성 문제 없음 (제목 + 정답 필수)'),
-          _buildConditionItem('성공 보상 물품 이름 입력'),
+          _buildConditionItem('문제 최소 1개 이상 생성', hasItems),
+          _buildConditionItem('상단 닉네임 및 서브타이틀 입력', hasNameAndSubTitle),
+          _buildConditionItem('미완성 문제 없음 (제목 + 정답 필수)', hasNoIncompleteItems),
+          _buildConditionItem('성공 보상 입력 완료 (이미지, 이름)', hasSuccessRewardName),
+          // 실패 보상 입력 완료 (이미지, 이름)
         ],
       ),
     );
   }
 
-  Widget _buildConditionItem(String text) {
+  Widget _buildConditionItem(String text, bool met) {
     final double itemBottomSpacing = isCompactDesktop ? 4 : 6;
     final double iconSize = isCompactDesktop ? 11 : 12;
     final double textSize = isCompactDesktop ? 12 : 13;
@@ -481,13 +490,16 @@ class QuizSettingsPanel extends StatelessWidget {
           Icon(
             Icons.check_circle_outline,
             size: iconSize,
-            color: Colors.white38,
+            color: met ? Colors.greenAccent : Colors.white38,
           ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontSize: textSize, color: Colors.white70),
+              style: TextStyle(
+                fontSize: textSize,
+                color: met ? Colors.greenAccent : Colors.white70,
+              ),
             ),
           ),
         ],

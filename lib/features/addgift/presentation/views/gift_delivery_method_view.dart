@@ -8,6 +8,8 @@ import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../model/gacha_content.dart';
+import '../../model/quiz_content.dart';
+import '../../model/unboxing_content.dart';
 import '../widgets/addgift_scaffold.dart';
 import '../widgets/gift_delivery/gift_delivery_main_text.dart';
 import '../widgets/gift_delivery/gift_delivery_options_grid.dart';
@@ -104,8 +106,6 @@ class GiftDeliveryMethodView extends StatelessWidget {
   Future<void> _handleOptionTap(BuildContext context, String title) async {
     final GiftPackagingBloc bloc = context.read<GiftPackagingBloc>();
     final GiftPackagingState state = bloc.state;
-    final GachaContent? savedGacha = state.gachaContent;
-    final bool hasGachaData = savedGacha != null && savedGacha.list.isNotEmpty;
 
     ContentType selectedType = ContentType.gacha;
     String route = '/addgift/gacha-setting';
@@ -121,7 +121,36 @@ class GiftDeliveryMethodView extends StatelessWidget {
       route = '/addgift/direct-open-setting';
     }
 
-    if (hasGachaData && selectedType != ContentType.gacha) {
+    bool hasData(ContentType type) {
+      if (type == ContentType.gacha) {
+        return state.gachaContent != null && state.gachaContent!.list.isNotEmpty;
+      } else if (type == ContentType.quiz) {
+        return state.quizContent != null && (state.quizContent!.list.isNotEmpty || state.quizContent!.successReward.itemName.isNotEmpty || state.quizContent!.failReward.itemName.isNotEmpty);
+      } else if (type == ContentType.unboxing) {
+        return state.unboxingContent != null && (state.unboxingContent!.beforeOpen.description.isNotEmpty || state.unboxingContent!.afterOpen.itemName.isNotEmpty);
+      }
+      return false;
+    }
+
+    String getName(ContentType type) {
+      if (type == ContentType.gacha) return '캡슐 뽑기';
+      if (type == ContentType.quiz) return '문제 맞추기';
+      if (type == ContentType.unboxing) return '바로 오픈';
+      return '';
+    }
+
+    bool needsConfirm = false;
+    String conflictName = '';
+    
+    for (final type in [ContentType.gacha, ContentType.quiz, ContentType.unboxing]) {
+      if (type != selectedType && hasData(type)) {
+        needsConfirm = true;
+        conflictName = getName(type);
+        break;
+      }
+    }
+
+    if (needsConfirm) {
       final bool? confirm = await showDialog<bool>(
         context: context,
         builder: (BuildContext dialogContext) => AlertDialog(
@@ -137,9 +166,9 @@ class GiftDeliveryMethodView extends StatelessWidget {
               color: Colors.white,
             ),
           ),
-          content: const Text(
-            '캡슐 뽑기에 작성 중인 데이터가 있습니다.\n초기화하고 새로운 콘텐츠로 넘어가겠습니까?',
-            style: TextStyle(
+          content: Text(
+            '$conflictName에 작성 중인 데이터가 있습니다.\n초기화하고 새로운 콘텐츠로 넘어가겠습니까?',
+            style: const TextStyle(
               fontFamily: 'WantedSans',
               height: 1.5,
               fontSize: 15,
@@ -173,6 +202,8 @@ class GiftDeliveryMethodView extends StatelessWidget {
       );
       if (confirm == true) {
         bloc.add(SetGachaContent(const GachaContent()));
+        bloc.add(SetQuizContent(const QuizContent(successReward: QuizSuccessReward(), failReward: QuizFailReward())));
+        bloc.add(SetUnboxingContent(const UnboxingContent(beforeOpen: BeforeOpen(), afterOpen: AfterOpen())));
         bloc.add(SetContentType(selectedType));
         if (context.mounted) {
           unawaited(context.push(route));

@@ -10,11 +10,15 @@ class DirectOpenSettingsSection extends StatelessWidget {
     required this.state,
     this.isMobile = false,
     this.isCompactDesktop = false,
+    this.hasNameAndSubTitle = false,
+    this.hasItemName = false,
   });
 
   final DirectOpenSettingState state;
   final bool isMobile;
   final bool isCompactDesktop;
+  final bool hasNameAndSubTitle;
+  final bool hasItemName;
 
   @override
   Widget build(BuildContext context) {
@@ -72,8 +76,8 @@ class DirectOpenSettingsSection extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: isCompactDesktop ? 6 : 8),
-                _buildConditionItem('상단 닉네임 및 서브타이틀 입력', isCompactDesktop),
-                _buildConditionItem('물품 이름 입력', isCompactDesktop),
+                _buildConditionItem('상단 닉네임 및 서브타이틀 입력', hasNameAndSubTitle, isCompactDesktop),
+                _buildConditionItem('물품 이름 입력', hasItemName, isCompactDesktop),
               ],
             ),
           ),
@@ -82,7 +86,7 @@ class DirectOpenSettingsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildConditionItem(String text, bool isCompactDesktop) {
+  Widget _buildConditionItem(String text, bool met, bool isCompactDesktop) {
     final double itemBottomSpacing = isCompactDesktop ? 4 : 6;
     final double iconSize = isCompactDesktop ? 11 : 12;
     final double textSize = isCompactDesktop ? 12 : 13;
@@ -94,13 +98,13 @@ class DirectOpenSettingsSection extends StatelessWidget {
           Icon(
             Icons.check_circle_outline,
             size: iconSize,
-            color: Colors.white38,
+            color: met ? Colors.greenAccent : Colors.white38,
           ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontSize: textSize, color: Colors.white70),
+              style: TextStyle(fontSize: textSize, color: met ? Colors.greenAccent : Colors.white70),
             ),
           ),
         ],

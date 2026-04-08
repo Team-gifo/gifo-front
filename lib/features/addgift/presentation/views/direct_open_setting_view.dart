@@ -61,22 +61,48 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
       _subTitleController.text = packagingState.subTitle;
     }
 
-    // BLoC 초기 상태에서 설명 필드 초기화
-    final DirectOpenSettingState directOpenState = context
-        .read<DirectOpenSettingBloc>()
-        .state;
-    _beforeDescController.text = directOpenState.beforeDescription;
-    _afterNameController.text = directOpenState.afterItemName;
+    final unboxingContent = packagingState.unboxingContent;
+    XFile? beforeImageFile;
+    String? beforeDescription;
+    XFile? afterImageFile;
+    String? afterItemName;
+
+    if (unboxingContent != null) {
+      beforeDescription = unboxingContent.beforeOpen.description;
+      afterItemName = unboxingContent.afterOpen.itemName;
+
+      if (unboxingContent.beforeOpen.imageUrl.isNotEmpty) {
+        beforeImageFile = XFile(unboxingContent.beforeOpen.imageUrl);
+      }
+      if (unboxingContent.afterOpen.imageUrl.isNotEmpty) {
+        afterImageFile = XFile(unboxingContent.afterOpen.imageUrl);
+      }
+      
+      _beforeDescController.text = beforeDescription;
+      _afterNameController.text = afterItemName;
+    }
+
+    final initialBgm = packagingState.bgm.isNotEmpty ? packagingState.bgm : '신나는 생일';
+
+    context.read<DirectOpenSettingBloc>().add(InitDirectOpenSetting(
+      initialBgm: initialBgm,
+      beforeImageFile: beforeImageFile,
+      beforeDescription: beforeDescription,
+      afterImageFile: afterImageFile,
+      afterItemName: afterItemName,
+    ));
 
     _userNameController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetReceiverName(_userNameController.text),
       );
+      setState(() {});
     });
     _subTitleController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetSubTitle(_subTitleController.text),
       );
+      setState(() {});
     });
     _beforeDescController.addListener(() {
       context.read<DirectOpenSettingBloc>().add(
@@ -87,6 +113,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
       context.read<DirectOpenSettingBloc>().add(
         UpdateAfterItemName(_afterNameController.text),
       );
+      setState(() {});
     });
   }
 
@@ -254,6 +281,8 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                                             state: directOpenState,
                                             isMobile: false,
                                             isCompactDesktop: isCompactDesktop,
+                                            hasNameAndSubTitle: _userNameController.text.trim().isNotEmpty && _subTitleController.text.trim().isNotEmpty,
+                                            hasItemName: _afterNameController.text.trim().isNotEmpty,
                                           ),
                                       bottomAction: DirectOpenCompleteButton(
                                         onPressed: _canComplete()
@@ -327,7 +356,12 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        DirectOpenSettingsSection(state: state, isMobile: true),
+                        DirectOpenSettingsSection(
+                          state: state,
+                          isMobile: true,
+                          hasNameAndSubTitle: _userNameController.text.trim().isNotEmpty && _subTitleController.text.trim().isNotEmpty,
+                          hasItemName: _afterNameController.text.trim().isNotEmpty,
+                        ),
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,

@@ -11,11 +11,21 @@ class GachaSettingsPanel extends StatelessWidget {
     required this.isMobile,
     required this.playCountController,
     this.isCompactDesktop = false,
+    this.hasCapsule = false,
+    this.hasNameAndSubTitle = false,
+    this.hasPlayCount = false,
+    this.isCapsuleComplete = false,
+    this.isPercent100 = false,
   });
 
   final bool isMobile;
   final TextEditingController playCountController;
   final bool isCompactDesktop;
+  final bool hasCapsule;
+  final bool hasNameAndSubTitle;
+  final bool hasPlayCount;
+  final bool isCapsuleComplete;
+  final bool isPercent100;
 
   @override
   Widget build(BuildContext context) {
@@ -162,11 +172,31 @@ class GachaSettingsPanel extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: conditionTitleGap),
-                _buildConditionItem('캡슐 최소 1개 이상 생성', isCompactDesktop),
-                _buildConditionItem('상단 이름 및 서브타이틀 입력', isCompactDesktop),
-                _buildConditionItem('뽑기 가능 횟수 최소 1회 이상', isCompactDesktop),
-                _buildConditionItem('미완성 캡슐 없음', isCompactDesktop),
-                _buildConditionItem('전체 확률 100% 충족', isCompactDesktop),
+                _buildConditionItem(
+                  '캡슐 최소 1개 이상 생성',
+                  hasCapsule,
+                  isCompactDesktop,
+                ),
+                _buildConditionItem(
+                  '상단 닉네임 및 서브타이틀 입력',
+                  hasNameAndSubTitle,
+                  isCompactDesktop,
+                ),
+                _buildConditionItem(
+                  '뽑기 가능 횟수 최소 1회 이상',
+                  hasPlayCount,
+                  isCompactDesktop,
+                ),
+                _buildConditionItem(
+                  '미완성 캡슐 없음',
+                  isCapsuleComplete,
+                  isCompactDesktop,
+                ),
+                _buildConditionItem(
+                  '전체 확률 100% 충족',
+                  isPercent100,
+                  isCompactDesktop,
+                ),
               ],
             ),
           ),
@@ -175,7 +205,7 @@ class GachaSettingsPanel extends StatelessWidget {
     );
   }
 
-  Widget _buildConditionItem(String text, bool isCompactDesktop) {
+  Widget _buildConditionItem(String text, bool met, bool isCompactDesktop) {
     final double itemBottomSpacing = isCompactDesktop ? 4 : 6;
     final double iconSize = isCompactDesktop ? 11 : 12;
     final double textSize = isCompactDesktop ? 12 : 13;
@@ -187,13 +217,16 @@ class GachaSettingsPanel extends StatelessWidget {
           Icon(
             Icons.check_circle_outline,
             size: iconSize,
-            color: Colors.white38,
+            color: met ? Colors.greenAccent : Colors.white38,
           ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontSize: textSize, color: Colors.white70),
+              style: TextStyle(
+                fontSize: textSize,
+                color: met ? Colors.greenAccent : Colors.white70,
+              ),
             ),
           ),
         ],
