@@ -79,7 +79,7 @@ class _ErrorRedirectPageState extends State<_ErrorRedirectPage> {
 }
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/addgift',
   // 정의되지 않은 경로로 접근하면 _ErrorRedirectPage로 처리
   errorBuilder: (BuildContext context, GoRouterState state) =>
       const _ErrorRedirectPage(),
@@ -177,9 +177,9 @@ final GoRouter appRouter = GoRouter(
           child: MultiBlocProvider(
             providers: <BlocProvider<dynamic>>[
               BlocProvider<LobbyBloc>(
-                create: (BuildContext context) =>
-                    LobbyBloc(repository: getIt<LobbyRepository>())
-                      ..add(InitLobbyWithData(data: lobbyData, code: inviteCode)),
+                create: (BuildContext context) => LobbyBloc(
+                  repository: getIt<LobbyRepository>(),
+                )..add(InitLobbyWithData(data: lobbyData, code: inviteCode)),
               ),
               BlocProvider<GachaBloc>(
                 create: (BuildContext context) =>
@@ -223,14 +223,14 @@ final GoRouter appRouter = GoRouter(
           child: MultiBlocProvider(
             providers: <BlocProvider<dynamic>>[
               BlocProvider<LobbyBloc>(
-                create: (BuildContext context) =>
-                    LobbyBloc(repository: getIt<LobbyRepository>())
-                      ..add(InitLobbyWithData(data: lobbyData, code: inviteCode)),
+                create: (BuildContext context) => LobbyBloc(
+                  repository: getIt<LobbyRepository>(),
+                )..add(InitLobbyWithData(data: lobbyData, code: inviteCode)),
               ),
               BlocProvider<UnboxingBloc>(
-                create: (BuildContext context) => UnboxingBloc(
-                  repository: getIt<ContentRepository>(),
-                )..add(InitUnboxing(lobbyData, inviteCode: inviteCode)),
+                create: (BuildContext context) =>
+                    UnboxingBloc(repository: getIt<ContentRepository>())
+                      ..add(InitUnboxing(lobbyData, inviteCode: inviteCode)),
               ),
             ],
             child: const UnboxingView(),
