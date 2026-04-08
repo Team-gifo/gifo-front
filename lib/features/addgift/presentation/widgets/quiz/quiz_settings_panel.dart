@@ -41,9 +41,9 @@ class QuizSettingsPanel extends StatelessWidget {
         SizedBox(height: sectionSpacing),
         _buildFailRewardCard(context),
         SizedBox(height: sectionSpacing),
-        if (!isMobile) _buildConditionsCard(),
-        if (!isMobile) SizedBox(height: sectionSpacing),
         _buildBgmCard(context),
+        if (!isMobile) SizedBox(height: sectionSpacing),
+        if (!isMobile) _buildConditionsCard(),
       ],
     );
   }

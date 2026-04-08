@@ -24,7 +24,6 @@ class GachaSettingsPanel extends StatelessWidget {
         : 0;
     final double sectionGap = isCompactDesktop ? 24 : 40;
     final double bgmVerticalPadding = isCompactDesktop ? 12 : 16;
-    final double conditionTextSize = isCompactDesktop ? 14 : 16;
     final double conditionTitleGap = isCompactDesktop ? 6 : 8;
 
     return Column(
@@ -148,65 +147,57 @@ class GachaSettingsPanel extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Text(
-                  '⚠️ 포장 완료 조건',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: Colors.deepOrange,
-                  ),
+                const Row(
+                  children: <Widget>[
+                    Icon(Icons.info_outline, size: 14, color: Colors.orange),
+                    SizedBox(width: 6),
+                    Text(
+                      '포장 완료 조건',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: conditionTitleGap),
-                Text(
-                  '• 캡슐 최소 1개 이상 생성',
-                  style: TextStyle(
-                    fontSize: conditionTextSize,
-                    color: Colors.white54,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-                Text(
-                  '• 상단 이름 및 서브타이틀 입력',
-                  style: TextStyle(
-                    fontSize: conditionTextSize,
-                    color: Colors.white54,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-                Text(
-                  '• 뽑기 가능 횟수 최소 1회 이상',
-                  style: TextStyle(
-                    fontSize: conditionTextSize,
-                    color: Colors.white54,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-                Text(
-                  '• 미완성 캡슐 없음',
-                  style: TextStyle(
-                    fontSize: conditionTextSize,
-                    color: Colors.white54,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
-                Text(
-                  '• 전체 확률 100% 충족',
-                  style: TextStyle(
-                    fontSize: conditionTextSize,
-                    color: Colors.white54,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                ),
+                _buildConditionItem('캡슐 최소 1개 이상 생성', isCompactDesktop),
+                _buildConditionItem('상단 이름 및 서브타이틀 입력', isCompactDesktop),
+                _buildConditionItem('뽑기 가능 횟수 최소 1회 이상', isCompactDesktop),
+                _buildConditionItem('미완성 캡슐 없음', isCompactDesktop),
+                _buildConditionItem('전체 확률 100% 충족', isCompactDesktop),
               ],
             ),
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildConditionItem(String text, bool isCompactDesktop) {
+    final double itemBottomSpacing = isCompactDesktop ? 4 : 6;
+    final double iconSize = isCompactDesktop ? 11 : 12;
+    final double textSize = isCompactDesktop ? 12 : 13;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: itemBottomSpacing),
+      child: Row(
+        children: <Widget>[
+          Icon(
+            Icons.check_circle_outline,
+            size: iconSize,
+            color: Colors.white38,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: textSize, color: Colors.white70),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

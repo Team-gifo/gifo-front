@@ -58,28 +58,54 @@ class DirectOpenSettingsSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                const Text(
-                  '⚠️ 포장 완료 조건',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: Colors.deepOrange,
-                  ),
+                const Row(
+                  children: <Widget>[
+                    Icon(Icons.info_outline, size: 14, color: Colors.orange),
+                    SizedBox(width: 6),
+                    Text(
+                      '포장 완료 조건',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Colors.orange,
+                      ),
+                    ),
+                  ],
                 ),
                 SizedBox(height: isCompactDesktop ? 6 : 8),
-                const Text(
-                  '• 상단 닉네임 및 서브타이틀 입력',
-                  style: TextStyle(fontSize: 12, color: Colors.white70),
-                ),
-                const Text(
-                  '• 물품 이름 입력',
-                  style: TextStyle(fontSize: 12, color: Colors.white70),
-                ),
+                _buildConditionItem('상단 닉네임 및 서브타이틀 입력', isCompactDesktop),
+                _buildConditionItem('물품 이름 입력', isCompactDesktop),
               ],
             ),
           ),
         ],
       ],
+    );
+  }
+
+  Widget _buildConditionItem(String text, bool isCompactDesktop) {
+    final double itemBottomSpacing = isCompactDesktop ? 4 : 6;
+    final double iconSize = isCompactDesktop ? 11 : 12;
+    final double textSize = isCompactDesktop ? 12 : 13;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: itemBottomSpacing),
+      child: Row(
+        children: <Widget>[
+          Icon(
+            Icons.check_circle_outline,
+            size: iconSize,
+            color: Colors.white38,
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: textSize, color: Colors.white70),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
