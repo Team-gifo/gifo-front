@@ -107,38 +107,20 @@ class MemoryGalleryMobileBody extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         if (galleryState.uiItems.isEmpty)
-          Expanded(
+          const Expanded(
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  const Icon(
+                  Icon(
                     Icons.photo_library_outlined,
                     size: 64,
                     color: Colors.white24,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
+                  SizedBox(height: 16),
+                  Text(
                     '아직 등록된 추억이 없어요.',
                     style: TextStyle(color: Colors.white38, fontSize: 15),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: onAddItem,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.neonBlue,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                    icon: const Icon(Icons.add),
-                    label: const Text(
-                      '추억 추가하기',
-                      style: TextStyle(fontFamily: 'PFStardust'),
-                    ),
                   ),
                 ],
               ),
