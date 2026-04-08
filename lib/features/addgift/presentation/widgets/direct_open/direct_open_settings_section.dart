@@ -37,10 +37,9 @@ class DirectOpenSettingsSection extends StatelessWidget {
         SizedBox(height: spacingAfterTitle),
         BgmSelectorWidget(
           selectedBgmId: state.selectedBgm,
-          onBgmChanged: (String id) =>
-              context.read<DirectOpenSettingBloc>().add(
-                UpdateDirectOpenBgm(id),
-              ),
+          onBgmChanged: (String id) => context
+              .read<DirectOpenSettingBloc>()
+              .add(UpdateDirectOpenBgm(id)),
           isCompactDesktop: isCompactDesktop,
         ),
         if (!isMobile) ...<Widget>[

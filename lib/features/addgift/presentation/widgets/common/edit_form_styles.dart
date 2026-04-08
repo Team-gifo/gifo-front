@@ -7,7 +7,7 @@ class EditFormStyles {
   EditFormStyles._();
 
   // ── 색상 상수 ──
-  static const Color formBackground = AppColors.darkBg;
+  static const Color formBackground = Color(0xFF1A1A2E);
   static const Color inputFill = Color(0x12FFFFFF); // white alpha 0.07
   static const Color inputBorderColor = Color(0x26FFFFFF); // white alpha 0.15
 

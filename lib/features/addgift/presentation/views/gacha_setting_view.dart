@@ -320,26 +320,26 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     }
   }
 
-  // GiftPackagingBloc의 gachaContent를 기반으로 완료 가능 여부를 판단합니다.
   bool _canComplete() {
-    final GiftPackagingState packagingState = context
-        .read<GiftPackagingBloc>()
-        .state;
-    final GachaContent? gachaContent = packagingState.gachaContent;
+    final GachaSettingState gachaState = context.read<GachaSettingBloc>().state;
+    final List<DefaultGachaItemData> uiItems = gachaState.uiItems;
 
-    if (gachaContent == null || gachaContent.list.isEmpty) return false;
+    if (uiItems.isEmpty) return false;
     if (_userNameController.text.trim().isEmpty) return false;
     if (_subTitleController.text.trim().isEmpty) return false;
-    if (gachaContent.playCount < 1) return false;
+    
+    final int playCount = int.tryParse(_playCountController.text) ?? 0;
+    if (playCount < 1) return false;
 
-    for (final GachaItem item in gachaContent.list) {
+    for (final DefaultGachaItemData item in uiItems) {
       if (item.itemName.trim().isEmpty) return false;
-      if (item.percent < 0.01 || item.percent > 100.0) return false;
+      final double percent = double.tryParse(item.percentStr) ?? 0.0;
+      if (percent < 0.01 || percent > 100.0) return false;
     }
 
-    final double total = gachaContent.list.fold(
+    final double total = uiItems.fold(
       0.0,
-      (double sum, GachaItem item) => sum + item.percent,
+      (double sum, DefaultGachaItemData item) => sum + (double.tryParse(item.percentStr) ?? 0.0),
     );
     if (total < 99.99 || total > 100.01) return false;
 
