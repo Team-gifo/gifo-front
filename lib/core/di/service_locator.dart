@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 
 import '../../features/addgift/repository/addgift_api.dart';
+import '../../features/addgift/repository/curate_api.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -13,7 +14,7 @@ void setupServiceLocator() {
     BaseOptions(
       baseUrl: dotenv.env['url'] ?? '',
       connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 60),
     ),
   );
 
@@ -30,4 +31,7 @@ void setupServiceLocator() {
 
   // AddGiftApi 등록
   getIt.registerLazySingleton<AddGiftApi>(() => AddGiftApi(dio));
+
+  // CurateApi 등록 (AI 추천)
+  getIt.registerLazySingleton<CurateApi>(() => CurateApi(dio));
 }

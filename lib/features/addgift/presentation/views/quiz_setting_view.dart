@@ -41,6 +41,59 @@ class _QuizSettingViewState extends State<QuizSettingView> {
       _subTitleController.text = blocState.subTitle;
     }
 
+    // BGM 복원
+    if (blocState.bgm.isNotEmpty) {
+      _selectedBgm = blocState.bgm;
+    }
+
+    // 기존 quizContent가 있으면 UI로 복원 (AI 추천/이어하기)
+    final QuizContent? savedQuiz = blocState.quizContent;
+    if (savedQuiz != null) {
+      // 보상
+      _successReward.requiredCount = savedQuiz.successReward.requiredCount;
+      _successReward.itemName = savedQuiz.successReward.itemName;
+      if (savedQuiz.successReward.imageUrl.isNotEmpty) {
+        _successReward.imageFile = XFile(savedQuiz.successReward.imageUrl);
+      }
+
+      _failReward.itemName = savedQuiz.failReward.itemName;
+      if (savedQuiz.failReward.imageUrl.isNotEmpty) {
+        _failReward.imageFile = XFile(savedQuiz.failReward.imageUrl);
+      }
+
+      // 문제 리스트
+      _items.clear();
+      for (final QuizItemModel q in savedQuiz.list) {
+        QuizType type;
+        switch (q.type) {
+          case 'ox':
+            type = QuizType.ox;
+          case 'subjective':
+            type = QuizType.subjective;
+          case 'multiple_choice':
+          default:
+            type = QuizType.multipleChoice;
+        }
+
+        _items.add(
+          QuizItemData(
+            id: q.quizId.toString(),
+            type: type,
+            title: q.title,
+            imageUrl: q.imageUrl,
+            imageFile: (q.imageUrl != null && q.imageUrl!.isNotEmpty)
+                ? XFile(q.imageUrl!)
+                : null,
+            description: q.description ?? '',
+            hint: q.hint ?? '',
+            options: List<String>.from(q.options),
+            answer: List<String>.from(q.answer),
+            playLimit: q.playLimit,
+          ),
+        );
+      }
+    }
+
     _userNameController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetReceiverName(_userNameController.text),

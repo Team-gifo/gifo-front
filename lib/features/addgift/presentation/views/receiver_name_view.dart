@@ -5,7 +5,11 @@ import 'package:go_router/go_router.dart';
 import '../../application/gift_packaging_bloc.dart';
 
 class ReceiverNameView extends StatefulWidget {
-  const ReceiverNameView({super.key});
+  const ReceiverNameView({super.key, this.resetOnEnter = true});
+
+  /// 선물 포장을 "새로 시작"하는 진입이면 true.
+  /// AI 추천 결과를 수정하기 위해 돌아오는 경우엔 false로 두어 기존 BLoC 상태를 유지한다.
+  final bool resetOnEnter;
 
   @override
   State<ReceiverNameView> createState() => _ReceiverNameViewState();
@@ -18,7 +22,15 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
   void initState() {
     super.initState();
     // BLoC 상태 초기화 (새로운 선물 포장 시작)
-    context.read<GiftPackagingBloc>().add(ResetPackaging());
+    if (widget.resetOnEnter) {
+      context.read<GiftPackagingBloc>().add(ResetPackaging());
+    } else {
+      // AI 추천 결과 수정 등 "이어하기" 진입: 기존 값 프리필
+      final String currentName = context.read<GiftPackagingBloc>().state.receiverName;
+      if (currentName.isNotEmpty) {
+        _nameController.text = currentName;
+      }
+    }
   }
 
   @override

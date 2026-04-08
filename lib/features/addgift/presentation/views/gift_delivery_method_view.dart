@@ -10,6 +10,9 @@ class GiftDeliveryMethodView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final GiftPackagingState state = context.watch<GiftPackagingBloc>().state;
+    final ContentType? selectedType = state.selectedContentType;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -47,7 +50,14 @@ class GiftDeliveryMethodView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       // 좌측 텍스트
-                      Expanded(flex: 1, child: _buildMainText(TextAlign.left)),
+                      Expanded(
+                        flex: 1,
+                        child: _buildMainText(
+                          TextAlign.left,
+                          selectedType,
+                          context,
+                        ),
+                      ),
                       const SizedBox(width: 80),
                       // 우측 그리드 목록
                       Expanded(
@@ -68,7 +78,7 @@ class GiftDeliveryMethodView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       const SizedBox(height: 40),
-                      _buildMainText(TextAlign.center),
+                      _buildMainText(TextAlign.center, selectedType, context),
                       const SizedBox(height: 60),
                       _buildGridOptions(isDesktop: false),
                       const SizedBox(height: 40),
@@ -84,16 +94,83 @@ class GiftDeliveryMethodView extends StatelessWidget {
   }
 
   // 안내 문구 위젯 (텍스트 정렬 방향 동적 적용)
-  Widget _buildMainText(TextAlign alignment) {
-    return Text(
-      '친구에게 전달할 방식을\n선택해주세요 !',
-      textAlign: alignment,
-      style: const TextStyle(
-        fontSize: 32,
-        fontWeight: FontWeight.bold,
-        color: Colors.black,
-        height: 1.4,
-      ),
+  Widget _buildMainText(
+    TextAlign alignment,
+    ContentType? selectedType,
+    BuildContext context,
+  ) {
+    final String? current =
+        selectedType == null ? null : _contentTypeLabel(selectedType);
+
+    return Column(
+      crossAxisAlignment:
+          alignment == TextAlign.left ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+      children: <Widget>[
+        Text(
+          '친구에게 전달할 방식을\n선택해주세요 !',
+          textAlign: alignment,
+          style: const TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+            height: 1.4,
+          ),
+        ),
+        if (current != null) ...<Widget>[
+          const SizedBox(height: 16),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                const Icon(Icons.check_circle, size: 16, color: Colors.black),
+                const SizedBox(width: 6),
+                Text(
+                  '기존 선택: $current',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: () {
+                    final String route = switch (selectedType) {
+                      ContentType.gacha => '/addgift/gacha-setting',
+                      ContentType.quiz => '/addgift/quiz-setting',
+                      ContentType.unboxing => '/addgift/direct-open-setting',
+                      null => '/addgift/delivery-method',
+                    };
+                    context.push(route);
+                  },
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text(
+                    '이대로 수정하기',
+                    style: TextStyle(
+                      fontSize: 12,
+                      decoration: TextDecoration.underline,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            '다른 방식으로 다시 구성하고 싶다면 아래에서 새로 선택할 수 있어요.',
+            style: TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+        ],
+      ],
     );
   }
 
@@ -282,6 +359,17 @@ class GiftDeliveryMethodView extends StatelessWidget {
         return Icons.card_giftcard_outlined;
       default:
         return Icons.image_outlined;
+    }
+  }
+
+  String _contentTypeLabel(ContentType type) {
+    switch (type) {
+      case ContentType.gacha:
+        return '캡슐 뽑기';
+      case ContentType.quiz:
+        return '문제 맞추기';
+      case ContentType.unboxing:
+        return '바로 오픈';
     }
   }
 

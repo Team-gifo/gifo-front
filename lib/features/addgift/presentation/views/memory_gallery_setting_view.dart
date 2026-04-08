@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -9,6 +10,26 @@ import 'package:reorderable_grid_view/reorderable_grid_view.dart';
 
 import '../../application/gift_packaging_bloc.dart';
 import '../../application/memory_gallery_setting/memory_gallery_setting_bloc.dart';
+
+Widget _buildImageFromPath(String path, {BoxFit fit = BoxFit.cover}) {
+  if (path.startsWith('data:image')) {
+    final int commaIndex = path.indexOf(',');
+    if (commaIndex != -1 && commaIndex + 1 < path.length) {
+      final String rawBase64 = path.substring(commaIndex + 1);
+      try {
+        return Image.memory(base64Decode(rawBase64), fit: fit);
+      } catch (_) {
+        return const Icon(Icons.broken_image, color: Colors.grey);
+      }
+    }
+  }
+  return Image.network(
+    path,
+    fit: fit,
+    errorBuilder: (_, __, ___) =>
+        const Icon(Icons.broken_image, color: Colors.grey),
+  );
+}
 
 class MemoryGallerySettingView extends StatelessWidget {
   const MemoryGallerySettingView({super.key});
@@ -533,7 +554,7 @@ class _MemoryGallerySettingViewState
                                 borderRadius: BorderRadius.circular(12.0),
                               ),
                               child: itemData.imageFile != null
-                                  ? Image.network(
+                                  ? _buildImageFromPath(
                                       itemData.imageFile!.path,
                                       fit: BoxFit.cover,
                                     )
@@ -926,7 +947,7 @@ class _MemoryGallerySettingViewState
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       child: itemData.imageFile != null
-                          ? Image.network(
+                          ? _buildImageFromPath(
                               itemData.imageFile!.path,
                               fit: BoxFit.cover,
                             )
@@ -1327,7 +1348,7 @@ class _MemoryEditForm extends StatelessWidget {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(12),
-                                child: Image.network(
+                                child: _buildImageFromPath(
                                   itemData.imageFile!.path,
                                   fit: BoxFit.contain,
                                 ),

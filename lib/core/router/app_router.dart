@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/addgift/application/gift_packaging_bloc.dart';
+import '../../features/addgift/presentation/views/ai_template_survey_view.dart';
 import '../../features/addgift/presentation/views/direct_open_setting_view.dart';
 import '../../features/addgift/presentation/views/gacha_setting_view.dart';
+import '../../features/addgift/presentation/views/final_review_view.dart';
 import '../../features/addgift/presentation/views/gift_delivery_method_view.dart';
 import '../../features/addgift/presentation/views/memory_decision_view.dart';
 import '../../features/addgift/presentation/views/memory_gallery_setting_view.dart';
@@ -229,8 +231,26 @@ final GoRouter appRouter = GoRouter(
         // 선물 포장 - 받는 분 성함 입력 화면
         GoRoute(
           path: '/addgift',
-          builder: (BuildContext context, GoRouterState state) =>
-              const ReceiverNameView(),
+          builder: (BuildContext context, GoRouterState state) {
+            final String? mode = state.uri.queryParameters['mode'];
+            final bool resume = state.uri.queryParameters['resume'] == 'true';
+
+            // AI 추천 모드: 설문 → curate 호출 → BLoC 프리필 → 최종 확인/수정 플로우 진입
+            if (mode == 'ai') {
+              return const AiTemplateSurveyView();
+            }
+
+            // 수동 / 혹은 AI 결과 수정 위해 복귀(resume=true)한 경우
+            return ReceiverNameView(resetOnEnter: !resume);
+          },
+        ),
+        // AI 추천 결과(혹은 수동 입력값) 최종 확인 화면
+        GoRoute(
+          path: '/addgift/final-review',
+          builder: (BuildContext context, GoRouterState state) {
+            final bool fromAi = state.uri.queryParameters['fromAi'] == 'true';
+            return FinalReviewView(fromAi: fromAi);
+          },
         ),
         // 선물 포장 - 추억 공유 여부 선택 화면
         GoRoute(

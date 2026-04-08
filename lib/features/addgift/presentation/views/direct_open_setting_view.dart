@@ -40,6 +40,11 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
       _subTitleController.text = blocState.subTitle;
     }
 
+    // BGM 복원
+    if (blocState.bgm.isNotEmpty) {
+      _selectedBgm = blocState.bgm;
+    }
+
     _userNameController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetReceiverName(_userNameController.text),
@@ -50,6 +55,24 @@ class _DirectOpenSettingViewState extends State<DirectOpenSettingView> {
         SetSubTitle(_subTitleController.text),
       );
     });
+
+    // 기존 unboxingContent가 있으면 UI로 복원 (AI 추천/이어하기)
+    final UnboxingContent? savedUnboxing = blocState.unboxingContent;
+    if (savedUnboxing != null) {
+      if (savedUnboxing.beforeOpen.description.isNotEmpty) {
+        _beforeData.description = savedUnboxing.beforeOpen.description;
+      }
+      if (savedUnboxing.beforeOpen.imageUrl.isNotEmpty) {
+        _beforeData.imageFile = XFile(savedUnboxing.beforeOpen.imageUrl);
+      }
+
+      if (savedUnboxing.afterOpen.itemName.isNotEmpty) {
+        _afterData.itemName = savedUnboxing.afterOpen.itemName;
+      }
+      if (savedUnboxing.afterOpen.imageUrl.isNotEmpty) {
+        _afterData.imageFile = XFile(savedUnboxing.afterOpen.imageUrl);
+      }
+    }
 
     _beforeDescController.text = _beforeData.description;
     _afterNameController.text = _afterData.itemName;
