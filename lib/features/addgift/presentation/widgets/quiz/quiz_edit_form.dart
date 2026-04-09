@@ -201,7 +201,7 @@ class _QuizEditFormState extends State<QuizEditForm> {
                     style: EditFormStyles.headerTitleStyle,
                   ),
                   const SizedBox(height: 24),
-                  EditFormStyles.sectionTitle('제목 (질문)'),
+                  EditFormStyles.sectionTitle('제목'),
                   _buildDarkTextField(
                     controller: _titleController,
                     hint: '질문을 입력하세요',
@@ -214,19 +214,27 @@ class _QuizEditFormState extends State<QuizEditForm> {
                     EditFormStyles.imagePreviewWithActions(
                       imagePath: _editingItem.imageFile!.path,
                       onEdit: _pickImage,
-                      onDelete: () => setState(
-                        () => _editingItem.imageFile = null,
-                      ),
+                      onDelete: () =>
+                          setState(() => _editingItem.imageFile = null),
                       onFullscreen: _showFullImage,
                     ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    '- 부적절한 제목이나 이미지는 신고 대상이 될 수 있으며, 관련 책임은 등록 주체에게 있음을 알려드립니다.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                      fontFamily: 'WantedSans',
+                    ),
+                  ),
                   const SizedBox(height: 16),
-                  EditFormStyles.sectionTitle('설명'),
+                  EditFormStyles.sectionTitle('설명 (선택)'),
                   _buildDarkTextField(
                     controller: _descController,
                     hint: '문제에 대한 설명을 입력하세요',
                   ),
                   const SizedBox(height: 16),
-                  EditFormStyles.sectionTitle('힌트'),
+                  EditFormStyles.sectionTitle('힌트 (선택)'),
                   _buildDarkTextField(
                     controller: _hintController,
                     hint: '문제에 대한 힌트를 입력하세요',
@@ -472,7 +480,7 @@ class _QuizEditFormState extends State<QuizEditForm> {
   }) {
     return TextField(
       controller: controller,
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(color: Colors.white, fontFamily: 'WantedSans'),
       cursorColor: AppColors.neonPurple,
       decoration: EditFormStyles.inputDecoration(hint),
     );
