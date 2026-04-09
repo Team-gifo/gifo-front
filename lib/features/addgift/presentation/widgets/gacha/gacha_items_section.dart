@@ -166,7 +166,7 @@ class GachaItemsSection extends StatelessWidget {
                 child: Center(
                   child: Text(
                     '* 캡슐은 최대 10개까지만 추가가 가능합니다 *',
-                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                    style: TextStyle(color: Colors.deepOrange, fontSize: 13),
                   ),
                 ),
               ),
@@ -194,7 +194,10 @@ class GachaItemsSection extends StatelessWidget {
                     child: Center(
                       child: Text(
                         '* 캡슐은 최대 10개까지만 추가가 가능합니다 *',
-                        style: TextStyle(color: Colors.white54, fontSize: 16),
+                        style: TextStyle(
+                          color: Colors.deepOrange,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),

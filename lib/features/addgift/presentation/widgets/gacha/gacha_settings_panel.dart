@@ -131,6 +131,99 @@ class GachaSettingsPanel extends StatelessWidget {
                       textAlign: TextAlign.end,
                     ),
               ),
+              const SizedBox(height: 16),
+              const Divider(color: Colors.white10, height: 1),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  children: <Widget>[
+                    Image.asset(
+                      'assets/images/gacha.png',
+                      width: 44,
+                      height: 44,
+                      fit: BoxFit.contain,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          const Text(
+                            '꽝 없는 뽑기 보장 시스템',
+                            style: TextStyle(
+                              color: Color(0xFF6DE1F1),
+                              fontFamily: 'WantedSans',
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 4),
+                          const Text(
+                            '경품 당첨 시 해당 경품을 제외한 나머지 경품들의 확률이 상대적 비율에 맞춰 재계산됩니다. 이를 통해 모든 이용자가 꽝 없이 경품을 받을 수 있습니다.',
+                            style: TextStyle(
+                              color: Colors.white60,
+                              fontFamily: 'WantedSans',
+                              fontSize: 14,
+                              height: 1.4,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Container(
+                            padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.black38,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      Icons.calculate_outlined,
+                                      size: 13,
+                                      color: Color(0xFF6DE1F1),
+                                    ),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      '계산 예시',
+                                      style: TextStyle(
+                                        color: Color(0xFF6DE1F1),
+                                        fontFamily: 'WantedSans',
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 6),
+                                Text(
+                                  '• [10%, 40%, 50%] 비율의 경품들 중\n50% 상품 당첨 시 남은 비율 [10%, 40%]은\n자동으로 [20%, 80%]로 보정되어 100%를 유지',
+                                  style: TextStyle(
+                                    color: Colors.white54,
+                                    fontFamily: 'WantedSans',
+                                    fontSize: 13,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
