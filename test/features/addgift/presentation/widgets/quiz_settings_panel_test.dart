@@ -38,6 +38,8 @@ void main() {
                   failRewardNameController: failController,
                   onPickSuccessRewardImage: () {},
                   onPickFailRewardImage: () {},
+                  onResetSuccessReward: () {},
+                  onResetFailReward: () {},
                 ),
               ),
             ),

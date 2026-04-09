@@ -278,7 +278,31 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
     }
   }
 
-  // --- [모달 로직] ---
+  void _resetSuccessReward() {
+    _successRewardNameController.clear();
+    final QuizSettingState s = context.read<QuizSettingBloc>().state;
+    context.read<QuizSettingBloc>().add(
+      UpdateSuccessReward(
+        QuizRewardData(
+          requiredCount: s.successReward.requiredCount,
+          itemName: '',
+          imageFile: null,
+          imageUrl: '',
+        ),
+      ),
+    );
+  }
+
+  void _resetFailReward() {
+    _failRewardNameController.clear();
+    context.read<QuizSettingBloc>().add(
+      UpdateFailReward(
+        QuizRewardData(itemName: '', imageFile: null, imageUrl: ''),
+      ),
+    );
+  }
+
+  // --- [아이템 관리] ---
 
   void _showTypeSelectionDialog() {
     showDialog(
@@ -668,6 +692,9 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                                               _pickImageForReward(true),
                                           onPickFailRewardImage: () =>
                                               _pickImageForReward(false),
+                                          onResetSuccessReward:
+                                              _resetSuccessReward,
+                                          onResetFailReward: _resetFailReward,
                                           hasItems:
                                               quizState.uiItems.isNotEmpty,
                                           hasNameAndSubTitle:
@@ -759,7 +786,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                     bottom: MediaQuery.of(innerCtx).viewInsets.bottom,
                   ),
                   decoration: const BoxDecoration(
-                    color: AppColors.darkBg,
+                    color: Color(0xFF1A1A2E),
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(24),
                     ),
@@ -797,6 +824,8 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                               _pickImageForReward(true),
                           onPickFailRewardImage: () =>
                               _pickImageForReward(false),
+                          onResetSuccessReward: _resetSuccessReward,
+                          onResetFailReward: _resetFailReward,
                           hasItems: quizState.uiItems.isNotEmpty,
                           hasNameAndSubTitle:
                               _userNameController.text.trim().isNotEmpty &&
