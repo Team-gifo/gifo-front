@@ -451,8 +451,8 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
     if (quizState.uiItems.isEmpty) return false;
     if (_userNameController.text.trim().isEmpty) return false;
     if (_subTitleController.text.trim().isEmpty) return false;
-    if (quizState.successReward.itemName.trim().isEmpty) return false;
-    if (quizState.failReward.itemName.trim().isEmpty) return false;
+    if (quizState.successReward.itemName.trim().isEmpty || (quizState.successReward.imageFile == null && quizState.successReward.imageUrl == null)) return false;
+    if (quizState.failReward.itemName.trim().isEmpty || (quizState.failReward.imageFile == null && quizState.failReward.imageUrl == null)) return false;
     for (final QuizItemData item in quizState.uiItems) {
       if (item.title.trim().isEmpty) return false;
       if (item.answer.isEmpty) return false;
@@ -614,8 +614,8 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                                             if (item.type == QuizType.multipleChoice && item.options.length < 2) return false;
                                             return true;
                                           }),
-                                          hasSuccessRewardName: quizState.successReward.itemName.trim().isNotEmpty,
-                                          hasFailRewardName: quizState.failReward.itemName.trim().isNotEmpty,
+                                          hasSuccessRewardName: quizState.successReward.itemName.trim().isNotEmpty && (quizState.successReward.imageFile != null || quizState.successReward.imageUrl != null),
+                                          hasFailRewardName: quizState.failReward.itemName.trim().isNotEmpty && (quizState.failReward.imageFile != null || quizState.failReward.imageUrl != null),
                                         ),
                                     bottomAction: QuizCompleteButton(
                                       enabled: _canComplete() && !_isSubmitting,
@@ -708,8 +708,8 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                             if (item.type == QuizType.multipleChoice && item.options.length < 2) return false;
                             return true;
                           }),
-                          hasSuccessRewardName: quizState.successReward.itemName.trim().isNotEmpty,
-                          hasFailRewardName: quizState.failReward.itemName.trim().isNotEmpty,
+                          hasSuccessRewardName: quizState.successReward.itemName.trim().isNotEmpty && (quizState.successReward.imageFile != null || quizState.successReward.imageUrl != null),
+                          hasFailRewardName: quizState.failReward.itemName.trim().isNotEmpty && (quizState.failReward.imageFile != null || quizState.failReward.imageUrl != null),
                         ),
                         const SizedBox(height: 16),
                         SizedBox(

@@ -60,21 +60,20 @@ class QuizItemsSection extends StatelessWidget {
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.15),
                 width: 1,
               ),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: quizState.uiItems.isEmpty
-                ? const Center(
-                    child: Text(
-                      '추가 버튼을 눌러 문제를 생성해보세요.',
-                      style: TextStyle(color: Colors.white38),
-                    ),
-                  )
-                : ReorderableListView.builder(
-                    padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: <Widget>[
+                  ReorderableListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: quizState.uiItems.length,
                     onReorder: onReorder,
                     buildDefaultDragHandles: false,
@@ -97,10 +96,54 @@ class QuizItemsSection extends StatelessWidget {
                       );
                     },
                   ),
+                  _QuizAddButton(onTap: onAddItem),
+                ],
+              ),
+            ),
           ),
         ),
         if (isMobile) const SizedBox(height: 24),
       ],
+    );
+  }
+}
+
+class _QuizAddButton extends StatelessWidget {
+  const _QuizAddButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 24),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.15),
+            width: 1,
+          ),
+        ),
+        child: const Column(
+          children: <Widget>[
+            Icon(Icons.add_circle_outline, color: Colors.white38, size: 28),
+            SizedBox(height: 8),
+            Text(
+              '문제 추가하기',
+              style: TextStyle(
+                color: Colors.white38,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

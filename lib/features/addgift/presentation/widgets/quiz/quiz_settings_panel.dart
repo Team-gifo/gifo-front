@@ -98,7 +98,7 @@ class QuizSettingsPanel extends StatelessWidget {
                 const Text(
                   '성공 보상',
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: AppColors.neonPurpleLight,
                   ),
@@ -129,12 +129,16 @@ class QuizSettingsPanel extends StatelessWidget {
                     style: TextStyle(
                       fontSize: rewardSentenceFontSize,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: quizState.uiItems.isEmpty
+                          ? Colors.white
+                          : AppColors.neonPurple,
                     ),
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.keyboard_arrow_down,
                       size: 18,
-                      color: Colors.white38,
+                      color: quizState.uiItems.isEmpty
+                          ? Colors.white
+                          : AppColors.neonPurple,
                     ),
                     items:
                         List<int>.generate(
@@ -146,7 +150,14 @@ class QuizSettingsPanel extends StatelessWidget {
                             .map(
                               (int value) => DropdownMenuItem<int>(
                                 value: value,
-                                child: Text('$value개'),
+                                child: Text(
+                                  '$value개',
+                                  style: TextStyle(
+                                    color: quizState.uiItems.isEmpty
+                                        ? Colors.grey
+                                        : Colors.white,
+                                  ),
+                                ),
                               ),
                             )
                             .toList(),
@@ -220,9 +231,26 @@ class QuizSettingsPanel extends StatelessWidget {
                             horizontal: 12,
                             vertical: 10,
                           ),
+                          suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: successRewardNameController,
+                            builder: (context, value, child) {
+                              return value.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(
+                                        Icons.close,
+                                        size: 16,
+                                        color: Colors.white38,
+                                      ),
+                                      onPressed: () =>
+                                          successRewardNameController.clear(),
+                                    )
+                                  : const SizedBox.shrink();
+                            },
+                          ),
                         ),
                         style: const TextStyle(
                           color: Colors.white,
+                          fontFamily: 'WantedSans',
                           fontSize: 14,
                         ),
                       ),
@@ -243,9 +271,10 @@ class QuizSettingsPanel extends StatelessWidget {
 
     final int actualRequired = quizState.uiItems.isEmpty
         ? 1
-        : ((quizState.successReward.requiredCount ?? 1) > quizState.uiItems.length
-            ? quizState.uiItems.length
-            : (quizState.successReward.requiredCount ?? 1));
+        : ((quizState.successReward.requiredCount ?? 1) >
+                  quizState.uiItems.length
+              ? quizState.uiItems.length
+              : (quizState.successReward.requiredCount ?? 1));
     final String failConditionText = actualRequired <= 1
         ? '맞춘 문제가 0개 일 때'
         : '맞춘 문제가 0 ~ ${actualRequired - 1}개 일 때';
@@ -347,9 +376,26 @@ class QuizSettingsPanel extends StatelessWidget {
                             horizontal: 12,
                             vertical: 10,
                           ),
+                          suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: failRewardNameController,
+                            builder: (context, value, child) {
+                              return value.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(
+                                        Icons.close,
+                                        size: 16,
+                                        color: Colors.white38,
+                                      ),
+                                      onPressed: () =>
+                                          failRewardNameController.clear(),
+                                    )
+                                  : const SizedBox.shrink();
+                            },
+                          ),
                         ),
                         style: const TextStyle(
                           color: Colors.white,
+                          fontFamily: 'WantedSans',
                           fontSize: 14,
                         ),
                       ),
@@ -407,14 +453,6 @@ class QuizSettingsPanel extends StatelessWidget {
                           Icons.add_photo_alternate,
                           size: iconSize,
                           color: accentColor,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '사진 추가',
-                          style: TextStyle(
-                            fontSize: imageLabelSize,
-                            color: accentColor,
-                          ),
                         ),
                       ],
                     )
