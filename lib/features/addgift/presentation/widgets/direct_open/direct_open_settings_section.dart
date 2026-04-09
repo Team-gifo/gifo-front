@@ -24,29 +24,49 @@ class DirectOpenSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final double titleFontSize = isCompactDesktop ? 15 : 16;
-    final double spacingAfterTitle = isCompactDesktop ? 6 : 8;
     final double spacingBeforeConditions = isCompactDesktop ? 12 : 16;
     final double conditionsPadding = isCompactDesktop ? 14 : 16;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(
-          'BGM (배경음악)',
-          style: TextStyle(
-            fontSize: titleFontSize,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+        Container(
+          padding: EdgeInsets.all(conditionsPadding),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 1,
+            ),
           ),
-        ),
-        SizedBox(height: spacingAfterTitle),
-        BgmSelectorWidget(
-          selectedBgmId: state.selectedBgm,
-          onBgmChanged: (String id) => context
-              .read<DirectOpenSettingBloc>()
-              .add(UpdateDirectOpenBgm(id)),
-          isCompactDesktop: isCompactDesktop,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Row(
+                children: <Widget>[
+                  Icon(Icons.music_note, size: 20, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text(
+                    'BGM 설정',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: isCompactDesktop ? 10 : 12),
+              BgmSelectorWidget(
+                selectedBgmId: state.selectedBgm,
+                onBgmChanged: (String id) => context
+                    .read<DirectOpenSettingBloc>()
+                    .add(UpdateDirectOpenBgm(id)),
+                isCompactDesktop: isCompactDesktop,
+              ),
+            ],
+          ),
         ),
         if (!isMobile) ...<Widget>[
           SizedBox(height: spacingBeforeConditions),
@@ -78,9 +98,21 @@ class DirectOpenSettingsSection extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: isCompactDesktop ? 6 : 8),
-                _buildConditionItem('상단 닉네임 및 서브타이틀 입력', hasNameAndSubTitle, isCompactDesktop),
-                _buildConditionItem('개봉 전 설명란 작성', hasBeforeDesc, isCompactDesktop),
-                _buildConditionItem('개봉 후 물품 이름 작성', hasItemName, isCompactDesktop),
+                _buildConditionItem(
+                  '상단 닉네임 및 서브타이틀 입력',
+                  hasNameAndSubTitle,
+                  isCompactDesktop,
+                ),
+                _buildConditionItem(
+                  '개봉 전 설명란 작성',
+                  hasBeforeDesc,
+                  isCompactDesktop,
+                ),
+                _buildConditionItem(
+                  '개봉 후 물품 이름 작성',
+                  hasItemName,
+                  isCompactDesktop,
+                ),
               ],
             ),
           ),
@@ -107,7 +139,10 @@ class DirectOpenSettingsSection extends StatelessWidget {
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontSize: textSize, color: met ? Colors.greenAccent : Colors.white70),
+              style: TextStyle(
+                fontSize: textSize,
+                color: met ? Colors.greenAccent : Colors.white70,
+              ),
             ),
           ),
         ],

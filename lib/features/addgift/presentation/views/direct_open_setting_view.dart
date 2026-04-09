@@ -14,7 +14,7 @@ import '../widgets/direct_open/direct_open_complete_button.dart';
 import '../widgets/direct_open/direct_open_content_section.dart';
 import '../widgets/direct_open/direct_open_mobile_bottom_bar.dart';
 import '../widgets/direct_open/direct_open_settings_section.dart';
-import '../widgets/direct_open/direct_open_step_indicator.dart';
+import '../widgets/step_indicator.dart';
 import '../widgets/direct_open/direct_open_title_bar.dart';
 
 class DirectOpenSettingView extends StatelessWidget {
@@ -198,7 +198,9 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                             userNameController: _userNameController,
                             subTitleController: _subTitleController,
                           ),
-                    actions: const <Widget>[DirectOpenStepIndicator()],
+                    actions: <Widget>[
+                      if (!isMobile) const StepIndicator(activeStep: 3),
+                    ],
                   ),
                   body: Stack(
                     children: <Widget>[
