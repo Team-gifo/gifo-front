@@ -66,6 +66,6 @@ const List<_GiftDeliveryOptionData> _options = <_GiftDeliveryOptionData>[
   _GiftDeliveryOptionData(
     title: '바로 오픈',
     iconPath: 'assets/images/open_gift_box.png',
-    accent: AppColors.pixelPurple,
+    accent: AppColors.neonPurple,
   ),
 ];
