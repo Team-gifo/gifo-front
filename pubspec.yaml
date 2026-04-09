@@ -60,7 +60,6 @@ flutter:
   assets:
     - .env
     - assets/images/
-    - assets/images/item/
     - assets/images/icons/
     - assets/images/example/
     - assets/lottie/

@@ -109,12 +109,13 @@ class _InviteModalBodyState extends State<_InviteModalBody>
 
     final Uri giftUrl = Uri.base.resolve('/gift/code/$code');
 
-    if (await canLaunchUrl(giftUrl)) {
-      unawaited(launchUrl(giftUrl, webOnlyWindowName: '_blank'));
-    } else {
-      // 새 창을 열 수 없는 환경(네이티브 등)에서는 현재 탭에서 이동
-      if (context.mounted) context.push('/gift/code/$code');
-    }
+    if (context.mounted) context.push('/gift/code/$code');
+    // if (await canLaunchUrl(giftUrl)) {
+    //   unawaited(launchUrl(giftUrl, webOnlyWindowName: '_blank'));
+    // } else {
+    //   // 새 창을 열 수 없는 환경(네이티브 등)에서는 현재 탭에서 이동
+    //   if (context.mounted) context.push('/gift/code/$code');
+    // }
   }
 
   @override

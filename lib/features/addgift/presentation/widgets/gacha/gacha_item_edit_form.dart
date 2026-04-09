@@ -180,7 +180,7 @@ class GachaItemEditForm extends StatelessWidget {
                                   ),
                             ),
                             const SizedBox(height: 16),
-                            EditFormStyles.sectionTitle('이미지'),
+                            EditFormStyles.sectionTitle('이미지 (선택)'),
                             if (currentItemData.imageFile == null)
                               EditFormStyles.emptyImagePicker(
                                 onTap: () =>
