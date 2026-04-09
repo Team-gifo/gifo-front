@@ -605,6 +605,15 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                                               _pickImageForReward(true),
                                           onPickFailRewardImage: () =>
                                               _pickImageForReward(false),
+                                          hasItems: quizState.uiItems.isNotEmpty,
+                                          hasNameAndSubTitle: _userNameController.text.trim().isNotEmpty && _subTitleController.text.trim().isNotEmpty,
+                                          hasNoIncompleteItems: quizState.uiItems.isNotEmpty && quizState.uiItems.every((item) {
+                                            if (item.title.trim().isEmpty) return false;
+                                            if (item.answer.isEmpty) return false;
+                                            if (item.type == QuizType.multipleChoice && item.options.length < 2) return false;
+                                            return true;
+                                          }),
+                                          hasSuccessRewardName: quizState.successReward.itemName.trim().isNotEmpty,
                                         ),
                                     bottomAction: QuizCompleteButton(
                                       enabled: _canComplete() && !_isSubmitting,
