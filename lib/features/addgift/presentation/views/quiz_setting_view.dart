@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
@@ -554,7 +555,8 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isMobile = MediaQuery.sizeOf(context).width < 800;
+    final bool isMobile =
+        MediaQuery.sizeOf(context).width < AppBreakpoints.tablet;
 
     return BlocListener<GiftPackagingBloc, GiftPackagingState>(
       listenWhen: (GiftPackagingState prev, GiftPackagingState curr) =>
@@ -590,13 +592,13 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                   surfaceTintColor: Colors.transparent,
                   elevation: 0,
                   iconTheme: const IconThemeData(color: Colors.white),
-                  title: isMobile
-                      ? null
-                      : QuizTitleBar(
-                          userNameController: _userNameController,
-                          subTitleController: _subTitleController,
-                        ),
-                  actions: const <Widget>[StepIndicator(activeStep: 3)],
+                  title: QuizTitleBar(
+                    userNameController: _userNameController,
+                    subTitleController: _subTitleController,
+                  ),
+                  actions: <Widget>[
+                    if (!isMobile) const StepIndicator(activeStep: 3),
+                  ],
                 ),
                 body: Stack(
                   children: <Widget>[
@@ -607,16 +609,6 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                       child: isMobile
                           ? Column(
                               children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.all(24.0),
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: QuizTitleBar(
-                                      userNameController: _userNameController,
-                                      subTitleController: _subTitleController,
-                                    ),
-                                  ),
-                                ),
                                 Expanded(
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
