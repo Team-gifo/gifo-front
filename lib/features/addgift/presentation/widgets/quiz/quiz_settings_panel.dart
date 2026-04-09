@@ -21,6 +21,7 @@ class QuizSettingsPanel extends StatelessWidget {
     this.hasNameAndSubTitle = false,
     this.hasNoIncompleteItems = false,
     this.hasSuccessRewardName = false,
+    this.hasFailRewardName = false,
   });
 
   final QuizSettingState quizState;
@@ -34,6 +35,7 @@ class QuizSettingsPanel extends StatelessWidget {
   final bool hasNameAndSubTitle;
   final bool hasNoIncompleteItems;
   final bool hasSuccessRewardName;
+  final bool hasFailRewardName;
 
   @override
   Widget build(BuildContext context) {
@@ -239,6 +241,15 @@ class QuizSettingsPanel extends StatelessWidget {
     final double cardPadding = isCompactDesktop ? 16 : 20;
     final double rewardTitleFontSize = isCompactDesktop ? 14 : 15;
 
+    final int actualRequired = quizState.uiItems.isEmpty
+        ? 1
+        : ((quizState.successReward.requiredCount ?? 1) > quizState.uiItems.length
+            ? quizState.uiItems.length
+            : (quizState.successReward.requiredCount ?? 1));
+    final String failConditionText = actualRequired <= 1
+        ? '맞춘 문제가 0개 일 때'
+        : '맞춘 문제가 0 ~ ${actualRequired - 1}개 일 때';
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -283,7 +294,7 @@ class QuizSettingsPanel extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      '그 외 (실패 보상 등)',
+                      failConditionText,
                       style: TextStyle(
                         fontSize: rewardTitleFontSize,
                         fontWeight: FontWeight.bold,
@@ -472,7 +483,7 @@ class QuizSettingsPanel extends StatelessWidget {
           _buildConditionItem('상단 닉네임 및 서브타이틀 입력', hasNameAndSubTitle),
           _buildConditionItem('미완성 문제 없음 (제목 + 정답 필수)', hasNoIncompleteItems),
           _buildConditionItem('성공 보상 입력 완료 (이미지, 이름)', hasSuccessRewardName),
-          // 실패 보상 입력 완료 (이미지, 이름)
+          _buildConditionItem('실패 보상 입력 완료 (이미지, 이름)', hasFailRewardName),
         ],
       ),
     );

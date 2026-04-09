@@ -452,6 +452,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
     if (_userNameController.text.trim().isEmpty) return false;
     if (_subTitleController.text.trim().isEmpty) return false;
     if (quizState.successReward.itemName.trim().isEmpty) return false;
+    if (quizState.failReward.itemName.trim().isEmpty) return false;
     for (final QuizItemData item in quizState.uiItems) {
       if (item.title.trim().isEmpty) return false;
       if (item.answer.isEmpty) return false;
@@ -614,6 +615,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                                             return true;
                                           }),
                                           hasSuccessRewardName: quizState.successReward.itemName.trim().isNotEmpty,
+                                          hasFailRewardName: quizState.failReward.itemName.trim().isNotEmpty,
                                         ),
                                     bottomAction: QuizCompleteButton(
                                       enabled: _canComplete() && !_isSubmitting,
@@ -707,6 +709,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                             return true;
                           }),
                           hasSuccessRewardName: quizState.successReward.itemName.trim().isNotEmpty,
+                          hasFailRewardName: quizState.failReward.itemName.trim().isNotEmpty,
                         ),
                         const SizedBox(height: 16),
                         SizedBox(
