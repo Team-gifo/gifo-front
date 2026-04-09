@@ -108,6 +108,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
       context.read<DirectOpenSettingBloc>().add(
         UpdateBeforeDescription(_beforeDescController.text),
       );
+      setState(() {});
     });
     _afterNameController.addListener(() {
       context.read<DirectOpenSettingBloc>().add(
@@ -139,6 +140,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
   bool _canComplete() {
     if (_userNameController.text.trim().isEmpty) return false;
     if (_subTitleController.text.trim().isEmpty) return false;
+    if (_beforeDescController.text.trim().isEmpty) return false;
     if (_afterNameController.text.trim().isEmpty) return false;
     return true;
   }
@@ -282,6 +284,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                                             isMobile: false,
                                             isCompactDesktop: isCompactDesktop,
                                             hasNameAndSubTitle: _userNameController.text.trim().isNotEmpty && _subTitleController.text.trim().isNotEmpty,
+                                            hasBeforeDesc: _beforeDescController.text.trim().isNotEmpty,
                                             hasItemName: _afterNameController.text.trim().isNotEmpty,
                                           ),
                                       bottomAction: DirectOpenCompleteButton(
@@ -360,6 +363,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                           state: state,
                           isMobile: true,
                           hasNameAndSubTitle: _userNameController.text.trim().isNotEmpty && _subTitleController.text.trim().isNotEmpty,
+                          hasBeforeDesc: _beforeDescController.text.trim().isNotEmpty,
                           hasItemName: _afterNameController.text.trim().isNotEmpty,
                         ),
                         const SizedBox(height: 16),

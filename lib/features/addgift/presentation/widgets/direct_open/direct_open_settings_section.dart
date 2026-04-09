@@ -10,14 +10,16 @@ class DirectOpenSettingsSection extends StatelessWidget {
     required this.state,
     this.isMobile = false,
     this.isCompactDesktop = false,
-    this.hasNameAndSubTitle = false,
-    this.hasItemName = false,
+    required this.hasNameAndSubTitle,
+    required this.hasBeforeDesc,
+    required this.hasItemName,
   });
 
   final DirectOpenSettingState state;
   final bool isMobile;
   final bool isCompactDesktop;
   final bool hasNameAndSubTitle;
+  final bool hasBeforeDesc;
   final bool hasItemName;
 
   @override
@@ -77,7 +79,8 @@ class DirectOpenSettingsSection extends StatelessWidget {
                 ),
                 SizedBox(height: isCompactDesktop ? 6 : 8),
                 _buildConditionItem('상단 닉네임 및 서브타이틀 입력', hasNameAndSubTitle, isCompactDesktop),
-                _buildConditionItem('물품 이름 입력', hasItemName, isCompactDesktop),
+                _buildConditionItem('개봉 전 설명란 작성', hasBeforeDesc, isCompactDesktop),
+                _buildConditionItem('개봉 후 물품 이름 작성', hasItemName, isCompactDesktop),
               ],
             ),
           ),
