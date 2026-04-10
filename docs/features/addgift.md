@@ -72,15 +72,32 @@ BlocProvider(
 | 퀴즈 맞추기 | `ContentType.quiz` | 정답 맞추기 |
 | 바로 오픈 | `ContentType.unboxing` | 바로 선물 확인 |
 
-## Step 6: 포장 완료 및 제출
+## Step 6: 포장 완료 및 초대 공유
 
-`PackageCompleteView`에서 사용자가 최종 확인:
+`PackageCompleteView`에서 사용자가 최종 확인 및 공유를 진행한다:
 1. `GiftPackagingBloc.add(SubmitPackage(...))` 호출
-2. `submitStatus: loading` → API 전송 중 표시
-3. `submitStatus: success` → 완료 UI 표시, `isPackageComplete = true` 설정
+2. `submitStatus: loading` → 중앙 배치된 로딩 가이드 표시
+3. `submitStatus: success` → 완료 UI 표시
+    - **초대코드 표시**: `SelectableText`를 통해 드래그 복사 가능
+    - **클립보드 복사**: 초대코드 옆 버튼 클릭 시 정해진 공유 템플릿 양식으로 복사
+    - **공유하기**: `share_plus`를 사용하여 외부 앱으로 템플릿 메시지 전송
 4. `submitStatus: failure` → 에러 토스트 표시
 
-`isPackageComplete = true` 이후 `/addgift/*` 재진입 차단 (라우터 redirect).
+### 공유 템플릿 양식
+```text
+[Gifo]
+'{받는분}'님만을 위한 선물을 준비하였습니다 🎁
+아래 사이트에 접속해서 확인해주세요!🎉
+초대 코드 : {초대코드}
+{공유링크}
+```
+
+## UI 표준화 지침
+
+모든 설정 화면(`GachaSetting`, `QuizSetting`, `DirectOpenSetting`)은 다음 요소들을 통일하여 사용한다:
+- **AppBar Progress**: 상단 우측에 현재 진행 단계(`3/3` 등)를 동일한 스타일로 표시
+- **BGM Widget**: 앱 하단에 배치되는 BGM 선택 UI를 일관된 디자인으로 유지
+- **Premium Buttons**: `PackageCompleteView` 등 주요 액션 버튼은 그라데이션과 그림자가 포함된 프리미엄 스타일 적용
 
 ## 모델 구조
 
