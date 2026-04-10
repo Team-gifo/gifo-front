@@ -981,50 +981,72 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
                       final GachaItem? item = record['item'] is GachaItem
                           ? record['item'] as GachaItem
                           : null;
-                      final String time =
-                          record['time']?.toString() ??
-                          ''; // 추후 제대로 된 date 필드가 들어오면 변경
+                      final String time = record['time']?.toString() ?? '이전 기록';
 
                       if (item == null) return const SizedBox.shrink();
 
-                      return ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: Container(
-                          width: 40 * scale,
-                          height: 40 * scale,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.neonPurple),
-                            image: DecorationImage(
-                              image: NetworkImage(item.imageUrl),
-                              fit: BoxFit.cover,
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.03),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.neonPurple.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          leading: Container(
+                            width: 50 * scale,
+                            height: 50 * scale,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: AppColors.neonPurple.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                              image: DecorationImage(
+                                image: NetworkImage(item.imageUrl),
+                                fit: BoxFit.cover,
+                              ),
                             ),
                           ),
-                        ),
-                        title: Text(
-                          item.itemName,
-                          style: TextStyle(
-                            fontFamily: 'WantedSans',
-                            color: Colors.white,
-                            fontSize: 14 * scale,
+                          title: Text(
+                            item.itemName,
+                            style: TextStyle(
+                              fontFamily: 'WantedSans',
+                              color: Colors.white,
+                              fontSize: 15 * scale,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        subtitle: Text(
-                          time,
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.5),
-                            fontSize: 12 * scale,
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              const SizedBox(height: 4),
+                              Text(
+                                time,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.5),
+                                  fontSize: 12 * scale,
+                                  fontFamily: 'WantedSans',
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        // 우측에 다운로드 아이콘 배치
-                        trailing: IconButton(
-                          icon: Icon(
-                            Icons.file_download_outlined,
-                            color: AppColors.neonPurple.withOpacity(0.8),
-                            size: 20 * scale,
+                          trailing: IconButton(
+                            icon: Icon(
+                              Icons.file_download_outlined,
+                              color: AppColors.neonPurple,
+                              size: 24 * scale,
+                            ),
+                            onPressed: () => _handleDownload(item, time),
+                            tooltip: '기프티콘 이미지 저장',
                           ),
-                          onPressed: () => _handleDownload(item, time),
-                          tooltip: '기프티콘 이미지 저장',
                         ),
                       );
                     },
