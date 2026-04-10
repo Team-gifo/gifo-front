@@ -22,15 +22,17 @@ class _PackageCompleteViewState extends State<PackageCompleteView> {
     final String message =
         """
 [Gifo]
-'${state.receiverName}'님만을 위한 선물을 준비하였습니다. 🎁
+'${state.receiverName}'님만을 위한 선물을 준비하였습니다 🎁
 
-아래 사이트에 접속해서 확인해주세요! 🎉
+아래 사이트에 접속해서 확인해주세요!🎉
 
 초대 코드 : ${state.shareCode}
 
-https://gifo.co.kr/gift/code/${state.shareUrl}
+https://gifo.co.kr/gift/code/${state.shareCode}
 """
             .trim();
+
+    // 네이티브 공유 창 열기
     await Share.share(message);
   }
 
@@ -155,18 +157,7 @@ https://gifo.co.kr/gift/code/${state.shareUrl}
                                               : () async {
                                                   await Clipboard.setData(
                                                     ClipboardData(
-                                                      text:
-                                                          """
-[Gifo]
-'${state.receiverName}'님만을 위한 선물을 준비하였습니다 🎁
-
-아래 사이트에 접속해서 확인해주세요!🎉
-
-초대 코드 : ${state.shareCode}
-
-${state.shareUrl}
-"""
-                                                              .trim(),
+                                                      text: state.shareCode,
                                                     ),
                                                   );
                                                   if (context.mounted) {
