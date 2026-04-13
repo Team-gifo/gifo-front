@@ -27,6 +27,7 @@
 - [x] Step 4: 컨텐츠 타입 선택 (가챠/퀴즈/바로 오픈)
 - [x] Step 5a: 가챠 설정 화면 (아이템 목록, 확률, 뽑기 횟수)
 - [x] Step 5b: 퀴즈 설정 화면
+  - [x] 각 문제별 '제출 횟수(play_limit)' 설정 기능 추가 (기본값 1)
 - [x] Step 5c: 바로 오픈 설정 화면
 - [x] Step 6: 포장 완료 화면
   - [x] 닉네임 기반 개인화 완료 메시지 적용
@@ -71,6 +72,7 @@
   - [x] `Skeletonizer` 기반 네트워크 이미지 로딩 UX 개선
   - [x] 개봉 버튼 로딩 상태(`isOpening`) 및 중복 클릭 방지 처리
   - [x] 애니메이션 연출 (봉투 낙하 + 폭발 + 타이핑 효과)
+  - [x] 이미지 부재 시 레이아웃 최적화 (배경 이미지 비활성화 및 설명 텍스트 중앙 배치)
   - [x] 개봉 완료 시 `ResultView` 인라인 렌더링 전환 로직
 - [x] 공용 결과 화면 (`ResultView`)
   - [x] 퀴즈 및 언박싱 뷰에서 인라인 렌더링 방식으로 아키텍처 개선
@@ -80,7 +82,7 @@
   - [x] 다운로드 및 공유 기능 재구조화 (inviteCode 활용)
 - [x] 메인 로고 클릭 내비게이션 기능 (로비, 퀴즈, 결과 뷰 연동)
 - [x] 선물 오픈 플로우 이미지 처리 고도화 (`GiftImageWidget`)
-  - [x] 서버 이미지 URL이 공백인 경우 `default_box.svg` 대체 이미지 표시
+  - [x] 서버 이미지 URL이 공백인 경우 `default_box.png` 대체 이미지 표시
   - [x] 네트워크 에러 발생 시 "이미지를 받아오지 못했습니다" 위젯 표시
   - [x] 적용 범위: ResultView, UnboxingView, GachaResultModal, GachaHistoryPanel, GachaPrizeListPanel
 

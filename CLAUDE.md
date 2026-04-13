@@ -95,4 +95,5 @@ lib/features/lobby/application/lobby_bloc.dart
 # 상수/공통
 lib/core/constants/app_colors.dart
 lib/core/constants/app_breakpoints.dart
+lib/core/widgets/gift_image_widget.dart                     # 공용 이미지 처리 (Fallback/Error)
 ```
