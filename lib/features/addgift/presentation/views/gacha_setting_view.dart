@@ -106,9 +106,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
       _playCountController.text = savedGacha.playCount.toString();
     }
 
-    final String initialBgm = packagingState.bgm.isNotEmpty
-        ? packagingState.bgm
-        : '신나는 생일';
+    final String initialBgm = packagingState.bgm;
 
     context.read<GachaSettingBloc>().add(
       InitGachaSetting(initUiItems, nextId, initialBgm),

@@ -32,7 +32,8 @@ import '../../features/content/repository/content_repository.dart';
 import '../di/service_locator.dart';
 
 bool isPackageComplete = false;
-final GiftPackagingBloc giftPackagingBloc = GiftPackagingBloc();
+final BgmPresetBloc bgmPresetBloc = BgmPresetBloc()..add(FetchBgmPresets());
+final GiftPackagingBloc giftPackagingBloc = GiftPackagingBloc(bgmPresetBloc);
 
 // 잘못된 경로 접근 시 toast를 한 번만 보여주기 위한 전역 플래그
 // URL 파라미터(?invalidCode=true)를 사용하면 주소창이 더러워지고 새로고침 시 계속 뜨는 문제를 방지하기 위함
@@ -261,9 +262,7 @@ final GoRouter appRouter = GoRouter(
         return MultiBlocProvider(
           providers: <BlocProvider<dynamic>>[
             BlocProvider<GiftPackagingBloc>.value(value: giftPackagingBloc),
-            BlocProvider<BgmPresetBloc>(
-              create: (_) => BgmPresetBloc()..add(FetchBgmPresets()),
-            ),
+            BlocProvider<BgmPresetBloc>.value(value: bgmPresetBloc),
           ],
           child: child,
         );
