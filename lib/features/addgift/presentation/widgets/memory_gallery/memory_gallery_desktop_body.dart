@@ -60,19 +60,27 @@ class MemoryGalleryDesktopBody extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  ElevatedButton.icon(
-                    onPressed: onAddItem,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.neonBlue,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
+                  if (galleryState.uiItems.length < 10)
+                    ElevatedButton.icon(
+                      onPressed: onAddItem,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.neonBlue,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                      ),
+                      icon: const Icon(
+                        Icons.add,
+                        size: 18,
+                        color: Colors.black,
+                      ),
+                      label: const Text(
+                        '추가',
+                        style: TextStyle(
+                          fontFamily: 'WantedSans',
+                          color: Colors.black,
+                        ),
+                      ),
                     ),
-                    icon: const Icon(Icons.add, size: 18),
-                    label: const Text(
-                      '추가',
-                      style: TextStyle(fontFamily: 'PFStardust'),
-                    ),
-                  ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
                     onPressed: () {
@@ -85,10 +93,17 @@ class MemoryGalleryDesktopBody extends StatelessWidget {
                       foregroundColor: Colors.white,
                       elevation: 0,
                     ),
-                    icon: const Icon(Icons.delete_outline, size: 18),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      size: 18,
+                      color: Colors.black,
+                    ),
                     label: const Text(
                       '초기화',
-                      style: TextStyle(fontFamily: 'PFStardust'),
+                      style: TextStyle(
+                        fontFamily: 'WantedSans',
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                 ],
@@ -133,7 +148,9 @@ class MemoryGalleryDesktopBody extends StatelessWidget {
                           mainAxisSpacing: 24,
                           childAspectRatio: 0.7,
                         ),
-                        itemCount: galleryState.uiItems.length + 1,
+                        itemCount: galleryState.uiItems.length < 10
+                            ? galleryState.uiItems.length + 1
+                            : 10,
                         onReorder: (int oldIndex, int newIndex) {
                           if (oldIndex == galleryState.uiItems.length ||
                               newIndex == galleryState.uiItems.length) {
@@ -145,8 +162,14 @@ class MemoryGalleryDesktopBody extends StatelessWidget {
                         },
                         itemBuilder: (BuildContext context, int index) {
                           if (index == galleryState.uiItems.length) {
-                            return Container(
+                            if (galleryState.uiItems.length >= 10) {
+                              return const SizedBox.shrink(
+                                key: ValueKey<String>('add_card_dummy'),
+                              );
+                            }
+                            return Padding(
                               key: const ValueKey<String>('add_card'),
+                              padding: const EdgeInsets.all(10.0),
                               child: _DesktopAddCard(onPressed: onAddItem),
                             );
                           }
@@ -198,31 +221,24 @@ class _DesktopAddCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        backgroundColor: AppColors.neonPurple.withValues(alpha: 0.2),
-        side: BorderSide(
-          color: AppColors.neonPurple.withValues(alpha: 0.4),
-          width: 1.5,
-        ),
+        backgroundColor: Colors.white.withValues(alpha: 0.2),
+        side: const BorderSide(color: AppColors.neonBlue, width: 1.5),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16.0),
         ),
         padding: const EdgeInsets.symmetric(vertical: 36.0),
       ),
       onPressed: onPressed,
-      child: Row(
+      child: const Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Icon(
-            Icons.add_circle_outline,
-            size: 28,
-            color: Colors.white.withValues(alpha: 0.7),
-          ),
-          const SizedBox(width: 10),
+          Icon(Icons.add_circle_outline, size: 28, color: AppColors.neonBlue),
+          SizedBox(width: 10),
           Text(
             '추억 추가하기',
             style: TextStyle(
               fontFamily: 'WantedSans',
-              color: Colors.white.withValues(alpha: 0.7),
+              color: AppColors.neonBlue,
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),

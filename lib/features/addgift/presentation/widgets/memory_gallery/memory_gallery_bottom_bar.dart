@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/constants/app_breakpoints.dart';
 import '../../../../../core/constants/app_colors.dart';
 
 class MemoryGalleryBottomBar extends StatelessWidget {
@@ -16,6 +17,10 @@ class MemoryGalleryBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final bool isDesktop = screenWidth >= AppBreakpoints.desktop;
+    final bool isMobile = screenWidth < 600;
+
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
@@ -38,7 +43,7 @@ class MemoryGalleryBottomBar extends StatelessWidget {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  '추억 목록 [ $itemCount개 ]',
+                  isMobile ? '[ $itemCount개 ]' : '추억 목록 [ $itemCount개 ]',
                   style: const TextStyle(
                     fontFamily: 'WantedSans',
                     fontSize: 18,
@@ -46,6 +51,24 @@ class MemoryGalleryBottomBar extends StatelessWidget {
                     color: Colors.white,
                   ),
                 ),
+                if (isDesktop) ...[
+                  const SizedBox(width: 20),
+                  // 추억 갯수 안내문구 추가
+                  const Row(
+                    children: <Widget>[
+                      Icon(Icons.info_outline, color: Colors.yellow, size: 14),
+                      SizedBox(width: 4),
+                      Text(
+                        '최대 10개까지 등록이 가능합니다.',
+                        style: TextStyle(
+                          color: Colors.yellow,
+                          fontSize: 16,
+                          fontFamily: 'WantedSans',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
             const Spacer(),

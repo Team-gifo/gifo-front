@@ -61,23 +61,31 @@ class MemoryGalleryMobileBody extends StatelessWidget {
               ),
               Row(
                 children: <Widget>[
-                  ElevatedButton.icon(
-                    onPressed: onAddItem,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.neonBlue,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                  if (galleryState.uiItems.length < 10)
+                    ElevatedButton.icon(
+                      onPressed: onAddItem,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.neonBlue,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                      ),
+                      icon: const Icon(
+                        Icons.add,
+                        size: 16,
+                        color: Colors.black,
+                      ),
+                      label: const Text(
+                        '추가',
+                        style: TextStyle(
+                          fontFamily: 'WantedSans',
+                          color: Colors.black,
+                        ),
                       ),
                     ),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text(
-                      '추가',
-                      style: TextStyle(fontFamily: 'PFStardust'),
-                    ),
-                  ),
                   const SizedBox(width: 8),
                   ElevatedButton.icon(
                     onPressed: () {
@@ -94,10 +102,17 @@ class MemoryGalleryMobileBody extends StatelessWidget {
                         vertical: 8,
                       ),
                     ),
-                    icon: const Icon(Icons.delete_outline, size: 16),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      size: 16,
+                      color: Colors.black,
+                    ),
                     label: const Text(
                       '초기화',
-                      style: TextStyle(fontFamily: 'PFStardust'),
+                      style: TextStyle(
+                        fontFamily: 'WantedSans',
+                        color: Colors.black,
+                      ),
                     ),
                   ),
                 ],
@@ -145,14 +160,37 @@ class MemoryGalleryMobileBody extends StatelessWidget {
                     right: 16.0,
                     top: 8.0,
                   ),
-                  itemCount: galleryState.uiItems.length,
+                  itemCount: galleryState.uiItems.length < 10
+                      ? galleryState.uiItems.length + 1
+                      : 10,
                   buildDefaultDragHandles: false,
                   onReorder: (int oldIndex, int newIndex) {
+                    if (oldIndex == galleryState.uiItems.length ||
+                        newIndex == galleryState.uiItems.length) {
+                      return;
+                    }
                     context.read<MemoryGallerySettingBloc>().add(
                       ReorderMemoryItems(oldIndex, newIndex),
                     );
                   },
                   itemBuilder: (BuildContext context, int index) {
+                    if (index == galleryState.uiItems.length) {
+                      if (galleryState.uiItems.length >= 10) {
+                        return const SizedBox.shrink(
+                          key: ValueKey<String>('add_card_dummy'),
+                        );
+                      }
+                      return Padding(
+                        key: const ValueKey<String>('add_card'),
+                        padding: const EdgeInsets.only(
+                          left: 8.0,
+                          right: 8.0,
+                          top: 8.0,
+                          bottom: 24.0,
+                        ),
+                        child: _MobileAddCard(onPressed: onAddItem),
+                      );
+                    }
                     final MemoryGalleryItemData item =
                         galleryState.uiItems[index];
                     return MemoryMobileCard(
@@ -172,6 +210,43 @@ class MemoryGalleryMobileBody extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+class _MobileAddCard extends StatelessWidget {
+  const _MobileAddCard({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        backgroundColor: Colors.white.withValues(alpha: 0.2),
+        side: const BorderSide(color: AppColors.neonBlue, width: 1.5),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.0),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 20.0),
+      ),
+      onPressed: onPressed,
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Icon(Icons.add_circle_outline, size: 24, color: AppColors.neonBlue),
+          SizedBox(width: 8),
+          Text(
+            '추억 추가하기',
+            style: TextStyle(
+              fontFamily: 'WantedSans',
+              color: AppColors.neonBlue,
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
