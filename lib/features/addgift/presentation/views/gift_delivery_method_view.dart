@@ -123,11 +123,17 @@ class GiftDeliveryMethodView extends StatelessWidget {
 
     bool hasData(ContentType type) {
       if (type == ContentType.gacha) {
-        return state.gachaContent != null && state.gachaContent!.list.isNotEmpty;
+        return state.gachaContent != null &&
+            state.gachaContent!.list.isNotEmpty;
       } else if (type == ContentType.quiz) {
-        return state.quizContent != null && (state.quizContent!.list.isNotEmpty || state.quizContent!.successReward.itemName.isNotEmpty || state.quizContent!.failReward.itemName.isNotEmpty);
+        return state.quizContent != null &&
+            (state.quizContent!.list.isNotEmpty ||
+                state.quizContent!.successReward.itemName.isNotEmpty ||
+                state.quizContent!.failReward.itemName.isNotEmpty);
       } else if (type == ContentType.unboxing) {
-        return state.unboxingContent != null && (state.unboxingContent!.beforeOpen.description.isNotEmpty || state.unboxingContent!.afterOpen.itemName.isNotEmpty);
+        return state.unboxingContent != null &&
+            (state.unboxingContent!.beforeOpen.description.isNotEmpty ||
+                state.unboxingContent!.afterOpen.itemName.isNotEmpty);
       }
       return false;
     }
@@ -141,8 +147,12 @@ class GiftDeliveryMethodView extends StatelessWidget {
 
     bool needsConfirm = false;
     String conflictName = '';
-    
-    for (final type in [ContentType.gacha, ContentType.quiz, ContentType.unboxing]) {
+
+    for (final type in [
+      ContentType.gacha,
+      ContentType.quiz,
+      ContentType.unboxing,
+    ]) {
       if (type != selectedType && hasData(type)) {
         needsConfirm = true;
         conflictName = getName(type);
@@ -202,8 +212,22 @@ class GiftDeliveryMethodView extends StatelessWidget {
       );
       if (confirm == true) {
         bloc.add(SetGachaContent(const GachaContent()));
-        bloc.add(SetQuizContent(const QuizContent(successReward: QuizSuccessReward(), failReward: QuizFailReward())));
-        bloc.add(SetUnboxingContent(const UnboxingContent(beforeOpen: BeforeOpen(), afterOpen: AfterOpen())));
+        bloc.add(
+          SetQuizContent(
+            const QuizContent(
+              successReward: QuizSuccessReward(),
+              failReward: QuizFailReward(),
+            ),
+          ),
+        );
+        bloc.add(
+          SetUnboxingContent(
+            const UnboxingContent(
+              beforeOpen: BeforeOpen(),
+              afterOpen: AfterOpen(),
+            ),
+          ),
+        );
         bloc.add(SetContentType(selectedType));
         if (context.mounted) {
           unawaited(context.push(route));

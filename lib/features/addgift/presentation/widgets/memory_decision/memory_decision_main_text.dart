@@ -29,7 +29,7 @@ class MemoryDecisionMainText extends StatelessWidget {
             ),
           ),
           const TextSpan(
-            text: '님에게 선물을 공개하기 전,\n',
+            text: ' 님에게 선물을 공개하기 전,\n',
             style: TextStyle(
               fontFamily: 'PFStardustS',
               fontSize: 28,
