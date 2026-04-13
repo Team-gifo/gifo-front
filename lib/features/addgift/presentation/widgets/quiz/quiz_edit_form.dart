@@ -1,0 +1,533 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../../../../../core/constants/app_colors.dart';
+import '../../../model/quiz_setting_models.dart';
+import '../common/edit_form_styles.dart';
+
+class QuizEditForm extends StatefulWidget {
+  final QuizItemData item;
+  final ValueChanged<QuizItemData> onSave;
+  final bool isDesktop;
+  // 이미지 업로드 한도(10개) 도달 여부 — true이면 이미 이미지가 없는 항목에서 피커 비활성화
+  final bool isImageLimitReached;
+
+  const QuizEditForm({
+    super.key,
+    required this.item,
+    required this.onSave,
+    this.isDesktop = false,
+    this.isImageLimitReached = false,
+  });
+
+  @override
+  State<QuizEditForm> createState() => _QuizEditFormState();
+}
+
+class _QuizEditFormState extends State<QuizEditForm> {
+  late QuizItemData _editingItem;
+
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
+  final TextEditingController _hintController = TextEditingController();
+  // 제출 횟수 입력 컨트롤러
+  final TextEditingController _playLimitController = TextEditingController();
+
+  // 객관식 답변들 컨트롤러 목록
+  final List<TextEditingController> _optionControllers =
+      <TextEditingController>[];
+  // 정답을 다루기 위한 컨트롤러들
+  final List<TextEditingController> _answerControllers =
+      <TextEditingController>[];
+
+  // 객관식 답변 다중 선택 인덱스
+  final Set<int> _selectedMultipleChoiceAnswers = <int>{};
+
+  @override
+  void initState() {
+    super.initState();
+    _editingItem = widget.item;
+
+    _titleController.text = _editingItem.title;
+    _descController.text = _editingItem.description;
+    _hintController.text = _editingItem.hint;
+    // playLimit이 1이면 힌트로만 표시하고 필드는 비워둠
+    if (_editingItem.playLimit > 1) {
+      _playLimitController.text = _editingItem.playLimit.toString();
+    }
+
+    if (_editingItem.type == QuizType.multipleChoice) {
+      if (_editingItem.options.isEmpty) {
+        _optionControllers.add(TextEditingController());
+        _optionControllers.add(TextEditingController());
+      } else {
+        for (final String opt in _editingItem.options) {
+          _optionControllers.add(TextEditingController(text: opt));
+        }
+      }
+      for (final String ans in _editingItem.answer) {
+        final int? idx = int.tryParse(ans);
+        if (idx != null) {
+          _selectedMultipleChoiceAnswers.add(idx);
+        } else {
+          // 기존 데이터 호환: 텍스트로 저장된 경우 인덱스를 찾음
+          final int foundIdx = _editingItem.options.indexOf(ans);
+          if (foundIdx != -1) {
+            _selectedMultipleChoiceAnswers.add(foundIdx);
+          }
+        }
+      }
+    } else if (_editingItem.type == QuizType.subjective) {
+      if (_editingItem.answer.isEmpty) {
+        _answerControllers.add(TextEditingController());
+      } else {
+        for (final String ans in _editingItem.answer) {
+          _answerControllers.add(TextEditingController(text: ans));
+        }
+      }
+    } else if (_editingItem.type == QuizType.ox) {
+      if (_editingItem.answer.isEmpty) {
+        _editingItem.answer = <String>['O'];
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descController.dispose();
+    _hintController.dispose();
+    _playLimitController.dispose();
+    for (final TextEditingController c in _optionControllers) {
+      c.dispose();
+    }
+    for (final TextEditingController c in _answerControllers) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  void _save() {
+    _editingItem.title = _titleController.text.trim();
+    _editingItem.description = _descController.text.trim();
+    _editingItem.hint = _hintController.text.trim();
+
+    if (_editingItem.type == QuizType.multipleChoice) {
+      _editingItem.options = _optionControllers
+          .map((TextEditingController c) => c.text.trim())
+          .where((String s) => s.isNotEmpty)
+          .toList();
+      _editingItem.answer = _selectedMultipleChoiceAnswers
+          .map((int idx) => idx.toString())
+          .toList();
+      // 복수 정답 자동 힌트 처리
+      final String currentHint = _hintController.text.trim();
+      if (_selectedMultipleChoiceAnswers.length >= 2) {
+        if (!currentHint.contains('복수 정답')) {
+          _editingItem.hint = currentHint.isEmpty
+              ? '복수 정답'
+              : '$currentHint / 복수 정답';
+        }
+      } else {
+        _editingItem.hint = currentHint
+            .replaceAll(' / 복수 정답', '')
+            .replaceAll('복수 정답 / ', '')
+            .replaceAll('복수 정답', '')
+            .trim();
+      }
+    } else if (_editingItem.type == QuizType.subjective) {
+      _editingItem.answer = _answerControllers
+          .map((TextEditingController c) => c.text.trim())
+          .where((String s) => s.isNotEmpty)
+          .toList();
+    }
+
+    // 빈 값이거나 0 이하인 경우 기본값 1 적용
+    final int parsedLimit = int.tryParse(_playLimitController.text.trim()) ?? 1;
+    _editingItem.playLimit = parsedLimit < 1 ? 1 : parsedLimit;
+
+    widget.onSave(_editingItem);
+  }
+
+  Future<void> _pickImage() async {
+    // 이미지가 없는 상태에서 한도에 도달했으면 피커를 열지 않음
+    if (_editingItem.imageFile == null && widget.isImageLimitReached) return;
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      setState(() {
+        _editingItem.imageFile = image;
+      });
+    }
+  }
+
+  void _showFullImage() {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          children: <Widget>[
+            InteractiveViewer(
+              child: Image.network(
+                _editingItem.imageFile!.path,
+                fit: BoxFit.contain,
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: IconButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                icon: const Icon(Icons.close, color: Colors.white),
+                style: IconButton.styleFrom(backgroundColor: Colors.black54),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      constraints: widget.isDesktop
+          ? null
+          : BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
+      padding: const EdgeInsets.all(24),
+      decoration: EditFormStyles.formDecoration(isDesktop: widget.isDesktop),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          EditFormStyles.dragHandle(),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    '${_editingItem.typeName} 문제 설정',
+                    style: EditFormStyles.headerTitleStyle,
+                  ),
+                  const SizedBox(height: 24),
+                  EditFormStyles.sectionTitle('제목'),
+                  _buildDarkTextField(
+                    controller: _titleController,
+                    hint: '질문을 입력하세요',
+                  ),
+                  const SizedBox(height: 16),
+                  EditFormStyles.sectionTitle('이미지 (선택)'),
+                  if (_editingItem.imageFile == null)
+                    EditFormStyles.emptyImagePicker(onTap: _pickImage)
+                  else
+                    EditFormStyles.imagePreviewWithActions(
+                      imagePath: _editingItem.imageFile!.path,
+                      onEdit: _pickImage,
+                      onDelete: () =>
+                          setState(() => _editingItem.imageFile = null),
+                      onFullscreen: _showFullImage,
+                    ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    '- 부적절한 제목이나 이미지는 신고 대상이 될 수 있으며, 관련 책임은 등록 주체에게 있음을 알려드립니다.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                      fontFamily: 'WantedSans',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  EditFormStyles.sectionTitle('설명 (선택)'),
+                  _buildDarkTextField(
+                    controller: _descController,
+                    hint: '문제에 대한 설명을 입력하세요',
+                  ),
+                  const SizedBox(height: 16),
+                  EditFormStyles.sectionTitle('힌트 (선택)'),
+                  _buildDarkTextField(
+                    controller: _hintController,
+                    hint: '문제에 대한 힌트를 입력하세요',
+                  ),
+                  const SizedBox(height: 24),
+
+                  if (_editingItem.type == QuizType.multipleChoice) ...<Widget>[
+                    EditFormStyles.sectionTitle('선택지'),
+                    ..._optionControllers.asMap().entries.map((
+                      MapEntry<int, TextEditingController> entry,
+                    ) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Row(
+                          children: <Widget>[
+                            Text(
+                              '${entry.key + 1}. ',
+                              style: const TextStyle(color: Colors.white70),
+                            ),
+                            Expanded(
+                              child: _buildDarkTextField(
+                                controller: entry.value,
+                                hint: '선택지 ${entry.key + 1}',
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.remove_circle,
+                                color: Colors.red,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _optionControllers.removeAt(entry.key);
+                                  // 선택된 인덱스들 갱신 로직
+                                  if (_selectedMultipleChoiceAnswers.contains(
+                                    entry.key,
+                                  )) {
+                                    _selectedMultipleChoiceAnswers.remove(
+                                      entry.key,
+                                    );
+                                  }
+                                  final Set<int> newAnswers = <int>{};
+                                  for (final int ans
+                                      in _selectedMultipleChoiceAnswers) {
+                                    if (ans > entry.key) {
+                                      newAnswers.add(ans - 1);
+                                    } else {
+                                      newAnswers.add(ans);
+                                    }
+                                  }
+                                  _selectedMultipleChoiceAnswers.clear();
+                                  _selectedMultipleChoiceAnswers.addAll(
+                                    newAnswers,
+                                  );
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                    if (_optionControllers.length < 5)
+                      TextButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _optionControllers.add(TextEditingController());
+                          });
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.neonPurpleLight,
+                        ),
+                        icon: const Icon(Icons.add),
+                        label: const Text('선택지 추가'),
+                      )
+                    else
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          '최대 5개까지 추가 가능합니다',
+                          style: TextStyle(fontSize: 12, color: Colors.white38),
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    EditFormStyles.sectionTitle('정답 선택 (복수 선택 가능)'),
+                    Wrap(
+                      spacing: 8.0,
+                      runSpacing: 8.0,
+                      children: List<Widget>.generate(
+                        _optionControllers.length,
+                        (int index) {
+                          final bool isSelected = _selectedMultipleChoiceAnswers
+                              .contains(index);
+                          return ChoiceChip(
+                            label: Text('${index + 1}번'),
+                            selected: isSelected,
+                            onSelected: (bool selected) {
+                              setState(() {
+                                if (selected) {
+                                  _selectedMultipleChoiceAnswers.add(index);
+                                } else {
+                                  _selectedMultipleChoiceAnswers.remove(index);
+                                }
+                              });
+                            },
+                            selectedColor: AppColors.neonPurple,
+                            labelStyle: TextStyle(
+                              color: isSelected ? Colors.white : Colors.white38,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.07,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ] else if (_editingItem.type ==
+                      QuizType.subjective) ...<Widget>[
+                    EditFormStyles.sectionTitle('정답 목록 (유사 답변 포함)'),
+                    ..._answerControllers.asMap().entries.map((
+                      MapEntry<int, TextEditingController> entry,
+                    ) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: _buildDarkTextField(
+                                controller: entry.value,
+                                hint: '정답 형태 입력',
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.remove_circle,
+                                color: Colors.red,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _answerControllers.removeAt(entry.key);
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _answerControllers.add(TextEditingController());
+                        });
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.neonPurpleLight,
+                      ),
+                      icon: const Icon(Icons.add),
+                      label: const Text('정답 형태 추가'),
+                    ),
+                  ] else if (_editingItem.type == QuizType.ox) ...<Widget>[
+                    EditFormStyles.sectionTitle('정답'),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: _editingItem.answer.first == 'O'
+                                  ? AppColors.neonPurple
+                                  : Colors.white.withValues(alpha: 0.07),
+                              foregroundColor: _editingItem.answer.first == 'O'
+                                  ? Colors.white
+                                  : Colors.white38,
+                            ),
+                            onPressed: () => setState(() {
+                              _editingItem.answer = <String>['O'];
+                            }),
+                            child: const Text(
+                              'O',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: _editingItem.answer.first == 'X'
+                                  ? AppColors.neonPurple
+                                  : Colors.white.withValues(alpha: 0.07),
+                              foregroundColor: _editingItem.answer.first == 'X'
+                                  ? Colors.white
+                                  : Colors.white38,
+                            ),
+                            onPressed: () => setState(() {
+                              _editingItem.answer = <String>['X'];
+                            }),
+                            child: const Text(
+                              'X',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+
+                  // 공통: 정답 제출 횟수 (퀴즈 유형 무관하게 항상 마지막에 배치)
+                  EditFormStyles.sectionTitle('정답 제출 횟수 (선택)'),
+                  TextField(
+                    controller: _playLimitController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'WantedSans',
+                    ),
+                    cursorColor: AppColors.neonPurple,
+                    decoration: EditFormStyles.inputDecoration('').copyWith(
+                      hintText: '숫자를 입력해주세요. (숫자 외 문자 입력 불가)',
+                      hintStyle: const TextStyle(
+                        color: Colors.white24,
+                        fontFamily: 'WantedSans',
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '입력하지 않으면 기본 설정인 1회로 적용됩니다.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white38,
+                      fontFamily: 'WantedSans',
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _save,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.neonPurple,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                '저장 완료',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDarkTextField({
+    required TextEditingController controller,
+    required String hint,
+  }) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: Colors.white, fontFamily: 'WantedSans'),
+      cursorColor: AppColors.neonPurple,
+      decoration: EditFormStyles.inputDecoration(hint),
+    );
+  }
+}

@@ -17,7 +17,10 @@ _GachaContent _$GachaContentFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$GachaContentToJson(_GachaContent instance) =>
-    <String, dynamic>{'play_count': instance.playCount, 'list': instance.list};
+    <String, dynamic>{
+      'play_count': instance.playCount,
+      'list': instance.list.map((e) => e.toJson()).toList(),
+    };
 
 _GachaItem _$GachaItemFromJson(Map<String, dynamic> json) => _GachaItem(
   itemName: json['item_name'] as String? ?? '',

@@ -22,9 +22,9 @@ _QuizContent _$QuizContentFromJson(Map<String, dynamic> json) => _QuizContent(
 
 Map<String, dynamic> _$QuizContentToJson(_QuizContent instance) =>
     <String, dynamic>{
-      'success_reward': instance.successReward,
-      'fail_reward': instance.failReward,
-      'list': instance.list,
+      'success_reward': instance.successReward.toJson(),
+      'fail_reward': instance.failReward.toJson(),
+      'list': instance.list.map((e) => e.toJson()).toList(),
     };
 
 _QuizSuccessReward _$QuizSuccessRewardFromJson(Map<String, dynamic> json) =>

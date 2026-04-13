@@ -7,6 +7,8 @@ part 'unboxing_content.g.dart';
 
 @freezed
 abstract class UnboxingContent with _$UnboxingContent {
+  // ignore: invalid_annotation_target
+  @JsonSerializable(explicitToJson: true)
   const factory UnboxingContent({
     @JsonKey(name: 'before_open') required BeforeOpen beforeOpen,
     @JsonKey(name: 'after_open') required AfterOpen afterOpen,

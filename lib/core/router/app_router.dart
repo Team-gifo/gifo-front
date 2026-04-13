@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../core/blocs/download/download_bloc.dart';
+import '../../features/addgift/application/bgm_preset/bgm_preset_bloc.dart';
 import '../../features/addgift/application/gift_packaging_bloc.dart';
 import '../../features/addgift/presentation/views/ai_template_survey_view.dart';
 import '../../features/addgift/presentation/views/direct_open_setting_view.dart';
@@ -15,16 +18,18 @@ import '../../features/addgift/presentation/views/receiver_name_view.dart';
 import '../../features/content/application/gacha/gacha_bloc.dart';
 import '../../features/content/application/quiz/quiz_bloc.dart';
 import '../../features/content/application/unboxing/unboxing_bloc.dart';
+import '../../features/content/application/content_audio/content_audio_bloc.dart';
 import '../../features/content/presentation/gacha/gacha_view.dart';
 import '../../features/content/presentation/quiz/quiz_view.dart';
-import '../../features/content/presentation/result/result_view.dart';
 import '../../features/content/presentation/unboxing/unboxing_view.dart';
 import '../../features/home/presentation/views/home_view.dart';
 import '../../features/lobby/application/lobby_bloc.dart';
-import '../../core/blocs/download/download_bloc.dart';
 import '../../features/lobby/model/lobby_data.dart';
 import '../../features/lobby/presentation/views/lobby_view.dart';
 import '../../features/lobby/presentation/views/memory_gallery_view.dart';
+import '../../features/lobby/repository/lobby_repository.dart';
+import '../../features/content/repository/content_repository.dart';
+import '../di/service_locator.dart';
 
 bool isPackageComplete = false;
 final GiftPackagingBloc giftPackagingBloc = GiftPackagingBloc();
@@ -48,21 +53,22 @@ class _ErrorRedirectPageState extends State<_ErrorRedirectPage> {
     // 위젯이 완전히 렌더링된 이후에 이동 (build 중 context 사용 방지)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      
+
       final GoRouterState routerState = GoRouterState.of(context);
       final String currentPath = routerState.uri.path;
-      
+
       // sitemap.xml, robots.txt 등 정적 파일 요청이나 개발망 경로가 강제로 플러터로 넘어온 경우
       // '잘못된 초대코드' 토스트가 뜨는 것을 방지
-      final bool isStaticFile = currentPath.endsWith('.xml') || 
-                           currentPath.endsWith('.txt') || 
-                           currentPath.endsWith('.png') ||
-                           currentPath.endsWith('.json');
-                           
+      final bool isStaticFile =
+          currentPath.endsWith('.xml') ||
+          currentPath.endsWith('.txt') ||
+          currentPath.endsWith('.png') ||
+          currentPath.endsWith('.json');
+
       if (!isStaticFile) {
         _shouldShowInvalidCodeToast = true;
       }
-      
+
       GoRouter.of(context).go('/');
     });
   }
@@ -87,13 +93,13 @@ final GoRouter appRouter = GoRouter(
         return '/';
       }
     }
-    // /gift/code/:code 진입 시 코드 유효성 사전 검증
-    // 유효하지 않으면 errorBuilder 대신 redirect로 처리
+    // /gift/code/:code 진입 시 코드 형식 기본 검증 (빈 값 체크만 수행)
+    // 실제 유효성 검증은 LobbyBloc이 API 호출을 통해 처리
     if (state.matchedLocation.startsWith('/gift/code/')) {
       final String code = state.matchedLocation
           .replaceFirst('/gift/code/', '')
           .trim();
-      if (code.isEmpty || LobbyData.getDummyByCode(code) == null) {
+      if (code.isEmpty) {
         _shouldShowInvalidCodeToast = true;
         return '/';
       }
@@ -112,187 +118,222 @@ final GoRouter appRouter = GoRouter(
         return HomeView(showInvalidCodeToast: showToast);
       },
     ),
-    // 콘텐츠 이용 전 로비 화면 (초대코드 직접 입력 후 내부 이동용, 레거시)
-    GoRoute(
-      path: '/lobby',
-      pageBuilder: (BuildContext context, GoRouterState state) {
-        final String code = state.extra as String? ?? 'helloworld';
-        final LobbyData lobbyData =
-            LobbyData.getDummyByCode(code) ??
-            LobbyData.getDummyByCode('helloworld')!;
-        return NoTransitionPage(
-          child: LobbyView(data: lobbyData, code: code),
-        );
-      },
-    ),
-    // 초대 코드 기반 로비 화면 - URL 경로에 코드가 포함되는 공유 가능한 형태
-    // redirect에서 유효성 검증을 이미 통과한 코드만 진입
-    GoRoute(
-      path: '/gift/code/:code',
-      pageBuilder: (BuildContext context, GoRouterState state) {
-        final String code = state.pathParameters['code'] ?? '';
-        // redirect에서 유효성 검증 완료: null-fallback 불필요
-        final LobbyData lobbyData = LobbyData.getDummyByCode(code)!;
-        return NoTransitionPage(
-          child: BlocProvider(
-            create: (_) => LobbyBloc(),
-            child: LobbyView(data: lobbyData, code: code),
-          ),
-        );
-      },
-    ),
-    // 수신자용 추억 갤러리 화면 (입장 후 화면)
-    GoRoute(
-      path: '/memory-gallery',
-      pageBuilder: (BuildContext context, GoRouterState state) {
-        final String code = state.extra as String? ?? 'helloworld';
-        return NoTransitionPage(
-          child: BlocProvider(
-            create: (_) => DownloadBloc(),
-            child: MemoryGalleryView(code: code),
-          ),
-        );
-      },
-    ),
-    // 콘텐츠 진행 - 캡슐 뽑기 화면
-    GoRoute(
-      path: '/content/gacha',
-      pageBuilder: (BuildContext context, GoRouterState state) {
-        final String code = state.extra as String? ?? 'helloworld';
-        return NoTransitionPage(
-          child: MultiBlocProvider(
-            providers: <BlocProvider<dynamic>>[
-              BlocProvider<GachaBloc>(
-                create: (BuildContext context) => GachaBloc(),
-              ),
-              BlocProvider<DownloadBloc>(
-                create: (BuildContext context) => DownloadBloc(),
-              ),
-            ],
-            child: GachaView(code: code),
-          ),
-        );
-      },
-    ),
-    // 콘텐츠 진행 - 퀴즈 맞추기 화면
-    GoRoute(
-      path: '/content/quiz',
-      pageBuilder: (BuildContext context, GoRouterState state) {
-        final String code = state.extra as String? ?? 'quiz123';
-        return NoTransitionPage(
-          child: BlocProvider<QuizBloc>(
-            create: (BuildContext context) => QuizBloc(),
-            child: QuizView(code: code),
-          ),
-        );
-      },
-    ),
-    // 콘텐츠 진행 - 바로 오픈 화면
-    GoRoute(
-      path: '/content/unboxing',
-      pageBuilder: (BuildContext context, GoRouterState state) {
-        final String code = state.extra as String? ?? 'open123';
-        return NoTransitionPage(
-          child: BlocProvider<UnboxingBloc>(
-            create: (BuildContext context) => UnboxingBloc(),
-            child: UnboxingView(code: code),
-          ),
-        );
-      },
-    ),
-    // 콘텐츠 진행 - 공용 결과창 화면
-    GoRoute(
-      path: '/content/result',
-      pageBuilder: (BuildContext context, GoRouterState state) {
-        final Map<String, dynamic>? extra =
-            state.extra as Map<String, dynamic>?;
-        final String itemName = extra?['itemName'] as String? ?? '결과 없음';
-        final String imageUrl =
-            extra?['imageUrl'] as String? ?? 'assets/images/title_logo.png';
-        final String userName = extra?['userName'] as String? ?? '';
-        return NoTransitionPage(
-          child: ResultView(
-            itemName: itemName,
-            imageUrl: imageUrl,
-            userName: userName,
-          ),
-        );
-      },
-    ),
-    // 선물 포장하기 전체 플로우 (ShellRoute로 묶어 GiftPackagingBloc 상태 유지)
+    // 선물 확인(수신자) 전체 플로우 (ShellRoute로 묶어 ContentAudioBloc 상태 유지)
     ShellRoute(
       builder: (BuildContext context, GoRouterState state, Widget child) {
-        return BlocProvider<GiftPackagingBloc>.value(
-          value: giftPackagingBloc,
+        return BlocProvider<ContentAudioBloc>(
+          create: (BuildContext context) => ContentAudioBloc(),
           child: child,
         );
       },
       routes: <RouteBase>[
-        // 선물 포장 - 받는 분 성함 입력 화면
+        // 콘텐츠 이용 전 로비 화면
+        GoRoute(
+          path: '/lobby',
+          pageBuilder: (BuildContext context, GoRouterState state) {
+            final String code = state.extra as String? ?? '';
+            return NoTransitionPage(
+              child: BlocProvider(
+                create: (_) =>
+                    LobbyBloc(repository: getIt<LobbyRepository>())
+                      ..add(FetchLobbyData(code)),
+                child: LobbyView(code: code),
+              ),
+            );
+          },
+        ),
+        // 초대 코드 기반 로비 화면
+        GoRoute(
+          path: '/gift/code/:code',
+          pageBuilder: (BuildContext context, GoRouterState state) {
+            final String code = state.pathParameters['code'] ?? '';
+            return NoTransitionPage(
+              child: BlocProvider(
+                create: (_) =>
+                    LobbyBloc(repository: getIt<LobbyRepository>())
+                      ..add(FetchLobbyData(code)),
+                child: LobbyView(code: code),
+              ),
+            );
+          },
+        ),
+        // 수신자용 추억 갤러리 화면
+        GoRoute(
+          path: '/memory-gallery',
+          pageBuilder: (BuildContext context, GoRouterState state) {
+            final Map<String, dynamic> extra =
+                state.extra! as Map<String, dynamic>;
+            final LobbyData lobbyData = extra['data'] as LobbyData;
+            final String inviteCode = extra['code'] as String? ?? '';
+            return NoTransitionPage(
+              child: BlocProvider(
+                create: (_) => DownloadBloc(),
+                child: MemoryGalleryView(
+                  lobbyData: lobbyData,
+                  inviteCode: inviteCode,
+                ),
+              ),
+            );
+          },
+        ),
+        // 콘텐츠 진행 - 캡슐 뽑기 화면
+        GoRoute(
+          path: '/content/gacha',
+          pageBuilder: (BuildContext context, GoRouterState state) {
+            final Map<String, dynamic> extra =
+                state.extra! as Map<String, dynamic>;
+            final LobbyData lobbyData = extra['data'] as LobbyData;
+            final String inviteCode = extra['code'] as String? ?? '';
+            return NoTransitionPage(
+              child: MultiBlocProvider(
+                providers: <BlocProvider<dynamic>>[
+                  BlocProvider<LobbyBloc>(
+                    create: (BuildContext context) =>
+                        LobbyBloc(repository: getIt<LobbyRepository>())..add(
+                          InitLobbyWithData(data: lobbyData, code: inviteCode),
+                        ),
+                  ),
+                  BlocProvider<GachaBloc>(
+                    create: (BuildContext context) =>
+                        GachaBloc(repository: getIt<ContentRepository>())
+                          ..add(InitGacha(lobbyData, inviteCode: inviteCode)),
+                  ),
+                  BlocProvider<DownloadBloc>(
+                    create: (BuildContext context) => DownloadBloc(),
+                  ),
+                ],
+                child: const GachaView(),
+              ),
+            );
+          },
+        ),
+        // 콘텐츠 진행 - 퀴즈 맞추기 화면
+        GoRoute(
+          path: '/content/quiz',
+          pageBuilder: (BuildContext context, GoRouterState state) {
+            final Map<String, dynamic> extra =
+                state.extra! as Map<String, dynamic>;
+            final LobbyData lobbyData = extra['data'] as LobbyData;
+            final String inviteCode = extra['code'] as String? ?? '';
+            return NoTransitionPage(
+              child: BlocProvider<QuizBloc>(
+                create: (BuildContext context) =>
+                    QuizBloc(repository: getIt<ContentRepository>())
+                      ..add(InitQuiz(lobbyData, inviteCode: inviteCode)),
+                child: const QuizView(),
+              ),
+            );
+          },
+        ),
+        // 콘텐츠 진행 - 바로 오픈 화면
+        GoRoute(
+          path: '/content/unboxing',
+          pageBuilder: (BuildContext context, GoRouterState state) {
+            final Map<String, dynamic> extra =
+                state.extra! as Map<String, dynamic>;
+            final LobbyData lobbyData = extra['data'] as LobbyData;
+            final String inviteCode = extra['code'] as String? ?? '';
+            return NoTransitionPage(
+              child: MultiBlocProvider(
+                providers: <BlocProvider<dynamic>>[
+                  BlocProvider<LobbyBloc>(
+                    create: (BuildContext context) =>
+                        LobbyBloc(repository: getIt<LobbyRepository>())..add(
+                          InitLobbyWithData(data: lobbyData, code: inviteCode),
+                        ),
+                  ),
+                  BlocProvider<UnboxingBloc>(
+                    create: (BuildContext context) => UnboxingBloc(
+                      repository: getIt<ContentRepository>(),
+                    )..add(InitUnboxing(lobbyData, inviteCode: inviteCode)),
+                  ),
+                ],
+                child: const UnboxingView(),
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+    // 선물 포장하기 전체 플로우 (ShellRoute로 묶어 GiftPackagingBloc 상태 유지)
+    ShellRoute(
+      builder: (BuildContext context, GoRouterState state, Widget child) {
+        return MultiBlocProvider(
+          providers: <BlocProvider<dynamic>>[
+            BlocProvider<GiftPackagingBloc>.value(value: giftPackagingBloc),
+            BlocProvider<BgmPresetBloc>(
+              create: (_) => BgmPresetBloc()..add(FetchBgmPresets()),
+            ),
+          ],
+          child: child,
+        );
+      },
+      routes: <RouteBase>[
+        // 선물 포장 - 진입 화면 (mode=ai면 AI 소개, 아니면 직접 입력)
         GoRoute(
           path: '/addgift',
-          builder: (BuildContext context, GoRouterState state) {
+          pageBuilder: (BuildContext context, GoRouterState state) {
             final String? mode = state.uri.queryParameters['mode'];
             final bool resume = state.uri.queryParameters['resume'] == 'true';
-
-            // AI 추천 모드: 설문 → curate 호출 → BLoC 프리필 → 최종 확인/수정 플로우 진입
             if (mode == 'ai') {
-              return const AiTemplateSurveyView();
+              return const NoTransitionPage<void>(child: AiTemplateSurveyView());
             }
-
-            // 수동 / 혹은 AI 결과 수정 위해 복귀(resume=true)한 경우
-            return ReceiverNameView(resetOnEnter: !resume);
+            return NoTransitionPage<void>(
+              child: ReceiverNameView(resetOnEnter: !resume),
+            );
           },
         ),
         // AI 추천 결과(혹은 수동 입력값) 최종 확인 화면
         GoRoute(
           path: '/addgift/final-review',
-          builder: (BuildContext context, GoRouterState state) {
+          pageBuilder: (BuildContext context, GoRouterState state) {
             final bool fromAi = state.uri.queryParameters['fromAi'] == 'true';
-            return FinalReviewView(fromAi: fromAi);
+            return NoTransitionPage<void>(
+              child: FinalReviewView(fromAi: fromAi),
+            );
           },
         ),
         // 선물 포장 - 추억 공유 여부 선택 화면
         GoRoute(
           path: '/addgift/memory-decision',
-          builder: (BuildContext context, GoRouterState state) =>
-              const MemoryDecisionView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: MemoryDecisionView()),
         ),
         // 선물 포장 - 추억 갤러리 셋팅 화면 (추억 저장하는 공간)
         GoRoute(
           path: '/addgift/memory-gallery',
-          builder: (BuildContext context, GoRouterState state) =>
-              const MemoryGallerySettingView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: MemoryGallerySettingView()),
         ),
         // 선물 포장 - 선물 전달 방식(오픈 콘텐츠) 선택 화면
         GoRoute(
           path: '/addgift/delivery-method',
-          builder: (BuildContext context, GoRouterState state) =>
-              const GiftDeliveryMethodView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: GiftDeliveryMethodView()),
         ),
         // 선물 포장 - 가차(캡슐 뽑기) 세팅 화면
         GoRoute(
           path: '/addgift/gacha-setting',
-          builder: (BuildContext context, GoRouterState state) =>
-              const GachaSettingView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: GachaSettingView()),
         ),
         // 선물 포장 - 퀴즈 세팅 화면
         GoRoute(
           path: '/addgift/quiz-setting',
-          builder: (BuildContext context, GoRouterState state) =>
-              const QuizSettingView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: QuizSettingView()),
         ),
         // 선물 포장 - 바로 오픈 세팅 화면
         GoRoute(
           path: '/addgift/direct-open-setting',
-          builder: (BuildContext context, GoRouterState state) =>
-              const DirectOpenSettingView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: DirectOpenSettingView()),
         ),
         // 선물 포장 - 등록 완료 화면
         GoRoute(
           path: '/addgift/package-complete',
-          builder: (BuildContext context, GoRouterState state) =>
-              const PackageCompleteView(),
+          pageBuilder: (BuildContext context, GoRouterState state) =>
+              const NoTransitionPage<void>(child: PackageCompleteView()),
         ),
       ],
     ),

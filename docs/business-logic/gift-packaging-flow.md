@@ -57,12 +57,13 @@
     1. emit(state.copyWith(submitStatus: SubmitStatus.loading))
     2. GiftRequest 조립
     3. GiftRequest.toJson() → Map<String, dynamic>
-    4. api.createGift(jsonMap)  // POST /api/events
-    5a. 성공: emit(submitStatus: SubmitStatus.success)
-    5b. 실패: emit(submitStatus: SubmitStatus.failure)
+    - api.createGift(jsonMap)  // POST /api/events
+    - 응답 데이터에서 `eventUrl` 및 `eventCode` 파싱
+    - 성공: `emit(state.copyWith(submitStatus: SubmitStatus.success, shareUrl: url, shareCode: code))`
+    - 실패: `emit(state.copyWith(submitStatus: SubmitStatus.failure))`
 
   View(BlocListener):
-    - success → 완료 UI 표시, isPackageComplete = true
+    - success → 완료 UI 표시 (초대코드 및 공유 버튼 활성화)
     - failure → 에러 토스트
 ```
 
@@ -79,6 +80,8 @@ class GiftPackagingState {
   QuizContent? quizContent;    // null (미선택 또는 퀴즈 미설정)
   UnboxingContent? unboxingContent;  // null (미선택 또는 언박싱 미설정)
   SubmitStatus submitStatus;   // idle → loading → success/failure
+  String shareCode;            // 생성된 초대 코드
+  String shareUrl;             // 생성된 공유 링크
 }
 ```
 

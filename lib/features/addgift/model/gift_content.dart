@@ -11,6 +11,8 @@ part 'gift_content.g.dart';
 // 실제 전송 시 선택된 콘텐츠만 non-null
 @freezed
 abstract class GiftContent with _$GiftContent {
+  // ignore: invalid_annotation_target
+  @JsonSerializable(explicitToJson: true)
   const factory GiftContent({
     GachaContent? gacha,
     QuizContent? quiz,

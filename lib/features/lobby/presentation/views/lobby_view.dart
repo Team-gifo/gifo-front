@@ -1,5 +1,6 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -7,19 +8,169 @@ import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/center_burst_confetti_widget.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
+import '../../../content/application/content_audio/content_audio_bloc.dart';
+import '../../../content/presentation/widgets/content_audio_toggle.dart';
+import '../../application/lobby_bloc.dart';
 import '../../model/lobby_data.dart';
 
-class LobbyView extends StatefulWidget {
+class LobbyView extends StatelessWidget {
+  final String code;
+
+  const LobbyView({super.key, required this.code});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<LobbyBloc, LobbyState>(
+      builder: (BuildContext context, LobbyState state) {
+        // 로딩 중 또는 idle 상태: 로딩 화면 표시
+        if (state.status == LobbyStatus.loading ||
+            state.status == LobbyStatus.idle) {
+          return _LoadingView();
+        }
+
+        // 코드가 유효하지 않거나 서버 오류 시 에러 화면 표시
+        if (state.status == LobbyStatus.failure) {
+          return _ErrorView(
+            message: state.errorMessage ?? '알 수 없는 오류가 발생했습니다.',
+            onRetry: () => context.go('/'),
+          );
+        }
+
+        // 데이터 수신 완료: 실제 로비 화면 렌더링
+        final LobbyData data = state.lobbyData!;
+        return BlocListener<LobbyBloc, LobbyState>(
+          listenWhen: (LobbyState prev, LobbyState curr) =>
+              prev.lobbyData == null && curr.lobbyData != null,
+          listener: (BuildContext context, LobbyState state) {
+            final String? bgmUrl = state.lobbyData?.bgm;
+            if (bgmUrl != null && bgmUrl.isNotEmpty) {
+              context.read<ContentAudioBloc>().add(InitContentAudio(bgmUrl));
+            }
+          },
+          child: _LobbyContent(data: data, code: code),
+        );
+      },
+    );
+  }
+}
+
+// -------------------------------------------------------
+// 데이터 로딩 중 표시되는 progress 화면
+// -------------------------------------------------------
+class _LoadingView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.darkBg,
+      body: Stack(
+        children: <Widget>[
+          Positioned.fill(child: CustomPaint(painter: GridBackgroundPainter())),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                // 로고 이미지
+                Image.asset(
+                  'assets/images/title_logo.png',
+                  height: 50,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 48),
+                // 로딩 인디케이터
+                const SizedBox(
+                  width: 32,
+                  height: 32,
+                  child: CircularProgressIndicator(
+                    color: AppColors.neonPurple,
+                    strokeWidth: 2.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  '선물을 준비중입니다..',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                    fontFamily: 'WantedSans',
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// -------------------------------------------------------
+// 코드 오류 또는 서버 오류 시 표시되는 화면
+// -------------------------------------------------------
+class _ErrorView extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _ErrorView({required this.message, required this.onRetry});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.darkBg,
+      body: Stack(
+        children: <Widget>[
+          Positioned.fill(child: CustomPaint(painter: GridBackgroundPainter())),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.redAccent,
+                  size: 48,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 16,
+                    fontFamily: 'WantedSans',
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton(
+                  onPressed: onRetry,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.neonPurple,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('홈으로 돌아가기'),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// -------------------------------------------------------
+// 실제 로비 콘텐츠 (API 데이터 수신 완료 후 렌더링)
+// -------------------------------------------------------
+class _LobbyContent extends StatefulWidget {
   final LobbyData data;
   final String code;
 
-  const LobbyView({super.key, required this.data, required this.code});
+  const _LobbyContent({required this.data, required this.code});
 
   @override
-  State<LobbyView> createState() => _LobbyViewState();
+  State<_LobbyContent> createState() => _LobbyContentState();
 }
 
-class _LobbyViewState extends State<LobbyView> {
+class _LobbyContentState extends State<_LobbyContent> {
   int _currentTypingIndex = 0;
   bool _showConfetti = false;
 
@@ -41,17 +192,16 @@ class _LobbyViewState extends State<LobbyView> {
 
     return Title(
       title: 'Happy Birthday, ${widget.data.user} | Gifo',
-      color: Colors.black, // Android 테스크 매니저 등에서 사용되는 테마 색상
+      color: Colors.black,
       child: Scaffold(
         backgroundColor: AppColors.darkBg,
         body: SafeArea(
           child: Stack(
             children: <Widget>[
-              // 배경 그리드 패턴 추가
               Positioned.fill(
                 child: CustomPaint(painter: GridBackgroundPainter()),
               ),
-              // 타이핑 애니메이션 종료 후 중앙에서 터지는 폭죽 애니메이션
+              // 타이핑 애니메이션 종료 후 중앙 폭죽 애니메이션
               if (_showConfetti)
                 const Align(
                   alignment: Alignment.center,
@@ -63,7 +213,7 @@ class _LobbyViewState extends State<LobbyView> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      // 0. 메인 로고 (타이핑 완료 후 버튼과 함께 노출, 애니메이션 X)
+                      // 폭죽 터진 후 메인 로고 표시
                       if (_showConfetti) ...<Widget>[
                         MouseRegion(
                           cursor: SystemMouseCursors.click,
@@ -88,7 +238,7 @@ class _LobbyViewState extends State<LobbyView> {
                         ),
                         SizedBox(height: distLogoToText),
                       ],
-                      // 1. 상단 텍스트 타이핑 영역 (순차적 실행)
+                      // 1단계: "Happy Birthday," 타이핑 애니메이션
                       if (_currentTypingIndex >= 0)
                         AnimatedTextKit(
                           animatedTexts: <AnimatedText>[
@@ -112,19 +262,18 @@ class _LobbyViewState extends State<LobbyView> {
                             });
                           },
                         ),
+                      // 2단계: 이름 타이핑 애니메이션
                       if (_currentTypingIndex >= 1)
                         AnimatedTextKit(
                           animatedTexts: <AnimatedText>[
                             TyperAnimatedText(
                               '${widget.data.user}!',
-                              speed: const Duration(
-                                milliseconds: 80,
-                              ), // 이름은 약간 더 천천히 타이핑
+                              speed: const Duration(milliseconds: 80),
                               textStyle: TextStyle(
                                 fontSize: nameFontSize,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.orange, // 이름을 주황색으로 강조
-                                fontFamily: 'WantedSans', // 원티드 산스 폰트 적용
+                                color: Colors.orange,
+                                fontFamily: 'WantedSans',
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -134,55 +283,20 @@ class _LobbyViewState extends State<LobbyView> {
                           pause: Duration.zero,
                           onFinished: () {
                             setState(() {
-                              // 애니메이션 최종 완료 후 폭죽 터뜨림
                               _showConfetti = true;
                             });
                           },
                         ),
-                      // 2. 입장하기 버튼 (페이드인 애니메이션 적용)
+                      // 입장 버튼 (폭죽 완료 후 페이드인)
                       AnimatedSwitcher(
-                        duration: const Duration(
-                          milliseconds: 1500,
-                        ), // 1.5초 동안 서서히 등장
+                        duration: const Duration(milliseconds: 1500),
                         child: _showConfetti
                             ? Column(
                                 key: const ValueKey('lobby_enter_button'),
                                 children: <Widget>[
                                   SizedBox(height: distTextToButton),
                                   ElevatedButton(
-                                    onPressed: () {
-                                      // 갤러리 데이터 존재 여부 판단
-                                      if (widget.data.gallery.isNotEmpty) {
-                                        context.push(
-                                          '/memory-gallery',
-                                          extra: widget.code,
-                                        );
-                                      } else if (widget.data.content != null) {
-                                        // 추억 갤러리 스킵 후 바로 콘텐츠로 이동
-                                        if (widget.data.content!.gacha !=
-                                            null) {
-                                          context.push(
-                                            '/content/gacha',
-                                            extra: widget.code,
-                                          );
-                                        } else if (widget.data.content!.quiz !=
-                                            null) {
-                                          context.push(
-                                            '/content/quiz',
-                                            extra: widget.code,
-                                          );
-                                        } else if (widget
-                                                .data
-                                                .content!
-                                                .unboxing !=
-                                            null) {
-                                          context.push(
-                                            '/content/unboxing',
-                                            extra: widget.code,
-                                          ); // 차후 생성될 뷰 가정
-                                        }
-                                      }
-                                    },
+                                    onPressed: () => _onEnterPressed(context),
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.neonPurple,
                                       foregroundColor: Colors.white,
@@ -194,7 +308,7 @@ class _LobbyViewState extends State<LobbyView> {
                                         side: const BorderSide(
                                           color: Colors.white,
                                           width: 2,
-                                        ), // 네온 스타일 보더
+                                        ),
                                         borderRadius: BorderRadius.circular(
                                           12.0,
                                         ),
@@ -218,7 +332,6 @@ class _LobbyViewState extends State<LobbyView> {
                   ),
                 ),
               ),
-              // 하단 푸터 (저작권 표시) 영역
               const Positioned(
                 bottom: 20,
                 left: 0,
@@ -229,10 +342,38 @@ class _LobbyViewState extends State<LobbyView> {
                   style: TextStyle(color: Colors.white54, fontSize: 12),
                 ),
               ),
+              // 우측 상단 BGM 온/오프 토글
+              const Positioned(
+                top: 10,
+                right: 10,
+                child: ContentAudioToggle(),
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  // 컨텐츠 타입에 따라 해당 화면으로 이동 (extra에 LobbyData와 code를 Map으로 전달)
+  void _onEnterPressed(BuildContext context) {
+    final LobbyData data = widget.data;
+    final Map<String, dynamic> extra = <String, dynamic>{
+      'data': data,
+      'code': widget.code,
+    };
+
+    if (data.gallery.isNotEmpty) {
+      context.push('/memory-gallery', extra: extra);
+    } else if (data.content != null) {
+      final LobbyContent content = data.content!;
+      if (content.gacha != null) {
+        context.push('/content/gacha', extra: extra);
+      } else if (content.quiz != null) {
+        context.push('/content/quiz', extra: extra);
+      } else if (content.unboxing != null) {
+        context.push('/content/unboxing', extra: extra);
+      }
+    }
   }
 }

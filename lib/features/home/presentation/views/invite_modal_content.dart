@@ -7,7 +7,9 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/di/service_locator.dart';
 import '../../../lobby/application/lobby_bloc.dart';
+import '../../../lobby/repository/lobby_repository.dart';
 
 class InviteModalContent extends StatelessWidget {
   const InviteModalContent({super.key});
@@ -16,7 +18,7 @@ class InviteModalContent extends StatelessWidget {
   Widget build(BuildContext context) {
     // LobbyBloc을 이 위젯 트리에 주입 (모달 단위 스코프)
     return BlocProvider(
-      create: (_) => LobbyBloc(),
+      create: (_) => LobbyBloc(repository: getIt<LobbyRepository>()),
       child: const _InviteModalBody(),
     );
   }
@@ -65,6 +67,12 @@ class _InviteModalBodyState extends State<_InviteModalBody>
     if (_isInputEmpty != isEmpty) {
       setState(() => _isInputEmpty = isEmpty);
     }
+
+    // 에러 상태인 경우, 텍스트가 변경되면 LobbyBloc 상태를 초기화하여 에러 UI를 원상복귀 시킴
+    final LobbyBloc bloc = context.read<LobbyBloc>();
+    if (bloc.state.status == LobbyStatus.failure) {
+      bloc.add(ResetLobby());
+    }
   }
 
   @override
@@ -91,7 +99,7 @@ class _InviteModalBodyState extends State<_InviteModalBody>
   void _handleEnter() {
     final String code = _codeController.text.trim();
     if (code.isEmpty) return;
-    context.read<LobbyBloc>().add(SubmitInviteCode(code));
+    context.read<LobbyBloc>().add(FetchLobbyData(code));
   }
 
   // 유효한 코드를 새 창으로 열기 (/gift/code/{code})
@@ -100,6 +108,7 @@ class _InviteModalBodyState extends State<_InviteModalBody>
     if (context.mounted) context.pop();
 
     final Uri giftUrl = Uri.base.resolve('/gift/code/$code');
+
     if (await canLaunchUrl(giftUrl)) {
       unawaited(launchUrl(giftUrl, webOnlyWindowName: '_blank'));
     } else {
@@ -113,14 +122,14 @@ class _InviteModalBodyState extends State<_InviteModalBody>
     return BlocConsumer<LobbyBloc, LobbyState>(
       // 상태 변화에 따른 사이드 이펙트 처리
       listener: (BuildContext context, LobbyState state) {
-        if (state.status == LobbyCodeStatus.valid &&
+        if (state.status == LobbyStatus.success &&
             state.validatedCode != null) {
           _openGiftPage(context, state.validatedCode!);
         }
       },
       builder: (BuildContext context, LobbyState state) {
-        final bool isLoading = state.status == LobbyCodeStatus.loading;
-        final bool hasError = state.status == LobbyCodeStatus.invalid;
+        final bool isLoading = state.status == LobbyStatus.loading;
+        final bool hasError = state.status == LobbyStatus.failure;
 
         return AnimatedBuilder(
           animation: _glowController,

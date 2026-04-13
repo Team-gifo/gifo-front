@@ -44,6 +44,8 @@ final GetIt getIt = GetIt.instance;
 void setupServiceLocator() {
   // ...Dio 설정...
   getIt.registerLazySingleton<AddGiftApi>(() => AddGiftApi(dio));
+  getIt.registerLazySingleton<LobbyRepository>(() => LobbyRepository(LobbyApi(dio)));
+  getIt.registerLazySingleton<ContentRepository>(() => ContentRepository(ContentApi(dio)));
 }
 ```
 
@@ -80,7 +82,29 @@ abstract class AddGiftApi {
 
 **파일:** `lib/features/content/repository/content_api.dart`
 
-현재 GetIt에 미등록 (TODO). 추후 서버에서 컨텐츠를 불러올 때 사용 예정.
+```dart
+@RestApi()
+abstract class ContentApi {
+  // 퀴즈 답안 제출
+  @POST('/api/events/{eventUrl}/quiz/answer')
+  @Headers(<String, dynamic>{'Content-Type': 'application/json'})
+  Future<QuizAnswerResponse> submitQuizAnswer(
+    @Path('eventUrl') String eventUrl,
+    @Body() QuizAnswerRequest request,
+  );
+
+  // 퀴즈 결과 조회
+  @POST('/api/events/{eventUrl}/quiz/result')
+  @Headers(<String, dynamic>{'Content-Type': 'application/json'})
+  Future<QuizResultResponse> getQuizResult(
+    @Path('eventUrl') String eventUrl,
+  );
+}
+```
+
+- `@Headers`: 특정 모델(Freezed)을 전송할 때 Dio가 Content-Type을 누락하는 경우를 대비해 명시적으로 `application/json` 설정.
+- `@Path`: URL 경로 내의 `{eventUrl}` 변수를 매핑.
+- `@Body`: `toJson()`이 구현된 모델 객체를 JSON으로 자동 변환.
 
 ## 요청 데이터 구조
 

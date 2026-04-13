@@ -89,10 +89,11 @@ lib/features/content/application/quiz/quiz_bloc.dart
 lib/features/content/application/unboxing/unboxing_bloc.dart
 
 # 로비
-lib/features/lobby/model/lobby_data.dart                   # 더미 데이터 + 코드 검증
+lib/features/lobby/model/lobby_data.dart                   # 로비 데이터 모델 및 공용 데이터 스토어
 lib/features/lobby/application/lobby_bloc.dart
 
 # 상수/공통
 lib/core/constants/app_colors.dart
 lib/core/constants/app_breakpoints.dart
+lib/core/widgets/gift_image_widget.dart                     # 공용 이미지 처리 (Fallback/Error)
 ```

@@ -1,11 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
+
 import 'package:flutter/material.dart';
-import '../../../../core/widgets/seo_image.dart';
-import '../../../../core/widgets/seo_text.dart';
 import 'package:toastification/toastification.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -13,6 +10,8 @@ import 'package:visibility_detector/visibility_detector.dart';
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
+import '../../../../core/widgets/seo_image.dart';
+import '../../../../core/widgets/seo_text.dart';
 import 'gift_mode_modal.dart';
 import 'invite_modal_content.dart';
 
@@ -106,11 +105,11 @@ class _HomeViewState extends State<HomeView>
     if (!_isScrolling) {
       int newSection = 0;
       for (int i = 0; i < _sectionKeys.length; i++) {
-        final context = _sectionKeys[i].currentContext;
+        final BuildContext? context = _sectionKeys[i].currentContext;
         if (context != null) {
-          final box = context.findRenderObject() as RenderBox?;
+          final RenderBox? box = context.findRenderObject() as RenderBox?;
           if (box != null) {
-            final dy = box.localToGlobal(Offset.zero, ancestor: null).dy;
+            final double dy = box.localToGlobal(Offset.zero, ancestor: null).dy;
             if (dy < 400) {
               newSection = i;
             }
@@ -146,10 +145,10 @@ class _HomeViewState extends State<HomeView>
     if (_isScrolling) return;
     if (index < 0 || index >= _sectionKeys.length) return;
 
-    final context = _sectionKeys[index].currentContext;
+    final BuildContext? context = _sectionKeys[index].currentContext;
     if (context == null) return;
 
-    final box = context.findRenderObject() as RenderBox?;
+    final RenderBox? box = context.findRenderObject() as RenderBox?;
     if (box == null) return;
 
     // AppBar 높이(80.0)를 빼주어 정확한 스크롤 offset 위치 보정
@@ -182,12 +181,12 @@ class _HomeViewState extends State<HomeView>
     showDialog(
       context: context,
       barrierColor: Colors.black87,
-      builder: (context) {
+      builder: (BuildContext context) {
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
           child: const Dialog(
             backgroundColor: Colors.transparent,
-            insetPadding: const EdgeInsets.symmetric(horizontal: 16),
+            insetPadding: EdgeInsets.symmetric(horizontal: 16),
             child: InviteModalContent(),
           ),
         );
@@ -203,7 +202,7 @@ class _HomeViewState extends State<HomeView>
     showDialog(
       context: context,
       barrierColor: Colors.black87,
-      builder: (context) {
+      builder: (BuildContext context) {
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
           child: Dialog(
@@ -278,7 +277,7 @@ class _HomeViewState extends State<HomeView>
             ),
           ),
           body: Stack(
-            children: [
+            children: <Widget>[
               // 그리드 배경
               Positioned.fill(
                 child: CustomPaint(painter: GridBackgroundPainter()),
@@ -288,7 +287,7 @@ class _HomeViewState extends State<HomeView>
                 controller: _scrollController,
                 // 기본 스크롤 방식 적용 (기존 NeverScrollableScrollPhysics 제거)
                 physics: const BouncingScrollPhysics(),
-                slivers: [
+                slivers: <Widget>[
                   SliverAppBar(
                     pinned: !isMobile, // 데스크톱/태블릿은 상단 고정, 모바일은 스크롤 시 위로 숨김
                     floating: isMobile, // 스크롤 시 위로 숨김 모션 (모바일만)
@@ -298,7 +297,7 @@ class _HomeViewState extends State<HomeView>
                     surfaceTintColor: Colors.transparent,
                     elevation: 0,
                     automaticallyImplyLeading: false,
-                    actions: const [],
+                    actions: const <Widget>[],
                     flexibleSpace: ClipRect(
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -360,7 +359,7 @@ class _HomeViewState extends State<HomeView>
                                             color: AppColors.neonPurple,
                                             width: 2,
                                           ),
-                                          boxShadow: [
+                                          boxShadow: <BoxShadow>[
                                             BoxShadow(
                                               color: AppColors.neonPurple
                                                   .withValues(alpha: 0.3),
@@ -370,7 +369,7 @@ class _HomeViewState extends State<HomeView>
                                         ),
                                         child: const Row(
                                           mainAxisSize: MainAxisSize.min,
-                                          children: [
+                                          children: <Widget>[
                                             Icon(
                                               Icons.vpn_key_outlined,
                                               color: AppColors.neonPurpleLight,
@@ -399,7 +398,7 @@ class _HomeViewState extends State<HomeView>
                             // 모바일/태블릿용 버튼 구성
                             Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: [
+                              children: <Widget>[
                                 // 초대코드 입력 아이콘 (스크롤 시 노출)
                                 AnimatedOpacity(
                                   opacity: _showAppBarAction ? 1.0 : 0.0,
@@ -435,7 +434,7 @@ class _HomeViewState extends State<HomeView>
                   ),
                   SliverToBoxAdapter(
                     child: Column(
-                      children: [
+                      children: <Widget>[
                         // ---- 1. 메인 히어로 섹션 ----
                         Container(
                           key: _sectionKeys[0],
@@ -444,11 +443,11 @@ class _HomeViewState extends State<HomeView>
                           clipBehavior: Clip.none, // 이미지가 컨테이너 영역을 살짝 넘어가도 보이도록
                           child: Stack(
                             alignment: Alignment.center,
-                            children: [
+                            children: <Widget>[
                               // 1) 좌측 떠다니는 선물 상자 (약간 위쪽)
                               AnimatedBuilder(
                                 animation: _floatingAnimation1,
-                                builder: (context, child) {
+                                builder: (BuildContext context, Widget? child) {
                                   return Positioned(
                                     left: isMobile ? -30 : 60,
                                     top: (isMobile || isTablet)
@@ -478,7 +477,7 @@ class _HomeViewState extends State<HomeView>
                               // 2) 우측 떠다니는 선물 상자 (약간 아래쪽)
                               AnimatedBuilder(
                                 animation: _floatingAnimation2,
-                                builder: (context, child) {
+                                builder: (BuildContext context, Widget? child) {
                                   return Positioned(
                                     right: isMobile ? -30 : 60,
                                     bottom: (isMobile || isTablet)
@@ -513,7 +512,7 @@ class _HomeViewState extends State<HomeView>
                                 ),
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
+                                  children: <Widget>[
                                     ScaleTransition(
                                       scale: _pulseAnimation,
                                       child: _buildMockPixelGiftBox(
@@ -562,7 +561,7 @@ class _HomeViewState extends State<HomeView>
                                           WrapCrossAlignment.center,
                                       spacing: 16,
                                       runSpacing: 16,
-                                      children: [
+                                      children: <Widget>[
                                         // 선물 포장하기 버튼
                                         SelectionContainer.disabled(
                                           child: GestureDetector(
@@ -591,7 +590,7 @@ class _HomeViewState extends State<HomeView>
                                                   mainAxisSize: isMobile
                                                       ? MainAxisSize.max
                                                       : MainAxisSize.min,
-                                                  children: [
+                                                  children: <Widget>[
                                                     Icon(
                                                       Icons.redeem,
                                                       color: Colors.white,
@@ -638,7 +637,7 @@ class _HomeViewState extends State<HomeView>
                                                     color: AppColors.neonPurple,
                                                     width: isMobile ? 2 : 4,
                                                   ),
-                                                  boxShadow: [
+                                                  boxShadow: <BoxShadow>[
                                                     BoxShadow(
                                                       color: AppColors
                                                           .neonPurple
@@ -658,7 +657,7 @@ class _HomeViewState extends State<HomeView>
                                                   mainAxisSize: isMobile
                                                       ? MainAxisSize.max
                                                       : MainAxisSize.min,
-                                                  children: [
+                                                  children: <Widget>[
                                                     Icon(
                                                       Icons.vpn_key_outlined,
                                                       color: AppColors
@@ -705,7 +704,7 @@ class _HomeViewState extends State<HomeView>
                           color: Colors.black.withValues(alpha: 0.3),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
+                            children: <Widget>[
                               Container(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: isMobile ? 12 : 20,
@@ -716,7 +715,7 @@ class _HomeViewState extends State<HomeView>
                                     color: AppColors.neonPurple,
                                     width: 2,
                                   ),
-                                  boxShadow: [
+                                  boxShadow: <BoxShadow>[
                                     BoxShadow(
                                       color: AppColors.neonPurple.withValues(
                                         alpha: 0.2,
@@ -760,7 +759,7 @@ class _HomeViewState extends State<HomeView>
                                     color: Colors.white.withValues(alpha: 0.2),
                                     width: 2,
                                   ),
-                                  boxShadow: [
+                                  boxShadow: <BoxShadow>[
                                     BoxShadow(
                                       color: Colors.black.withValues(
                                         alpha: 0.6,
@@ -770,7 +769,7 @@ class _HomeViewState extends State<HomeView>
                                   ],
                                 ),
                                 child: Column(
-                                  children: [
+                                  children: <Widget>[
                                     Text(
                                       "선물은 진심을 담아 전할 때 비로소 가치가 빛납니다.\n최근 모바일 교환권으로 가볍게 주고받는 트렌드 속에서,\n우리는 점차 희미해져 가는 '진짜 선물의 의미'를 되찾고자 합니다.",
                                       style: TextStyle(
@@ -846,6 +845,8 @@ class _HomeViewState extends State<HomeView>
                           imagePaths: const <String>[
                             'assets/images/example/play_ex_1.png',
                             'assets/images/example/play_ex_2.png',
+                            'assets/images/example/play_ex_3.png',
+                            'assets/images/example/play_ex_4.png',
                           ],
                           reversed: true, // 이미지 좌측, 텍스트 우측
                         ),
@@ -865,12 +866,13 @@ class _HomeViewState extends State<HomeView>
                               '소중한 사람에게 영원히 기억될 선물을 전하세요.',
                           imagePlaceholderLabel: 'Gift Coupon',
                           imagePaths: const <String>[
-                            'assets/images/example/gift_ex.png',
+                            'assets/images/example/gift_ex_1.png',
+                            'assets/images/example/gift_ex_2.png',
                           ],
                         ),
 
                         // ---- 6. 하단 권유 섹션 ----
-                        Container(
+                        SizedBox(
                           key: _sectionKeys[5],
                           width: double.infinity,
                           height: sectionHeight,
@@ -884,7 +886,7 @@ class _HomeViewState extends State<HomeView>
                                 child: Center(
                                   child: Column(
                                     mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
+                                    children: <Widget>[
                                       Text(
                                         '지금 바로 특별한 선물을 준비해보세요.',
                                         style: TextStyle(
@@ -915,7 +917,7 @@ class _HomeViewState extends State<HomeView>
                                               WrapCrossAlignment.center,
                                           spacing: isMobile ? 0 : 20,
                                           runSpacing: 16,
-                                          children: [
+                                          children: <Widget>[
                                             // 1. 선물 포장하기 버튼
                                             GestureDetector(
                                               onTap: () =>
@@ -939,7 +941,7 @@ class _HomeViewState extends State<HomeView>
                                                       color: Colors.white,
                                                       width: isMobile ? 2 : 4,
                                                     ),
-                                                    boxShadow: [
+                                                    boxShadow: <BoxShadow>[
                                                       BoxShadow(
                                                         color: AppColors
                                                             .neonPurple
@@ -960,7 +962,7 @@ class _HomeViewState extends State<HomeView>
                                                     mainAxisSize: isMobile
                                                         ? MainAxisSize.max
                                                         : MainAxisSize.min,
-                                                    children: [
+                                                    children: <Widget>[
                                                       Icon(
                                                         Icons.redeem,
                                                         color: Colors.white,
@@ -1017,7 +1019,7 @@ class _HomeViewState extends State<HomeView>
                                                           AppColors.neonPurple,
                                                       width: isMobile ? 2 : 4,
                                                     ),
-                                                    boxShadow: [
+                                                    boxShadow: <BoxShadow>[
                                                       BoxShadow(
                                                         color: AppColors
                                                             .neonPurple
@@ -1038,7 +1040,7 @@ class _HomeViewState extends State<HomeView>
                                                     mainAxisSize: isMobile
                                                         ? MainAxisSize.max
                                                         : MainAxisSize.min,
-                                                    children: [
+                                                    children: <Widget>[
                                                       Icon(
                                                         Icons
                                                             .keyboard_arrow_up_rounded,
@@ -1103,7 +1105,7 @@ class _HomeViewState extends State<HomeView>
   Widget _buildNavMenu() {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         _navItem('HOME', index: 0),
         const SizedBox(width: 24),
         _navItem('INTRO', index: 1),
@@ -1167,7 +1169,7 @@ class _HomeViewState extends State<HomeView>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
+      builder: (BuildContext context) => Container(
         height: MediaQuery.of(context).size.height * 0.7,
         decoration: BoxDecoration(
           color: AppColors.darkBg,
@@ -1181,7 +1183,7 @@ class _HomeViewState extends State<HomeView>
           ),
         ),
         child: Column(
-          children: [
+          children: <Widget>[
             const SizedBox(height: 12),
             // 상단 핸들러 바
             Container(
@@ -1195,12 +1197,12 @@ class _HomeViewState extends State<HomeView>
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 SeoImage(
                   imagePath: 'assets/images/icons/app_icon.png',
                   alt: 'Gifo App Icon',
                   height: 32,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.palette),
+                  errorBuilder: (_, _, _) => const Icon(Icons.palette),
                 ),
                 const SizedBox(width: 12),
                 const Text(
@@ -1218,7 +1220,7 @@ class _HomeViewState extends State<HomeView>
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
-                  children: [
+                  children: <Widget>[
                     _navItem('HOME', index: 0, inDrawer: true),
                     _navItem('INTRO', index: 1, inDrawer: true),
                     _navItem('SURPRISE', index: 2, inDrawer: true),
@@ -1252,7 +1254,7 @@ class _HomeViewState extends State<HomeView>
                           child: const Center(
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: [
+                              children: <Widget>[
                                 Icon(
                                   Icons.vpn_key_outlined,
                                   color: AppColors.neonPurpleLight,
@@ -1298,13 +1300,13 @@ class _HomeViewState extends State<HomeView>
         horizontal: isMobile ? 24 : (isTablet ? 40 : 80),
       ),
       child: Column(
-        children: [
+        children: <Widget>[
           const Divider(color: Colors.white10),
           const SizedBox(height: 16),
           // 반응형 레이아웃: 모바일에서는 Column, 데스크톱/태블릿에서는 Row (공간이 허용되면)
           isMobile
               ? Column(
-                  children: [
+                  children: <Widget>[
                     _footerBranding(),
                     const SizedBox(height: 20),
                     _footerGitHubLink(),
@@ -1312,7 +1314,7 @@ class _HomeViewState extends State<HomeView>
                 )
               : Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [_footerBranding(), _footerGitHubLink()],
+                  children: <Widget>[_footerBranding(), _footerGitHubLink()],
                 ),
           const SizedBox(height: 24),
           const Text(
@@ -1331,7 +1333,7 @@ class _HomeViewState extends State<HomeView>
   Widget _footerBranding() {
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         SeoImage(
           imagePath: 'assets/images/icons/app_icon.png',
           alt: 'Gifo Footer Logo',
@@ -1364,7 +1366,7 @@ class _HomeViewState extends State<HomeView>
       },
       child: const Row(
         mainAxisSize: MainAxisSize.min,
-        children: [
+        children: <Widget>[
           Icon(Icons.code_rounded, color: Colors.white60, size: 16),
           SizedBox(width: 8),
           Text(
@@ -1394,7 +1396,7 @@ class _HomeViewState extends State<HomeView>
           color: AppColors.neonPurple,
           width: isMobile ? 3 : 4,
         ),
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: AppColors.neonPurple.withValues(alpha: 0.3),
             offset: const Offset(4, 4),
@@ -1405,7 +1407,7 @@ class _HomeViewState extends State<HomeView>
         child: Stack(
           alignment: Alignment.center,
           clipBehavior: Clip.none,
-          children: [
+          children: <Widget>[
             SizedBox(
               width: innerSize,
               height: innerSize,
@@ -1446,7 +1448,7 @@ class _SectionLayout extends StatefulWidget {
     required this.title,
     required this.description,
     required this.imagePlaceholderLabel,
-    this.imagePaths = const [],
+    this.imagePaths = const <String>[],
     this.reversed = false,
   });
 
@@ -1473,7 +1475,7 @@ class _SectionLayoutState extends State<_SectionLayout> {
 
   void _startAutoSlide() {
     _autoSlideTimer?.cancel();
-    _autoSlideTimer = Timer.periodic(const Duration(seconds: 4), (timer) {
+    _autoSlideTimer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
       if (!mounted || widget.imagePaths.length <= 1) return;
       // 항상 오른쪽으로만 이동 (정방향 무한 루프)
       _pageController.animateToPage(
@@ -1514,9 +1516,9 @@ class _SectionLayoutState extends State<_SectionLayout> {
   void _showFullScreenImage(BuildContext context, String path) {
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (BuildContext context) {
         return Stack(
-          children: [
+          children: <Widget>[
             GestureDetector(
               onTap: () => Navigator.pop(context),
               child: Container(color: Colors.black.withValues(alpha: 0.8)),
@@ -1562,7 +1564,7 @@ class _SectionLayoutState extends State<_SectionLayout> {
           ? Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
+              children: <Widget>[
                 imageBlock,
                 SizedBox(height: widget.isTablet ? 60 : 28),
                 // 텍스트 블록은 내부적으로 start 정렬을 유지하되 전체는 center
@@ -1578,14 +1580,14 @@ class _SectionLayoutState extends State<_SectionLayout> {
           : Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: widget.reversed
-                  ? [
+                  ? <Widget>[
                       // reversed: 이미지(좌) -> 텍스트(우) / 이미지 비중 확대 (5.5:4.5)
                       Expanded(flex: 6, child: Center(child: imageBlock)),
                       const SizedBox(width: 80),
                       Expanded(flex: 4, child: textBlock),
                       const SizedBox(width: 60), // 추가: 텍스트 우측 쏠림 방지
                     ]
-                  : [
+                  : <Widget>[
                       // normal: 텍스트(좌) -> 이미지(우) / 이미지 비중 확대 (5.5:4.5)
                       const SizedBox(width: 60), // 추가: 텍스트 좌측 쏠림 방지
                       Expanded(flex: 4, child: textBlock),
@@ -1613,7 +1615,7 @@ class _SectionLayoutState extends State<_SectionLayout> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: crossAlign,
-      children: [
+      children: <Widget>[
         // 태그 뱃지 (모바일/태블릿에서 center로 자동 배치됨)
         Container(
           padding: EdgeInsets.symmetric(
@@ -1622,7 +1624,7 @@ class _SectionLayoutState extends State<_SectionLayout> {
           ),
           decoration: BoxDecoration(
             border: Border.all(color: AppColors.neonPurple, width: 2),
-            boxShadow: [
+            boxShadow: <BoxShadow>[
               BoxShadow(
                 color: AppColors.neonPurple.withValues(alpha: 0.2),
                 offset: const Offset(3, 3),
@@ -1694,7 +1696,7 @@ class _SectionLayoutState extends State<_SectionLayout> {
           color: Colors.white.withValues(alpha: 0.15),
           width: 2,
         ),
-        boxShadow: [
+        boxShadow: <BoxShadow>[
           BoxShadow(
             color: AppColors.neonPurple.withValues(alpha: 0.15),
             offset: const Offset(8, 8),
@@ -1706,19 +1708,19 @@ class _SectionLayoutState extends State<_SectionLayout> {
           controller: _pageController,
           physics: const ClampingScrollPhysics(),
           scrollBehavior: const MaterialScrollBehavior().copyWith(
-            dragDevices: {
+            dragDevices: <PointerDeviceKind>{
               PointerDeviceKind.mouse,
               PointerDeviceKind.touch,
               PointerDeviceKind.trackpad,
             },
           ),
-          onPageChanged: (index) {
+          onPageChanged: (int index) {
             setState(() {
               _currentPage = index;
             });
           },
           itemCount: widget.imagePaths.length * _loopCount,
-          itemBuilder: (context, index) {
+          itemBuilder: (BuildContext context, int index) {
             final int rIdx = index % widget.imagePaths.length;
             return MouseRegion(
               cursor: SystemMouseCursors.click,
@@ -1741,10 +1743,10 @@ class _SectionLayoutState extends State<_SectionLayout> {
     // 전체 레이아웃: [좌화살표 - 이미지 - 우화살표] + 하단 인디케이터
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: [
+      children: <Widget>[
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: <Widget>[
             if (showArrows)
               _buildArrowButton(Icons.arrow_back_ios_new, _prevPage),
 
@@ -1767,13 +1769,13 @@ class _SectionLayoutState extends State<_SectionLayout> {
         ),
 
         // 하단 인디케이터 (영역 밖)
-        if (widget.imagePaths.length > 1) ...[
+        if (widget.imagePaths.length > 1) ...<Widget>[
           const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(
               widget.imagePaths.length,
-              (index) => Padding(
+              (int index) => Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 5),
                 child: Icon(
                   index == realIndex ? Icons.circle : Icons.circle_outlined,
@@ -1819,11 +1821,11 @@ class _SectionLayoutState extends State<_SectionLayout> {
           ),
           child: Stack(
             alignment: Alignment.center,
-            children: [
+            children: <Widget>[
               Positioned.fill(child: CustomPaint(painter: _DotGridPainter())),
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: [
+                children: <Widget>[
                   const Icon(
                     Icons.image_outlined,
                     size: 48,
@@ -1959,17 +1961,17 @@ class _TitleAndSubtitleAnimationState
 
     return VisibilityDetector(
       key: const Key('custom-typing-animation'),
-      onVisibilityChanged: (info) {
+      onVisibilityChanged: (VisibilityInfo info) {
         if (info.visibleFraction > 0.1 && !_hasStarted) {
           _runTypingSequence();
         }
       },
       child: Column(
-        children: [
+        children: <Widget>[
           // 레이아웃 쉬프트 방지용 Stack
           Stack(
             alignment: Alignment.center,
-            children: [
+            children: <Widget>[
               // 공간 확보용 (투명)
               Opacity(
                 opacity: 0.0,
