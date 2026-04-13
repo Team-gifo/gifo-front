@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../../../core/constants/app_colors.dart';
@@ -30,6 +31,8 @@ class _QuizEditFormState extends State<QuizEditForm> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _hintController = TextEditingController();
+  // 제출 횟수 입력 컨트롤러
+  final TextEditingController _playLimitController = TextEditingController();
 
   // 객관식 답변들 컨트롤러 목록
   final List<TextEditingController> _optionControllers =
@@ -49,6 +52,10 @@ class _QuizEditFormState extends State<QuizEditForm> {
     _titleController.text = _editingItem.title;
     _descController.text = _editingItem.description;
     _hintController.text = _editingItem.hint;
+    // playLimit이 1이면 힌트로만 표시하고 필드는 비워둠
+    if (_editingItem.playLimit > 1) {
+      _playLimitController.text = _editingItem.playLimit.toString();
+    }
 
     if (_editingItem.type == QuizType.multipleChoice) {
       if (_editingItem.options.isEmpty) {
@@ -91,6 +98,7 @@ class _QuizEditFormState extends State<QuizEditForm> {
     _titleController.dispose();
     _descController.dispose();
     _hintController.dispose();
+    _playLimitController.dispose();
     for (final TextEditingController c in _optionControllers) {
       c.dispose();
     }
@@ -134,6 +142,10 @@ class _QuizEditFormState extends State<QuizEditForm> {
           .where((String s) => s.isNotEmpty)
           .toList();
     }
+
+    // 빈 값이거나 0 이하인 경우 기본값 1 적용
+    final int parsedLimit = int.tryParse(_playLimitController.text.trim()) ?? 1;
+    _editingItem.playLimit = parsedLimit < 1 ? 1 : parsedLimit;
 
     widget.onSave(_editingItem);
   }
@@ -446,6 +458,39 @@ class _QuizEditFormState extends State<QuizEditForm> {
                       ],
                     ),
                   ],
+                  const SizedBox(height: 24),
+
+                  // 공통: 정답 제출 횟수 (퀴즈 유형 무관하게 항상 마지막에 배치)
+                  EditFormStyles.sectionTitle('정답 제출 횟수 (선택)'),
+                  TextField(
+                    controller: _playLimitController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontFamily: 'WantedSans',
+                    ),
+                    cursorColor: AppColors.neonPurple,
+                    decoration: EditFormStyles.inputDecoration('').copyWith(
+                      hintText: '숫자를 입력해주세요. (숫자 외 문자 입력 불가)',
+                      hintStyle: const TextStyle(
+                        color: Colors.white24,
+                        fontFamily: 'WantedSans',
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    '입력하지 않으면 기본 설정인 1회로 적용됩니다.',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.white38,
+                      fontFamily: 'WantedSans',
+                    ),
+                  ),
                   const SizedBox(height: 40),
                 ],
               ),
