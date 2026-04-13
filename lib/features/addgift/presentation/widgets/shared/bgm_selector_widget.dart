@@ -25,10 +25,27 @@ class _BgmSelectorWidgetState extends State<BgmSelectorWidget> {
   bool _autoSelected = false;
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tryAutoSelect();
+    });
+  }
+
+  @override
   void didUpdateWidget(BgmSelectorWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.selectedBgmId != oldWidget.selectedBgmId) {
       _autoSelected = false;
+    }
+  }
+
+  void _tryAutoSelect() {
+    if (_autoSelected || widget.selectedBgmId.isNotEmpty) return;
+    final BgmPresetState bgmState = context.read<BgmPresetBloc>().state;
+    if (bgmState.isLoaded && bgmState.presets.isNotEmpty) {
+      _autoSelected = true;
+      widget.onBgmChanged(bgmState.presets.first.id);
     }
   }
 

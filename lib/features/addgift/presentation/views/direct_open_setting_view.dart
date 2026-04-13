@@ -86,7 +86,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
       _afterNameController.text = afterItemName;
     }
 
-    final initialBgm = packagingState.bgm.isNotEmpty ? packagingState.bgm : '신나는 생일';
+    final String initialBgm = packagingState.bgm;
 
     context.read<DirectOpenSettingBloc>().add(InitDirectOpenSetting(
       initialBgm: initialBgm,
