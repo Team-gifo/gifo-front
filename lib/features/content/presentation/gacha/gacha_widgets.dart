@@ -1200,6 +1200,10 @@ class GachaPrizeListPanel extends StatelessWidget {
     final bool isLarge = screenWidth >= AppBreakpoints.desktop;
     final double scale = isLarge ? 1.2 : 1.0;
 
+    // 당첨 확률(percent) 기준 내림차순 정렬
+    final List<GachaItem> sortedItems = List<GachaItem>.from(items)
+      ..sort((GachaItem a, GachaItem b) => b.percent.compareTo(a.percent));
+
     return Container(
       width: isLarge ? 300 : double.infinity,
       padding: EdgeInsets.all(isLarge ? 24 : 20),
@@ -1245,7 +1249,7 @@ class GachaPrizeListPanel extends StatelessWidget {
           ),
           SizedBox(height: 20 * scale),
           Expanded(
-            child: items.isEmpty
+            child: sortedItems.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -1269,11 +1273,11 @@ class GachaPrizeListPanel extends StatelessWidget {
                   )
                 : ListView.separated(
                     padding: EdgeInsets.zero,
-                    itemCount: items.length,
+                    itemCount: sortedItems.length,
                     separatorBuilder: (BuildContext context, int index) =>
                         SizedBox(height: 12 * scale),
                     itemBuilder: (BuildContext context, int index) {
-                      final GachaItem item = items[index];
+                      final GachaItem item = sortedItems[index];
                       return Container(
                         padding: EdgeInsets.all(12 * scale),
                         decoration: BoxDecoration(
