@@ -116,7 +116,7 @@ class GiftDeliveryMethodView extends StatelessWidget {
     } else if (title == '문제 맞추기') {
       selectedType = ContentType.quiz;
       route = '/addgift/quiz-setting';
-    } else if (title == '바로 오픈') {
+    } else if (title == '서프라이즈') {
       selectedType = ContentType.unboxing;
       route = '/addgift/direct-open-setting';
     }
@@ -141,7 +141,7 @@ class GiftDeliveryMethodView extends StatelessWidget {
     String getName(ContentType type) {
       if (type == ContentType.gacha) return '캡슐 뽑기';
       if (type == ContentType.quiz) return '문제 맞추기';
-      if (type == ContentType.unboxing) return '바로 오픈';
+      if (type == ContentType.unboxing) return '서프라이즈';
       return '';
     }
 

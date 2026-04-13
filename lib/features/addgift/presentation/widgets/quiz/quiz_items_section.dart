@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:gifo/core/constants/app_colors.dart';
 
 import '../../../application/quiz_setting/quiz_setting_bloc.dart';
 import '../../../model/quiz_setting_models.dart';
@@ -65,9 +67,18 @@ class QuizItemsSection extends StatelessWidget {
                   const SizedBox(width: 8),
                 ],
                 Text(
-                  '$completedCount개 / $totalCount개',
+                  '$completedCount개',
                   style: TextStyle(
                     color: counterColor,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'PFStardust',
+                  ),
+                ),
+                Text(
+                  ' / $totalCount개',
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     fontFamily: 'PFStardust',
@@ -114,7 +125,7 @@ class QuizItemsSection extends StatelessWidget {
                   ),
                   icon: const Icon(Icons.delete_outline, size: 18),
                   label: const Text(
-                    '모두 제거',
+                    '초기화',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -187,25 +198,43 @@ class _QuizAddButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(8),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 24),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.15),
-            width: 1,
-          ),
         ),
-        child: const Column(
+        child: Stack(
           children: <Widget>[
-            Icon(Icons.add_circle_outline, color: Colors.white38, size: 28),
-            SizedBox(height: 8),
-            Text(
-              '문제 추가하기',
-              style: TextStyle(
-                color: Colors.white38,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _DashedRectPainter(
+                  color: AppColors.neonBlue,
+                  strokeWidth: 1.5,
+                  borderRadius: 8,
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                children: <Widget>[
+                  Center(
+                    child: Icon(
+                      Icons.add_circle_outline,
+                      color: AppColors.neonBlue,
+                      size: 28,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    '문제 추가하기',
+                    style: TextStyle(
+                      color: AppColors.neonBlue,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'WantedSans',
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -213,4 +242,61 @@ class _QuizAddButton extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DashedRectPainter extends CustomPainter {
+  _DashedRectPainter({
+    required this.color,
+    required this.strokeWidth,
+    required this.borderRadius,
+  });
+
+  final Color color;
+  final double strokeWidth;
+  final double borderRadius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Paint paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final RRect rrect = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(borderRadius),
+    );
+
+    final Path path = Path()..addRRect(rrect);
+
+    const double dashWidth = 8.0;
+    const double dashSpace = 4.0;
+
+    final Path dashPath = Path();
+    bool isDash = true;
+
+    for (final PathMetric metric in path.computeMetrics()) {
+      double distance = 0.0;
+      while (distance < metric.length) {
+        if (isDash) {
+          final double length = (distance + dashWidth < metric.length)
+              ? dashWidth
+              : metric.length - distance;
+          dashPath.addPath(
+            metric.extractPath(distance, distance + length),
+            Offset.zero,
+          );
+          distance += length;
+        } else {
+          distance += dashSpace;
+        }
+        isDash = !isDash;
+      }
+    }
+
+    canvas.drawPath(dashPath, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

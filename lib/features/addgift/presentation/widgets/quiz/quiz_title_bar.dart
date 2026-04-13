@@ -27,6 +27,10 @@ class QuizTitleBar extends StatelessWidget {
             decoration: InputDecoration(
               hintText: '닉네임',
               isDense: true,
+              hintStyle: const TextStyle(
+                color: Colors.white38,
+                fontFamily: 'WantedSans',
+              ),
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,
                 horizontal: 12,
@@ -53,7 +57,10 @@ class QuizTitleBar extends StatelessWidget {
                 ),
               ),
             ),
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+              color: AppColors.neonPurpleLight,
+              fontFamily: 'WantedSans',
+            ),
           ),
         ),
         const SizedBox(width: 8),
@@ -65,7 +72,10 @@ class QuizTitleBar extends StatelessWidget {
             controller: subTitleController,
             decoration: InputDecoration(
               hintText: '서브 타이틀',
-              hintStyle: const TextStyle(color: Colors.white38),
+              hintStyle: const TextStyle(
+                color: Colors.white38,
+                fontFamily: 'WantedSans',
+              ),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,
@@ -93,7 +103,10 @@ class QuizTitleBar extends StatelessWidget {
                 ),
               ),
             ),
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+              color: AppColors.neonPurpleLight,
+              fontFamily: 'WantedSans',
+            ),
           ),
         ),
         const SizedBox(width: 8),
