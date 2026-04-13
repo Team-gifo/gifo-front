@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/gift_image_widget.dart';
 import '../../../../core/widgets/shared_confetti_widget.dart';
 import '../../../lobby/application/lobby_bloc.dart';
 import '../../../lobby/model/lobby_data.dart';
@@ -115,9 +116,12 @@ class _GachaResultModalContent extends StatelessWidget {
                           ),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: item.imageUrl.startsWith('http')
-                            ? Image.network(item.imageUrl, fit: BoxFit.cover)
-                            : Image.asset(item.imageUrl, fit: BoxFit.cover),
+                        child: GiftImageWidget(
+                          imageUrl: item.imageUrl,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: isDesktop ? 400 : 300,
+                        ),
                       ),
                       const SizedBox(height: 20),
                       Text(

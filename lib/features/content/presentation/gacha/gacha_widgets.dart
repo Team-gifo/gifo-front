@@ -9,6 +9,7 @@ import '../../../../core/blocs/download/download_bloc.dart';
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/share_helper.dart';
+import '../../../../core/widgets/gift_image_widget.dart';
 import '../../../lobby/model/lobby_data.dart';
 import '../widgets/gifticon_frame.dart';
 
@@ -999,19 +1000,26 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
                             horizontal: 16,
                             vertical: 8,
                           ),
-                          leading: Container(
+                          leading: SizedBox(
                             width: 50 * scale,
                             height: 50 * scale,
-                            decoration: BoxDecoration(
+                            child: ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: AppColors.neonPurple.withValues(
-                                  alpha: 0.5,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: AppColors.neonPurple.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              image: DecorationImage(
-                                image: NetworkImage(item.imageUrl),
-                                fit: BoxFit.cover,
+                                child: GiftImageWidget(
+                                  imageUrl: item.imageUrl,
+                                  fit: BoxFit.cover,
+                                  width: 50 * scale,
+                                  height: 50 * scale,
+                                ),
                               ),
                             ),
                           ),
@@ -1184,17 +1192,24 @@ class GachaPrizeListPanel extends StatelessWidget {
                         ),
                         child: Row(
                           children: <Widget>[
-                            Container(
+                            SizedBox(
                               width: 44 * scale,
                               height: 44 * scale,
-                              decoration: BoxDecoration(
+                              child: ClipRRect(
                                 borderRadius: BorderRadius.circular(4),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                ),
-                                image: DecorationImage(
-                                  image: NetworkImage(item.imageUrl),
-                                  fit: BoxFit.cover,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(alpha: 0.1),
+                                    ),
+                                  ),
+                                  child: GiftImageWidget(
+                                    imageUrl: item.imageUrl,
+                                    fit: BoxFit.cover,
+                                    width: 44 * scale,
+                                    height: 44 * scale,
+                                  ),
                                 ),
                               ),
                             ),

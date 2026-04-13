@@ -79,6 +79,10 @@
   - [x] 텍스트 타이핑 효과 + 시차 폭죽 애니메이션 반영
   - [x] 다운로드 및 공유 기능 재구조화 (inviteCode 활용)
 - [x] 메인 로고 클릭 내비게이션 기능 (로비, 퀴즈, 결과 뷰 연동)
+- [x] 선물 오픈 플로우 이미지 처리 고도화 (`GiftImageWidget`)
+  - [x] 서버 이미지 URL이 공백인 경우 `default_box.svg` 대체 이미지 표시
+  - [x] 네트워크 에러 발생 시 "이미지를 받아오지 못했습니다" 위젯 표시
+  - [x] 적용 범위: ResultView, UnboxingView, GachaResultModal, GachaHistoryPanel, GachaPrizeListPanel
 
 ## URL 및 진입 처리
 
