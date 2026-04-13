@@ -75,7 +75,8 @@ class GachaMobileBottomBar extends StatelessWidget {
                             text: '${totalPercent.toStringAsFixed(2)}%',
                             style: TextStyle(
                               color:
-                                  (totalPercent >= 99.99 && totalPercent <= 100.01)
+                                  (totalPercent >= 99.99 &&
+                                      totalPercent <= 100.01)
                                   ? Colors.green
                                   : Colors.red,
                             ),
@@ -142,8 +143,9 @@ class GachaMobileBottomBar extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color:
-                              canComplete ? Colors.black : Colors.grey.shade500,
+                          color: canComplete
+                              ? Colors.black
+                              : Colors.grey.shade500,
                         ),
                       ),
                     ),

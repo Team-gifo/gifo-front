@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:gifo/core/constants/app_colors.dart';
 
 import '../../../application/gacha_setting/gacha_setting_bloc.dart';
 import 'gacha_capsule_item.dart';
@@ -278,13 +279,17 @@ class _CapsuleListContainer extends StatelessWidget {
                     Positioned.fill(
                       child: CustomPaint(
                         painter: _DashedCirclePainter(
-                          color: Colors.white38,
+                          color: AppColors.neonBlue,
                           strokeWidth: 1.5,
                         ),
                       ),
                     ),
                     const Center(
-                      child: Icon(Icons.add, color: Colors.white38, size: 32),
+                      child: Icon(
+                        Icons.add,
+                        color: AppColors.neonBlue,
+                        size: 32,
+                      ),
                     ),
                   ],
                 ),

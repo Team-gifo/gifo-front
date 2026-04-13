@@ -579,8 +579,8 @@ class QuizSettingsPanel extends StatelessWidget {
 
   Widget _buildConditionItem(String text, bool met) {
     final double itemBottomSpacing = isCompactDesktop ? 4 : 6;
-    final double iconSize = isCompactDesktop ? 11 : 12;
-    final double textSize = isCompactDesktop ? 12 : 13;
+    final double iconSize = isCompactDesktop ? 12 : 14;
+    final double textSize = isCompactDesktop ? 14 : 16;
 
     return Padding(
       padding: EdgeInsets.only(bottom: itemBottomSpacing),
@@ -597,6 +597,7 @@ class QuizSettingsPanel extends StatelessWidget {
               text,
               style: TextStyle(
                 fontSize: textSize,
+                fontFamily: 'WantedSans',
                 color: met ? Colors.greenAccent : Colors.white70,
               ),
             ),
