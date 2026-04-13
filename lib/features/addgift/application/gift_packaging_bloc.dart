@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:retrofit/dio.dart' show HttpResponse;
 
 import '../../../core/di/service_locator.dart';
+import '../model/bgm_preset.dart';
 import '../model/gacha_content.dart';
 import '../model/gallery_item.dart';
 import '../model/gift_content.dart';
@@ -15,12 +16,15 @@ import '../model/gift_request.dart';
 import '../model/quiz_content.dart';
 import '../model/unboxing_content.dart';
 import '../repository/addgift_api.dart';
+import 'bgm_preset/bgm_preset_bloc.dart';
 
 part 'gift_packaging_event.dart';
 part 'gift_packaging_state.dart';
 
 class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
-  GiftPackagingBloc() : super(GiftPackagingState.initial()) {
+  final BgmPresetBloc _bgmPresetBloc;
+
+  GiftPackagingBloc(this._bgmPresetBloc) : super(GiftPackagingState.initial()) {
     on<SetMode>(_onSetMode);
     on<SetReceiverName>(_onSetReceiverName);
     on<SetGalleryItems>(_onSetGalleryItems);
@@ -126,10 +130,20 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
       );
       debugPrint('[GiftPackagingBloc] 2/3 콘텐츠 이미지 업로드 완료');
 
+      // preset ID → URL 변환
+      String bgmUrl = event.bgm;
+      final List<BgmPreset> presets = _bgmPresetBloc.state.presets;
+      final Iterable<BgmPreset> matched =
+          presets.where((BgmPreset p) => p.id == event.bgm);
+      if (matched.isNotEmpty && matched.first.url.isNotEmpty) {
+        bgmUrl = matched.first.url;
+      }
+      debugPrint('[GiftPackagingBloc] BGM 변환: "${event.bgm}" → "$bgmUrl"');
+
       final GiftRequest request = GiftRequest(
         user: event.receiverName,
         subTitle: event.subTitle,
-        bgm: event.bgm,
+        bgm: bgmUrl,
         gallery: uploadedGallery,
         content: uploadedContent,
       );
