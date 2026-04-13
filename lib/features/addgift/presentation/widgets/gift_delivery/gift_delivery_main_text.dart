@@ -24,7 +24,7 @@ class GiftDeliveryMainText extends StatelessWidget {
               fontFamily: 'WantedSans',
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: AppColors.neonPurple,
+              color: AppColors.neonPurpleLight,
               height: 1.5,
             ),
           ),
