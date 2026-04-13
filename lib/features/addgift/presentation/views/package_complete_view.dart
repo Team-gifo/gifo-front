@@ -86,25 +86,63 @@ https://gifo.co.kr/gift/code/${state.shareCode}
                                   height: 150,
                                 ),
                                 const SizedBox(height: 32),
-                                const Text(
-                                  '선물 포장이 완료되었어요!',
-                                  style: TextStyle(
-                                    fontFamily: 'PFStardust',
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
+                                BlocBuilder<
+                                  GiftPackagingBloc,
+                                  GiftPackagingState
+                                >(
+                                  builder: (context, state) {
+                                    return Column(
+                                      children: [
+                                        RichText(
+                                          text: TextSpan(
+                                            children: [
+                                              TextSpan(
+                                                text: state.receiverName,
+                                                style: const TextStyle(
+                                                  fontFamily: 'WantedSans',
+                                                  fontSize: 28,
+                                                  fontWeight: FontWeight.bold,
+                                                  color:
+                                                      AppColors.neonPurpleLight,
+                                                ),
+                                              ),
+                                              const TextSpan(
+                                                text: ' 님의',
+                                                style: TextStyle(
+                                                  fontFamily: 'PFStardust',
+                                                  fontSize: 28,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        const Text(
+                                          '선물 포장이 완료되었어요!',
+                                          style: TextStyle(
+                                            fontFamily: 'PFStardust',
+                                            fontSize: 28,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 ),
-                                const SizedBox(height: 16),
+                                const SizedBox(height: 32),
                                 const Text(
-                                  '소중한 마음이 잘 전달될 거예요.',
+                                  "소중한 마음을 '공유하기'를 이용해서 전달해주세요.",
                                   style: TextStyle(
                                     fontFamily: 'WantedSans',
                                     fontSize: 16,
                                     color: Colors.white60,
                                   ),
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 32),
                                 BlocBuilder<
                                   GiftPackagingBloc,
                                   GiftPackagingState
