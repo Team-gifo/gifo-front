@@ -13,6 +13,7 @@ import '../../../../core/widgets/pixel_envelope_widget.dart';
 import '../../../lobby/application/lobby_bloc.dart';
 import '../../application/unboxing/unboxing_bloc.dart';
 import '../result/result_view.dart';
+import '../widgets/content_audio_toggle.dart';
 
 class UnboxingView extends StatefulWidget {
   const UnboxingView({super.key});
@@ -435,6 +436,8 @@ class _UnboxingViewState extends State<UnboxingView>
                   ),
                 ),
               ),
+            const Spacer(),
+            const ContentAudioToggle(),
           ],
         ),
       ),

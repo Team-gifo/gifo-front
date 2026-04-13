@@ -163,7 +163,8 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
       final Map<String, dynamic>? responseData = _toJsonMap(response.data);
       final Map<String, dynamic>? data = _toJsonMap(responseData?['data']);
       final String shareUrl = data?['eventUrl'] as String? ?? '';
-      final String shareCode = data?['eventCode'] as String? ??
+      final String shareCode =
+          data?['eventCode'] as String? ??
           (shareUrl.isNotEmpty ? shareUrl.split('/').last : '');
 
       if (shareUrl.isEmpty) {
@@ -209,8 +210,9 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
     final String rawName = path.split('/').last.split('?').first;
 
     final String mimeSubtype = _detectImageSubtype(bytes, rawName);
-    final String fileName =
-        rawName.contains('.') ? rawName : '$rawName.$mimeSubtype';
+    final String fileName = rawName.contains('.')
+        ? rawName
+        : '$rawName.$mimeSubtype';
     final MultipartFile multipartFile = MultipartFile.fromBytes(
       bytes,
       filename: fileName,

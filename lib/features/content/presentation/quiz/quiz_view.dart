@@ -10,6 +10,7 @@ import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../lobby/model/lobby_data.dart';
 import '../../application/quiz/quiz_bloc.dart';
 import '../result/result_view.dart';
+import '../widgets/content_audio_toggle.dart';
 
 class QuizView extends StatefulWidget {
   const QuizView({super.key});
@@ -305,6 +306,7 @@ class _QuizViewState extends State<QuizView>
           ],
         ),
         actions: <Widget>[
+          const ContentAudioToggle(),
           if (size.width >= AppBreakpoints.desktop)
             Padding(
               padding: const EdgeInsets.only(right: 32.0),

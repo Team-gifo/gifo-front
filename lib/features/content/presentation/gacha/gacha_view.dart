@@ -14,6 +14,7 @@ import '../../../lobby/model/lobby_data.dart';
 import '../../application/gacha/gacha_bloc.dart';
 import 'gacha_result_modal.dart';
 import 'gacha_widgets.dart';
+import '../widgets/content_audio_toggle.dart';
 
 // code 파라미터 제거: 라우터에서 BLoC 생성 시 InitGacha 이벤트가 먼저 발행됨
 class GachaView extends StatefulWidget {
@@ -258,6 +259,7 @@ class _GachaViewState extends State<GachaView> {
               ),
             ),
             const Spacer(),
+            const ContentAudioToggle(),
             // 데스크탑/태블릿(모바일 이외)에서 남은 횟수 표시
             if (!isMobileOrSmall) ...<Widget>[
               GachaRemainingBadge(count: state.remainingCount),

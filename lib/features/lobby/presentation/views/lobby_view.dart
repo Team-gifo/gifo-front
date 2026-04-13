@@ -8,6 +8,8 @@ import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/center_burst_confetti_widget.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
+import '../../../content/application/content_audio/content_audio_bloc.dart';
+import '../../../content/presentation/widgets/content_audio_toggle.dart';
 import '../../application/lobby_bloc.dart';
 import '../../model/lobby_data.dart';
 
@@ -36,7 +38,17 @@ class LobbyView extends StatelessWidget {
 
         // 데이터 수신 완료: 실제 로비 화면 렌더링
         final LobbyData data = state.lobbyData!;
-        return _LobbyContent(data: data, code: code);
+        return BlocListener<LobbyBloc, LobbyState>(
+          listenWhen: (LobbyState prev, LobbyState curr) =>
+              prev.lobbyData == null && curr.lobbyData != null,
+          listener: (BuildContext context, LobbyState state) {
+            final String? bgmUrl = state.lobbyData?.bgm;
+            if (bgmUrl != null && bgmUrl.isNotEmpty) {
+              context.read<ContentAudioBloc>().add(InitContentAudio(bgmUrl));
+            }
+          },
+          child: _LobbyContent(data: data, code: code),
+        );
       },
     );
   }
@@ -329,6 +341,12 @@ class _LobbyContentState extends State<_LobbyContent> {
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.white54, fontSize: 12),
                 ),
+              ),
+              // 우측 상단 BGM 온/오프 토글
+              const Positioned(
+                top: 10,
+                right: 10,
+                child: ContentAudioToggle(),
               ),
             ],
           ),
