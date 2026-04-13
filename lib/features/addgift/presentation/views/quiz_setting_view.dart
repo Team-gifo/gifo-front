@@ -129,9 +129,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
       _failRewardNameController.text = failReward.itemName;
     }
 
-    final initialBgm = packagingState.bgm.isNotEmpty
-        ? packagingState.bgm
-        : '신나는 생일';
+    final initialBgm = packagingState.bgm;
 
     context.read<QuizSettingBloc>().add(
       InitQuizSetting(
