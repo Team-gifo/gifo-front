@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/app_colors.dart';
 
 // 포장하기 제출 중 전체 화면을 덮는 로딩 오버레이
 // 이미지 업로드 + 이벤트 전송 완료 전까지 표시됩니다.
@@ -8,48 +9,57 @@ class PackagingLoadingOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned.fill(
-      child: ColoredBox(
-        color: Colors.black.withValues(alpha: 0.55),
+      child: Material(
+        color: Colors.black.withValues(alpha: 0.7),
         child: Center(
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 40),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              color: AppColors.darkBg,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: AppColors.neonBlue.withValues(alpha: 0.3),
+                width: 1.5,
+              ),
               boxShadow: <BoxShadow>[
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.15),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
+                  color: AppColors.neonBlue.withValues(alpha: 0.15),
+                  blurRadius: 30,
+                  spreadRadius: 5,
                 ),
               ],
             ),
-            child: const Column(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                SizedBox(
-                  width: 52,
-                  height: 52,
+                const SizedBox(
+                  width: 56,
+                  height: 56,
                   child: CircularProgressIndicator(
                     strokeWidth: 4,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF6DE1F1),
+                      AppColors.neonBlue,
                     ),
                   ),
                 ),
-                SizedBox(height: 24),
-                Text(
+                const SizedBox(height: 32),
+                const Text(
                   '선물을 포장하고 있어요...',
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: Colors.white,
+                    fontFamily: 'WantedSans',
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 12),
                 Text(
                   '잠시만 기다려 주세요.',
-                  style: TextStyle(fontSize: 13, color: Colors.black45),
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.white.withValues(alpha: 0.5),
+                    fontFamily: 'WantedSans',
+                  ),
                 ),
               ],
             ),
