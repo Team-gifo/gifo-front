@@ -1,9 +1,9 @@
 import 'package:barcode/barcode.dart';
 import 'package:flutter/material.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/gift_image_widget.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 
 /// 당첨된 기록을 기반으로 기프티콘 프레임을 생성하는 위젯
@@ -41,11 +41,7 @@ class GifticonFrame extends StatelessWidget {
       child: Stack(
         children: <Widget>[
           // 0. 그리드 배경 적용
-          Positioned.fill(
-            child: CustomPaint(
-              painter: GridBackgroundPainter(),
-            ),
-          ),
+          Positioned.fill(child: CustomPaint(painter: GridBackgroundPainter())),
           // 1. 네온 테두리 디자인 (전체 캔버스 기준)
           Positioned(
             left: 20,
@@ -72,7 +68,7 @@ class GifticonFrame extends StatelessWidget {
                     height: 250,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: <BoxShadow>[
                         BoxShadow(
@@ -81,25 +77,9 @@ class GifticonFrame extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Image.network(
-                      imageUrl,
+                    child: GiftImageWidget(
+                      imageUrl: imageUrl,
                       fit: BoxFit.contain,
-                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Skeletonizer(
-                          enabled: true,
-                          child: Container(
-                            width: double.infinity,
-                            height: double.infinity,
-                            color: Colors.white10,
-                          ),
-                        );
-                      },
-                      errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-                        return const Center(
-                          child: Icon(Icons.broken_image, color: Colors.grey, size: 40),
-                        );
-                      },
                     ),
                   ),
                   const SizedBox(height: 60), // 이미지와 이름 사이 간격 확대 (50->60)
@@ -164,7 +144,8 @@ class GifticonFrame extends StatelessWidget {
           Positioned(
             left: 0,
             right: 0,
-            bottom: 15, // 50px 높이 로고의 중앙(25px)이 하단 선(40px)에 일치하도록 조정 (15 + 25 = 40)
+            bottom:
+                15, // 50px 높이 로고의 중앙(25px)이 하단 선(40px)에 일치하도록 조정 (15 + 25 = 40)
             child: Center(
               child: Image.asset(
                 'assets/images/title_logo.png',

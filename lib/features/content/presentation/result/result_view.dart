@@ -2,11 +2,11 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/utils/share_helper.dart';
 import '../../../../core/widgets/gift_image_widget.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/shared_confetti_widget.dart';
@@ -318,7 +318,7 @@ class _ResultBodyState extends State<_ResultBody>
 
 // ==========================================
 // 친구에게 결과 공유하기 버튼
-// ShareHelper를 통해 클립보드 복사 수행
+// ShareHelper 대신 Native Share API를 사용하도록 변경
 // ==========================================
 class _ShareButton extends StatelessWidget {
   final String userName;
@@ -339,12 +339,23 @@ class _ShareButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => ShareHelper.shareResultToClipboard(
-            context: context,
-            userName: userName,
-            inviteCode: inviteCode,
-            itemNames: <String>[itemName],
-          ),
+          onTap: () async {
+            final String message =
+                """
+[Gifo]
+"$userName"님이 당신이 준비해 주신 선물을 뽑았습니다! 🎁
+
+🎉  당첨 목록  🎉
+- $itemName
+
+당첨된 결과에 대해 기쁜 마음으로 선물해주세요! 🎉
+
+https://gifo.co.kr/gift/code/$inviteCode
+"""
+                    .trim();
+
+            await Share.share(message);
+          },
           borderRadius: BorderRadius.circular(14),
           child: Ink(
             decoration: BoxDecoration(
