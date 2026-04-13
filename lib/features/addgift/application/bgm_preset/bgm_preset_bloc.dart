@@ -84,16 +84,18 @@ class BgmPresetBloc extends Bloc<BgmPresetEvent, BgmPresetState> {
 
     // 같은 곡을 다시 누르면 정지
     if (state.playingPresetId == event.presetId) {
-      await _audioPlayer.stop();
       emit(state.copyWith(clearPlayingPresetId: true));
+      await _audioPlayer.stop();
       return;
     }
 
     try {
+      // 오디오를 불러오기 전 상태부터 즉시 반영 (빠른 UI 반응성을 위함)
+      emit(state.copyWith(playingPresetId: event.presetId));
+      
       await _audioPlayer.stop();
       await _audioPlayer.setUrl(preset.url);
       await _audioPlayer.play();
-      emit(state.copyWith(playingPresetId: event.presetId));
     } catch (e) {
       if (kDebugMode) {
         debugPrint('[BgmPresetBloc] BGM 재생 실패: $e');

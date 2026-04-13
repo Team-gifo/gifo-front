@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/utils/date_formatter.dart';
 import '../../../lobby/model/lobby_data.dart';
 import '../../repository/content_repository.dart';
 
@@ -24,8 +25,10 @@ class GachaBloc extends Bloc<GachaEvent, GachaState> {
 
     final GachaContent gacha = lobbyData.content!.gacha!;
     final List<Map<String, dynamic>> loadedHistory = gacha.drawHistory.map((h) {
+      final String formattedTime = GifoDateFormatter.formatDrawnAt(h.drawnAt);
+
       return <String, dynamic>{
-        'time': '이전 기록', 
+        'time': formattedTime,
         'item': GachaItem(
           itemName: h.giftName ?? '알 수 없음',
           imageUrl: h.giftImageUrl ?? '',

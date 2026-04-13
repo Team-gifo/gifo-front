@@ -26,9 +26,7 @@ class AfterOpenCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.black.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: accent.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: accent.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -84,10 +82,11 @@ class AfterOpenCard extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              '물품 사진 등록',
+                              '물품 사진\n(선택)',
+                              textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontFamily: 'WantedSans',
-                                color: accent.withValues(alpha: 0.6),
+                                color: Colors.white.withValues(alpha: 0.6),
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
                               ),
@@ -159,9 +158,7 @@ class AfterOpenCard extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(
-                  color: accent.withValues(alpha: 0.6),
-                ),
+                borderSide: BorderSide(color: accent.withValues(alpha: 0.6)),
               ),
             ),
           ),
@@ -180,10 +177,7 @@ void _showFullImage(BuildContext context, XFile imageFile) {
       child: Stack(
         children: <Widget>[
           InteractiveViewer(
-            child: Image.network(
-              imageFile.path,
-              fit: BoxFit.contain,
-            ),
+            child: Image.network(imageFile.path, fit: BoxFit.contain),
           ),
           Positioned(
             top: 0,

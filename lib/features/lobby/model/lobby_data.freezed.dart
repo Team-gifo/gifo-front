@@ -1495,7 +1495,7 @@ as String?,
 /// @nodoc
 mixin _$GachaDrawHistory {
 
- int get capsuleId; String? get giftName; String? get giftImageUrl; String? get description; bool get selected;
+ int get capsuleId; String? get giftName; String? get giftImageUrl; String? get description; bool get selected; String? get drawnAt;
 /// Create a copy of GachaDrawHistory
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1508,16 +1508,16 @@ $GachaDrawHistoryCopyWith<GachaDrawHistory> get copyWith => _$GachaDrawHistoryCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is GachaDrawHistory&&(identical(other.capsuleId, capsuleId) || other.capsuleId == capsuleId)&&(identical(other.giftName, giftName) || other.giftName == giftName)&&(identical(other.giftImageUrl, giftImageUrl) || other.giftImageUrl == giftImageUrl)&&(identical(other.description, description) || other.description == description)&&(identical(other.selected, selected) || other.selected == selected));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is GachaDrawHistory&&(identical(other.capsuleId, capsuleId) || other.capsuleId == capsuleId)&&(identical(other.giftName, giftName) || other.giftName == giftName)&&(identical(other.giftImageUrl, giftImageUrl) || other.giftImageUrl == giftImageUrl)&&(identical(other.description, description) || other.description == description)&&(identical(other.selected, selected) || other.selected == selected)&&(identical(other.drawnAt, drawnAt) || other.drawnAt == drawnAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,capsuleId,giftName,giftImageUrl,description,selected);
+int get hashCode => Object.hash(runtimeType,capsuleId,giftName,giftImageUrl,description,selected,drawnAt);
 
 @override
 String toString() {
-  return 'GachaDrawHistory(capsuleId: $capsuleId, giftName: $giftName, giftImageUrl: $giftImageUrl, description: $description, selected: $selected)';
+  return 'GachaDrawHistory(capsuleId: $capsuleId, giftName: $giftName, giftImageUrl: $giftImageUrl, description: $description, selected: $selected, drawnAt: $drawnAt)';
 }
 
 
@@ -1528,7 +1528,7 @@ abstract mixin class $GachaDrawHistoryCopyWith<$Res>  {
   factory $GachaDrawHistoryCopyWith(GachaDrawHistory value, $Res Function(GachaDrawHistory) _then) = _$GachaDrawHistoryCopyWithImpl;
 @useResult
 $Res call({
- int capsuleId, String? giftName, String? giftImageUrl, String? description, bool selected
+ int capsuleId, String? giftName, String? giftImageUrl, String? description, bool selected, String? drawnAt
 });
 
 
@@ -1545,14 +1545,15 @@ class _$GachaDrawHistoryCopyWithImpl<$Res>
 
 /// Create a copy of GachaDrawHistory
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? capsuleId = null,Object? giftName = freezed,Object? giftImageUrl = freezed,Object? description = freezed,Object? selected = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? capsuleId = null,Object? giftName = freezed,Object? giftImageUrl = freezed,Object? description = freezed,Object? selected = null,Object? drawnAt = freezed,}) {
   return _then(_self.copyWith(
 capsuleId: null == capsuleId ? _self.capsuleId : capsuleId // ignore: cast_nullable_to_non_nullable
 as int,giftName: freezed == giftName ? _self.giftName : giftName // ignore: cast_nullable_to_non_nullable
 as String?,giftImageUrl: freezed == giftImageUrl ? _self.giftImageUrl : giftImageUrl // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,selected: null == selected ? _self.selected : selected // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,drawnAt: freezed == drawnAt ? _self.drawnAt : drawnAt // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -1637,10 +1638,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int capsuleId,  String? giftName,  String? giftImageUrl,  String? description,  bool selected)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( int capsuleId,  String? giftName,  String? giftImageUrl,  String? description,  bool selected,  String? drawnAt)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _GachaDrawHistory() when $default != null:
-return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.description,_that.selected);case _:
+return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.description,_that.selected,_that.drawnAt);case _:
   return orElse();
 
 }
@@ -1658,10 +1659,10 @@ return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.descript
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int capsuleId,  String? giftName,  String? giftImageUrl,  String? description,  bool selected)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( int capsuleId,  String? giftName,  String? giftImageUrl,  String? description,  bool selected,  String? drawnAt)  $default,) {final _that = this;
 switch (_that) {
 case _GachaDrawHistory():
-return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.description,_that.selected);case _:
+return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.description,_that.selected,_that.drawnAt);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1678,10 +1679,10 @@ return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.descript
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int capsuleId,  String? giftName,  String? giftImageUrl,  String? description,  bool selected)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( int capsuleId,  String? giftName,  String? giftImageUrl,  String? description,  bool selected,  String? drawnAt)?  $default,) {final _that = this;
 switch (_that) {
 case _GachaDrawHistory() when $default != null:
-return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.description,_that.selected);case _:
+return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.description,_that.selected,_that.drawnAt);case _:
   return null;
 
 }
@@ -1693,7 +1694,7 @@ return $default(_that.capsuleId,_that.giftName,_that.giftImageUrl,_that.descript
 @JsonSerializable()
 
 class _GachaDrawHistory implements GachaDrawHistory {
-  const _GachaDrawHistory({required this.capsuleId, this.giftName, this.giftImageUrl, this.description, this.selected = false});
+  const _GachaDrawHistory({required this.capsuleId, this.giftName, this.giftImageUrl, this.description, this.selected = false, this.drawnAt});
   factory _GachaDrawHistory.fromJson(Map<String, dynamic> json) => _$GachaDrawHistoryFromJson(json);
 
 @override final  int capsuleId;
@@ -1701,6 +1702,7 @@ class _GachaDrawHistory implements GachaDrawHistory {
 @override final  String? giftImageUrl;
 @override final  String? description;
 @override@JsonKey() final  bool selected;
+@override final  String? drawnAt;
 
 /// Create a copy of GachaDrawHistory
 /// with the given fields replaced by the non-null parameter values.
@@ -1715,16 +1717,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GachaDrawHistory&&(identical(other.capsuleId, capsuleId) || other.capsuleId == capsuleId)&&(identical(other.giftName, giftName) || other.giftName == giftName)&&(identical(other.giftImageUrl, giftImageUrl) || other.giftImageUrl == giftImageUrl)&&(identical(other.description, description) || other.description == description)&&(identical(other.selected, selected) || other.selected == selected));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _GachaDrawHistory&&(identical(other.capsuleId, capsuleId) || other.capsuleId == capsuleId)&&(identical(other.giftName, giftName) || other.giftName == giftName)&&(identical(other.giftImageUrl, giftImageUrl) || other.giftImageUrl == giftImageUrl)&&(identical(other.description, description) || other.description == description)&&(identical(other.selected, selected) || other.selected == selected)&&(identical(other.drawnAt, drawnAt) || other.drawnAt == drawnAt));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,capsuleId,giftName,giftImageUrl,description,selected);
+int get hashCode => Object.hash(runtimeType,capsuleId,giftName,giftImageUrl,description,selected,drawnAt);
 
 @override
 String toString() {
-  return 'GachaDrawHistory(capsuleId: $capsuleId, giftName: $giftName, giftImageUrl: $giftImageUrl, description: $description, selected: $selected)';
+  return 'GachaDrawHistory(capsuleId: $capsuleId, giftName: $giftName, giftImageUrl: $giftImageUrl, description: $description, selected: $selected, drawnAt: $drawnAt)';
 }
 
 
@@ -1735,7 +1737,7 @@ abstract mixin class _$GachaDrawHistoryCopyWith<$Res> implements $GachaDrawHisto
   factory _$GachaDrawHistoryCopyWith(_GachaDrawHistory value, $Res Function(_GachaDrawHistory) _then) = __$GachaDrawHistoryCopyWithImpl;
 @override @useResult
 $Res call({
- int capsuleId, String? giftName, String? giftImageUrl, String? description, bool selected
+ int capsuleId, String? giftName, String? giftImageUrl, String? description, bool selected, String? drawnAt
 });
 
 
@@ -1752,14 +1754,15 @@ class __$GachaDrawHistoryCopyWithImpl<$Res>
 
 /// Create a copy of GachaDrawHistory
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? capsuleId = null,Object? giftName = freezed,Object? giftImageUrl = freezed,Object? description = freezed,Object? selected = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? capsuleId = null,Object? giftName = freezed,Object? giftImageUrl = freezed,Object? description = freezed,Object? selected = null,Object? drawnAt = freezed,}) {
   return _then(_GachaDrawHistory(
 capsuleId: null == capsuleId ? _self.capsuleId : capsuleId // ignore: cast_nullable_to_non_nullable
 as int,giftName: freezed == giftName ? _self.giftName : giftName // ignore: cast_nullable_to_non_nullable
 as String?,giftImageUrl: freezed == giftImageUrl ? _self.giftImageUrl : giftImageUrl // ignore: cast_nullable_to_non_nullable
 as String?,description: freezed == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String?,selected: null == selected ? _self.selected : selected // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,drawnAt: freezed == drawnAt ? _self.drawnAt : drawnAt // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

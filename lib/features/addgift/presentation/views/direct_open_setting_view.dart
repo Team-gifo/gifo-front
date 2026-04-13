@@ -7,6 +7,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/packaging_loading_overlay.dart';
+import '../../application/bgm_preset/bgm_preset_bloc.dart';
 import '../../application/direct_open_setting/direct_open_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../widgets/desktop_settings_rail.dart';
@@ -14,7 +15,7 @@ import '../widgets/direct_open/direct_open_complete_button.dart';
 import '../widgets/direct_open/direct_open_content_section.dart';
 import '../widgets/direct_open/direct_open_mobile_bottom_bar.dart';
 import '../widgets/direct_open/direct_open_settings_section.dart';
-import '../widgets/direct_open/direct_open_step_indicator.dart';
+import '../widgets/step_indicator.dart';
 import '../widgets/direct_open/direct_open_title_bar.dart';
 
 class DirectOpenSettingView extends StatelessWidget {
@@ -45,12 +46,15 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
   final TextEditingController _afterNameController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
+  late final BgmPresetBloc _bgmBloc;
 
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
+    _bgmBloc = context.read<BgmPresetBloc>();
+
     final GiftPackagingState packagingState = context
         .read<GiftPackagingBloc>()
         .state;
@@ -61,32 +65,60 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
       _subTitleController.text = packagingState.subTitle;
     }
 
-    // BLoC 초기 상태에서 설명 필드 초기화
-    final DirectOpenSettingState directOpenState = context
-        .read<DirectOpenSettingBloc>()
-        .state;
-    _beforeDescController.text = directOpenState.beforeDescription;
-    _afterNameController.text = directOpenState.afterItemName;
+    final unboxingContent = packagingState.unboxingContent;
+    XFile? beforeImageFile;
+    String? beforeDescription;
+    XFile? afterImageFile;
+    String? afterItemName;
+
+    if (unboxingContent != null) {
+      beforeDescription = unboxingContent.beforeOpen.description;
+      afterItemName = unboxingContent.afterOpen.itemName;
+
+      if (unboxingContent.beforeOpen.imageUrl.isNotEmpty) {
+        beforeImageFile = XFile(unboxingContent.beforeOpen.imageUrl);
+      }
+      if (unboxingContent.afterOpen.imageUrl.isNotEmpty) {
+        afterImageFile = XFile(unboxingContent.afterOpen.imageUrl);
+      }
+      
+      _beforeDescController.text = beforeDescription;
+      _afterNameController.text = afterItemName;
+    }
+
+    final initialBgm = packagingState.bgm.isNotEmpty ? packagingState.bgm : '신나는 생일';
+
+    context.read<DirectOpenSettingBloc>().add(InitDirectOpenSetting(
+      initialBgm: initialBgm,
+      beforeImageFile: beforeImageFile,
+      beforeDescription: beforeDescription,
+      afterImageFile: afterImageFile,
+      afterItemName: afterItemName,
+    ));
 
     _userNameController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetReceiverName(_userNameController.text),
       );
+      setState(() {});
     });
     _subTitleController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetSubTitle(_subTitleController.text),
       );
+      setState(() {});
     });
     _beforeDescController.addListener(() {
       context.read<DirectOpenSettingBloc>().add(
         UpdateBeforeDescription(_beforeDescController.text),
       );
+      setState(() {});
     });
     _afterNameController.addListener(() {
       context.read<DirectOpenSettingBloc>().add(
         UpdateAfterItemName(_afterNameController.text),
       );
+      setState(() {});
     });
   }
 
@@ -96,6 +128,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
     _subTitleController.dispose();
     _beforeDescController.dispose();
     _afterNameController.dispose();
+    _bgmBloc.add(StopBgmPreview());
     super.dispose();
   }
 
@@ -112,6 +145,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
   bool _canComplete() {
     if (_userNameController.text.trim().isEmpty) return false;
     if (_subTitleController.text.trim().isEmpty) return false;
+    if (_beforeDescController.text.trim().isEmpty) return false;
     if (_afterNameController.text.trim().isEmpty) return false;
     return true;
   }
@@ -169,7 +203,9 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                             userNameController: _userNameController,
                             subTitleController: _subTitleController,
                           ),
-                    actions: const <Widget>[DirectOpenStepIndicator()],
+                    actions: <Widget>[
+                      if (!isMobile) const StepIndicator(activeStep: 3),
+                    ],
                   ),
                   body: Stack(
                     children: <Widget>[
@@ -254,6 +290,9 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                                             state: directOpenState,
                                             isMobile: false,
                                             isCompactDesktop: isCompactDesktop,
+                                            hasNameAndSubTitle: _userNameController.text.trim().isNotEmpty && _subTitleController.text.trim().isNotEmpty,
+                                            hasBeforeDesc: _beforeDescController.text.trim().isNotEmpty,
+                                            hasItemName: _afterNameController.text.trim().isNotEmpty,
                                           ),
                                       bottomAction: DirectOpenCompleteButton(
                                         onPressed: _canComplete()
@@ -327,7 +366,13 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        DirectOpenSettingsSection(state: state, isMobile: true),
+                        DirectOpenSettingsSection(
+                          state: state,
+                          isMobile: true,
+                          hasNameAndSubTitle: _userNameController.text.trim().isNotEmpty && _subTitleController.text.trim().isNotEmpty,
+                          hasBeforeDesc: _beforeDescController.text.trim().isNotEmpty,
+                          hasItemName: _afterNameController.text.trim().isNotEmpty,
+                        ),
                         const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,

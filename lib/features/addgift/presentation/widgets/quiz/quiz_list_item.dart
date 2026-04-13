@@ -45,8 +45,9 @@ class QuizListItem extends StatelessWidget {
               child: Text(
                 item.typeName,
                 style: const TextStyle(
-                  color: AppColors.neonPurple,
-                  fontSize: 12,
+                  color: Colors.white,
+                  fontFamily: 'WantedSans',
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -54,10 +55,10 @@ class QuizListItem extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Q. ${item.title.isEmpty ? '(제목 없음)' : item.title}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                item.title.isEmpty ? '[ Q. 제목을 입력해주세요 ]' : 'Q. ${item.title}',
+                style: TextStyle(
+                  color: item.title.isEmpty ? Colors.orange : Colors.white,
+                  fontFamily: 'WantedSans',
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -68,10 +69,15 @@ class QuizListItem extends StatelessWidget {
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 8.0),
           child: Text(
-            'A. ${item.answer.isEmpty ? '(정답 없음)' : item.answer.join(", ")}',
+            item.answer.isEmpty
+                ? '[ A. 정답을 입력해주세요 ]'
+                : 'A. ${item.answer.join(", ")}',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: Colors.white54),
+            style: TextStyle(
+              color: item.answer.isEmpty ? Colors.orange : Colors.green,
+              fontFamily: 'WantedSans',
+            ),
           ),
         ),
         trailing: IconButton(

@@ -1,16 +1,17 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/utils/share_helper.dart';
+import '../../../../core/widgets/gift_image_widget.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/shared_confetti_widget.dart';
 import '../../application/result/result_bloc.dart';
+import '../widgets/content_audio_toggle.dart';
 
 class ResultView extends StatelessWidget {
   final String itemName;
@@ -118,6 +119,12 @@ class _ResultBodyState extends State<_ResultBody>
                 alignment: Alignment.topCenter,
                 child: SharedConfettiWidget(autoPlay: true),
               ),
+            // 상단 BGM 토글
+            const Positioned(
+              top: 10,
+              right: 10,
+              child: ContentAudioToggle(),
+            ),
             // 메인 콘텐츠
             SafeArea(
               child: SingleChildScrollView(
@@ -214,41 +221,13 @@ class _ResultBodyState extends State<_ResultBody>
           maxHeight: isDesktop ? 480 : (isTablet ? 380 : 300),
           maxWidth: isDesktop ? 560 : (isTablet ? 440 : double.infinity),
         ),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.neonPurple.withValues(alpha: 0.4),
-            width: 1.5,
-          ),
-          boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: AppColors.neonPurple.withValues(alpha: 0.15),
-              blurRadius: 32,
-              spreadRadius: 4,
-            ),
-          ],
-        ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(19),
-          child: Image.network(
-            widget.imageUrl,
+          child: GiftImageWidget(
+            width: 400,
+            height: 400,
+            imageUrl: widget.imageUrl,
             fit: BoxFit.contain,
-            loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent? loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Skeletonizer(
-                enabled: true,
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: Colors.white10,
-                ),
-              );
-            },
-            errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) {
-              return const Center(
-                child: Icon(Icons.broken_image, color: Colors.white24, size: 48),
-              );
-            },
           ),
         ),
       ),
@@ -267,12 +246,12 @@ class _ResultBodyState extends State<_ResultBody>
       ),
       child: Column(
         children: <Widget>[
-          Text(
+          const Text(
             '선물 결과',
             style: TextStyle(
               fontFamily: 'WantedSans',
-              fontSize: 13,
-              color: AppColors.neonPurple.withValues(alpha: 0.8),
+              fontSize: 16,
+              color: AppColors.neonPurpleLight,
               letterSpacing: 2,
               fontWeight: FontWeight.w600,
             ),
@@ -286,6 +265,7 @@ class _ResultBodyState extends State<_ResultBody>
                   speed: const Duration(milliseconds: 80),
                   textStyle: TextStyle(
                     fontFamily: 'WantedSans',
+                    fontWeight: FontWeight.bold,
                     fontSize: isDesktop ? 30 : 22,
                     color: Colors.white,
                     letterSpacing: 1,
@@ -345,7 +325,7 @@ class _ResultBodyState extends State<_ResultBody>
 
 // ==========================================
 // 친구에게 결과 공유하기 버튼
-// ShareHelper를 통해 클립보드 복사 수행
+// ShareHelper 대신 Native Share API를 사용하도록 변경
 // ==========================================
 class _ShareButton extends StatelessWidget {
   final String userName;
@@ -366,12 +346,23 @@ class _ShareButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => ShareHelper.shareResultToClipboard(
-            context: context,
-            userName: userName,
-            inviteCode: inviteCode,
-            itemNames: <String>[itemName],
-          ),
+          onTap: () async {
+            final String message =
+                """
+[Gifo]
+"$userName"님이 당신이 준비해 주신 선물을 뽑았습니다! 🎁
+
+🎉  당첨 목록  🎉
+- $itemName
+
+당첨된 결과에 대해 기쁜 마음으로 선물해주세요! 🎉
+
+https://gifo.co.kr/gift/code/$inviteCode
+"""
+                    .trim();
+
+            await Share.share(message);
+          },
           borderRadius: BorderRadius.circular(14),
           child: Ink(
             decoration: BoxDecoration(

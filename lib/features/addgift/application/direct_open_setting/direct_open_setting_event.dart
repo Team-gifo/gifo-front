@@ -4,7 +4,18 @@ sealed class DirectOpenSettingEvent {}
 
 class InitDirectOpenSetting extends DirectOpenSettingEvent {
   final String initialBgm;
-  InitDirectOpenSetting({this.initialBgm = ''});
+  final XFile? beforeImageFile;
+  final String? beforeDescription;
+  final XFile? afterImageFile;
+  final String? afterItemName;
+
+  InitDirectOpenSetting({
+    this.initialBgm = '',
+    this.beforeImageFile,
+    this.beforeDescription,
+    this.afterImageFile,
+    this.afterItemName,
+  });
 }
 
 class UpdateBeforeImage extends DirectOpenSettingEvent {

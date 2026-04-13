@@ -159,10 +159,14 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
         '[GiftPackagingBloc] 서버 전송 성공! (상태 코드: ${response.response.statusCode})',
       );
 
-      // 서버 응답에서 공유 URL 파싱
+      // 서버 응답에서 공유 URL 및 코드 파싱
       final Map<String, dynamic>? responseData = _toJsonMap(response.data);
       final Map<String, dynamic>? data = _toJsonMap(responseData?['data']);
       final String shareUrl = data?['eventUrl'] as String? ?? '';
+      final String shareCode =
+          data?['eventCode'] as String? ??
+          (shareUrl.isNotEmpty ? shareUrl.split('/').last : '');
+
       if (shareUrl.isEmpty) {
         debugPrint(
           '[GiftPackagingBloc] 경고: 서버 응답에 eventUrl이 없습니다. raw=${response.data}',
@@ -171,7 +175,11 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
 
       // 전송 완료: 성공 상태로 전환 (뷰에서 이 상태를 감지해 화면 전환)
       emit(
-        state.copyWith(submitStatus: SubmitStatus.success, shareUrl: shareUrl),
+        state.copyWith(
+          submitStatus: SubmitStatus.success,
+          shareUrl: shareUrl,
+          shareCode: shareCode,
+        ),
       );
     } on DioException catch (e, stackTrace) {
       _logDioException(e, stackTrace, stage: 'submitPackage');
@@ -202,8 +210,9 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
     final String rawName = path.split('/').last.split('?').first;
 
     final String mimeSubtype = _detectImageSubtype(bytes, rawName);
-    final String fileName =
-        rawName.contains('.') ? rawName : '$rawName.$mimeSubtype';
+    final String fileName = rawName.contains('.')
+        ? rawName
+        : '$rawName.$mimeSubtype';
     final MultipartFile multipartFile = MultipartFile.fromBytes(
       bytes,
       filename: fileName,

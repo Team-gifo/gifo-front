@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:gifo/core/blocs/download/download_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -13,6 +14,7 @@ import '../../../lobby/model/lobby_data.dart';
 import '../../application/gacha/gacha_bloc.dart';
 import 'gacha_result_modal.dart';
 import 'gacha_widgets.dart';
+import '../widgets/content_audio_toggle.dart';
 
 // code 파라미터 제거: 라우터에서 BLoC 생성 시 InitGacha 이벤트가 먼저 발행됨
 class GachaView extends StatefulWidget {
@@ -41,7 +43,9 @@ class _GachaViewState extends State<GachaView> {
           listener: (BuildContext context, LobbyState state) {
             final GachaState gachaState = context.read<GachaBloc>().state;
             if (gachaState.isResultRefreshing) {
-              context.read<GachaBloc>().add(InitGacha(state.lobbyData!, inviteCode: gachaState.inviteCode));
+              context.read<GachaBloc>().add(
+                InitGacha(state.lobbyData!, inviteCode: gachaState.inviteCode),
+              );
             }
           },
         ),
@@ -53,7 +57,9 @@ class _GachaViewState extends State<GachaView> {
             prev.lastDrawnItem != curr.lastDrawnItem,
         listener: (BuildContext context, GachaState state) {
           if (state.lastDrawnItem != null) {
-            _machineKey.currentState?.startResultAnimation(state.lastDrawnItem!);
+            _machineKey.currentState?.startResultAnimation(
+              state.lastDrawnItem!,
+            );
           }
         },
         builder: (BuildContext context, GachaState state) {
@@ -116,7 +122,9 @@ class _GachaViewState extends State<GachaView> {
               if (state.isResultRefreshing)
                 Positioned.fill(
                   child: Container(
-                    color: Colors.black.withValues(alpha: 0.5), // 배경을 살짝 어둡게 (터치 방지)
+                    color: Colors.black.withValues(
+                      alpha: 0.5,
+                    ), // 배경을 살짝 어둡게 (터치 방지)
                     child: const Center(
                       child: CircularProgressIndicator(
                         color: AppColors.neonPurple,
@@ -124,13 +132,57 @@ class _GachaViewState extends State<GachaView> {
                     ),
                   ),
                 ),
+              // 다운로드(기프티콘 일괄 생성) 로딩 오버레이
+              BlocBuilder<DownloadBloc, DownloadState>(
+                builder: (BuildContext context, DownloadState dlState) {
+                  if (dlState.status == DownloadStatus.loading) {
+                    return Positioned.fill(
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.7),
+                          child: const Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                CircularProgressIndicator(
+                                  color: AppColors.neonPurple,
+                                ),
+                                SizedBox(height: 24),
+                                Text(
+                                  '기프티콘 생성 중...',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: 'WantedSans',
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  '압축 파일이 준비될 때까지 잠시만 기다려주세요.',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontFamily: 'WantedSans',
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
             ],
           );
         },
       ),
     );
   }
-
 
   // AppBar: 로고 + 타이틀
   Widget _buildAppBar(GachaState state, bool isMobileOrSmall) {
@@ -207,6 +259,7 @@ class _GachaViewState extends State<GachaView> {
               ),
             ),
             const Spacer(),
+            const ContentAudioToggle(),
             // 데스크탑/태블릿(모바일 이외)에서 남은 횟수 표시
             if (!isMobileOrSmall) ...<Widget>[
               GachaRemainingBadge(count: state.remainingCount),
@@ -277,7 +330,9 @@ class _GachaViewState extends State<GachaView> {
           const SizedBox(width: 28),
           Expanded(
             flex: 1,
-            child: GachaPrizeListPanel(items: state.gachaContent?.list ?? <GachaItem>[]),
+            child: GachaPrizeListPanel(
+              items: state.gachaContent?.list ?? <GachaItem>[],
+            ),
           ),
         ],
       ),
