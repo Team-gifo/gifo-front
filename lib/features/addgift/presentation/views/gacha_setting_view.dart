@@ -10,6 +10,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/packaging_loading_overlay.dart';
+import '../../application/bgm_preset/bgm_preset_bloc.dart';
 import '../../application/gacha_setting/gacha_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../widgets/desktop_settings_rail.dart';
@@ -55,10 +56,13 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
   TextEditingController? _modalPercentController;
 
   final ImagePicker _picker = ImagePicker();
+  late final BgmPresetBloc _bgmBloc;
 
   @override
   void initState() {
     super.initState();
+    _bgmBloc = context.read<BgmPresetBloc>();
+
     final GiftPackagingState packagingState = context
         .read<GiftPackagingBloc>()
         .state;
@@ -147,6 +151,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     _playCountController.dispose();
     _modalNameController?.dispose();
     _modalPercentController?.dispose();
+    _bgmBloc.add(StopBgmPreview());
     super.dispose();
   }
 

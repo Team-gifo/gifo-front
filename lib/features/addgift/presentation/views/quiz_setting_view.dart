@@ -8,6 +8,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/packaging_loading_overlay.dart';
+import '../../application/bgm_preset/bgm_preset_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../application/quiz_setting/quiz_setting_bloc.dart';
 import '../../model/quiz_setting_models.dart';
@@ -50,10 +51,13 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
 
   bool _isSubmitting = false;
   final ImagePicker _picker = ImagePicker();
+  late final BgmPresetBloc _bgmBloc;
 
   @override
   void initState() {
     super.initState();
+    _bgmBloc = context.read<BgmPresetBloc>();
+
     final GiftPackagingState packagingState = context
         .read<GiftPackagingBloc>()
         .state;
@@ -183,6 +187,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
     _subTitleController.dispose();
     _successRewardNameController.dispose();
     _failRewardNameController.dispose();
+    _bgmBloc.add(StopBgmPreview());
     super.dispose();
   }
 

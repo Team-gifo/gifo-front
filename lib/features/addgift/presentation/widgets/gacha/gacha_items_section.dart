@@ -63,7 +63,7 @@ class GachaItemsSection extends StatelessWidget {
                   elevation: 0,
                 ),
                 icon: const Icon(Icons.delete_outline, size: 18),
-                label: const Text('모두 제거'),
+                label: const Text('초기화'),
               ),
             ],
           ),
@@ -138,7 +138,7 @@ class GachaItemsSection extends StatelessWidget {
                       elevation: 0,
                     ),
                     icon: const Icon(Icons.delete_outline, size: 18),
-                    label: const Text('모두 제거'),
+                    label: const Text('초기화'),
                   ),
                 ],
               ),
@@ -195,7 +195,8 @@ class GachaItemsSection extends StatelessWidget {
                       child: Text(
                         '* 캡슐은 최대 10개까지만 추가가 가능합니다 *',
                         style: TextStyle(
-                          color: Colors.deepOrange,
+                          color: Colors.yellow,
+                          fontFamily: 'WantedSans',
                           fontSize: 16,
                         ),
                       ),

@@ -7,6 +7,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/packaging_loading_overlay.dart';
+import '../../application/bgm_preset/bgm_preset_bloc.dart';
 import '../../application/direct_open_setting/direct_open_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../widgets/desktop_settings_rail.dart';
@@ -45,12 +46,15 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
   final TextEditingController _afterNameController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
+  late final BgmPresetBloc _bgmBloc;
 
   bool _isSubmitting = false;
 
   @override
   void initState() {
     super.initState();
+    _bgmBloc = context.read<BgmPresetBloc>();
+
     final GiftPackagingState packagingState = context
         .read<GiftPackagingBloc>()
         .state;
@@ -124,6 +128,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
     _subTitleController.dispose();
     _beforeDescController.dispose();
     _afterNameController.dispose();
+    _bgmBloc.add(StopBgmPreview());
     super.dispose();
   }
 
