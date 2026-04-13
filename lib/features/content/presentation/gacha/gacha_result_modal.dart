@@ -49,10 +49,10 @@ void showGachaResultModal(BuildContext context, GachaItem item) {
                 onClose: () {
                   // 모달 닫기
                   Navigator.of(ctx).pop();
-                  
+
                   // 상태 초기화 및 전체화면 로딩 플래그 활성화
                   context.read<GachaBloc>().add(const ClearLastDrawnItem());
-                  
+
                   // 백그라운드에서 로비 데이터 갱신
                   context.read<LobbyBloc>().add(SilentRefreshLobbyData());
                 },
@@ -110,7 +110,6 @@ class _GachaResultModalContent extends StatelessWidget {
                         height: isDesktop ? 400 : 300,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
-                          color: const Color(0xFF1E1626),
                           border: Border.all(
                             color: AppColors.neonPurple.withValues(alpha: 0.25),
                           ),

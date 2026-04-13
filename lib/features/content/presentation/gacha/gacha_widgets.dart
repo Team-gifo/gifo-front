@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/blocs/download/download_bloc.dart';
 import '../../../../core/constants/app_breakpoints.dart';
@@ -823,10 +824,9 @@ class GachaHistoryPanel extends StatefulWidget {
 class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
   final ScreenshotController _screenshotController = ScreenshotController();
 
-  void _handleShare() {
+  Future<void> _handleShare() async {
     if (widget.history.isEmpty) return;
 
-    // 당첨 목록을 이름 리스트로 변환하여 ShareHelper에 위임
     final List<String> itemNames = widget.history.map((
       Map<String, dynamic> record,
     ) {
@@ -834,12 +834,21 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
       return item.itemName;
     }).toList();
 
-    ShareHelper.shareResultToClipboard(
-      context: context,
-      userName: widget.userName,
-      inviteCode: widget.inviteCode,
-      itemNames: itemNames,
-    );
+    final String message =
+        """
+[Gifo]
+"${widget.userName}"님이 당신이 준비해 주신 선물을 뽑았습니다! 🎁
+
+🎉 당첨 목록 🎉
+${itemNames.map((String name) => '- $name').join('\n')}
+
+당첨된 결과에 대해 기쁜 마음으로 선물해주세요! 🎉
+
+https://gifo.co.kr/gift/code/${widget.inviteCode}
+"""
+            .trim();
+
+    await Share.share(message);
   }
 
   Future<void> _handleDownload(GachaItem item, String time) async {
@@ -847,10 +856,9 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
     context.read<DownloadBloc>().add(const SetDownloadLoadingEvent());
 
     // 2. 기프티콘 프레임 위젯 생성 (캡쳐용)
-    // 폰트 및 이미지 로드 대기를 위해 약간의 지연 처리 권장
     await Future<void>.delayed(const Duration(milliseconds: 300));
 
-    final String qrUrl = '${Uri.base.origin}/gift/code/${widget.inviteCode}';
+    final String qrUrl = 'https://gifo.co.kr/gift/code/${widget.inviteCode}';
 
     try {
       final Uint8List imageBytes = await _screenshotController
@@ -882,6 +890,55 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
     }
   }
 
+  Future<void> _handleDownloadAll() async {
+    if (widget.history.isEmpty) return;
+
+    final DownloadBloc bloc = context.read<DownloadBloc>();
+    bloc.add(const SetDownloadLoadingEvent());
+
+    final List<Map<String, dynamic>> filesInfo = <Map<String, dynamic>>[];
+    final String qrUrl = 'https://gifo.co.kr/gift/code/${widget.inviteCode}';
+
+    for (int i = 0; i < widget.history.length; i++) {
+      final Map<String, dynamic> record = widget.history[i];
+      final GachaItem item = record['item'] as GachaItem;
+      final String time = record['time']?.toString() ?? 'unknown';
+
+      try {
+        final Uint8List imageBytes = await _screenshotController
+            .captureFromWidget(
+              GifticonFrame(
+                itemName: item.itemName,
+                imageUrl: item.imageUrl,
+                recipientName: widget.userName,
+                issueDate: time,
+                inviteCode: widget.inviteCode,
+                qrUrl: qrUrl,
+              ),
+              delay: const Duration(milliseconds: 100),
+            );
+
+        filesInfo.add(<String, dynamic>{
+          'name': 'gifticon_${item.itemName}_$time.png',
+          'bytes': imageBytes,
+        });
+      } catch (e) {
+        debugPrint('[GachaHistoryPanel] DownloadAll error at $i: $e');
+      }
+    }
+
+    if (filesInfo.isNotEmpty) {
+      bloc.add(
+        ProcessDownloadEvent(
+          filesInfo: filesInfo,
+          zipFileName: 'gifticons_${widget.userName}.zip',
+        ),
+      );
+    } else {
+      bloc.add(const SetDownloadLoadingEvent()); // Reset loading
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final double screenWidth = MediaQuery.of(context).size.width;
@@ -906,7 +963,7 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
           Row(
             children: <Widget>[
               Icon(
-                Icons.celebration_rounded, // 히스토리 아이콘을 폭죽 아이콘으로 변경
+                Icons.celebration_rounded,
                 color: AppColors.neonPurple,
                 size: 20 * scale,
               ),
@@ -939,29 +996,6 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
                       color: Colors.white,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                TextButton.icon(
-                  onPressed: _handleShare,
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  icon: const Icon(
-                    Icons.share_rounded,
-                    size: 16,
-                    color: AppColors.neonPurple,
-                  ),
-                  label: const Text(
-                    '공유하기',
-                    style: TextStyle(
-                      fontFamily: 'WantedSans',
-                      color: Colors.white70,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
@@ -1060,7 +1094,72 @@ class _GachaHistoryPanelState extends State<GachaHistoryPanel> {
                     },
                   ),
           ),
+          if (widget.history.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.neonPurple.withValues(alpha: 0.15),
+                ),
+              ),
+              child: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: _buildPanelButton(
+                      label: '공유하기',
+                      icon: Icons.share_rounded,
+                      onPressed: _handleShare,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: _buildPanelButton(
+                      label: '모두 다운로드',
+                      icon: Icons.download_rounded,
+                      onPressed: _handleDownloadAll,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildPanelButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      style:
+          ElevatedButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ).copyWith(
+            overlayColor: WidgetStateProperty.all(
+              AppColors.neonPurple.withValues(alpha: 0.1),
+            ),
+          ),
+      icon: Icon(icon, size: 16, color: AppColors.neonPurple),
+      label: Text(
+        label,
+        style: const TextStyle(
+          fontFamily: 'WantedSans',
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -1180,15 +1279,6 @@ class GachaPrizeListPanel extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.03),
                           borderRadius: BorderRadius.circular(8),
-                          // 아이템 좌측에 네온 포인트 바 추가
-                          border: Border(
-                            left: BorderSide(
-                              color: AppColors.neonPurple.withValues(
-                                alpha: 0.4,
-                              ),
-                              width: 4,
-                            ),
-                          ),
                         ),
                         child: Row(
                           children: <Widget>[
@@ -1201,7 +1291,9 @@ class GachaPrizeListPanel extends StatelessWidget {
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(4),
                                     border: Border.all(
-                                      color: Colors.white.withValues(alpha: 0.1),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.1,
+                                      ),
                                     ),
                                   ),
                                   child: GiftImageWidget(
@@ -1226,7 +1318,7 @@ class GachaPrizeListPanel extends StatelessWidget {
                                         alpha: 0.9,
                                       ),
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 13 * scale,
+                                      fontSize: 14 * scale,
                                     ),
                                   ),
                                   SizedBox(height: 4 * scale),
@@ -1243,8 +1335,9 @@ class GachaPrizeListPanel extends StatelessWidget {
                                             ? '${(item.percent * 100).toStringAsFixed(2)}%'
                                             : '확률 미공개',
                                         style: TextStyle(
-                                          color: AppColors.neonPurple
-                                              .withValues(alpha: 0.8),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.6,
+                                          ),
                                           fontFamily: 'WantedSans',
                                           fontSize: 11 * scale,
                                           fontWeight: FontWeight.w600,
