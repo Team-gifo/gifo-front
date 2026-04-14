@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:gifo/core/constants/app_colors.dart';
 
 import '../../../application/gacha_setting/gacha_setting_bloc.dart';
 import 'gacha_capsule_item.dart';
@@ -63,7 +64,7 @@ class GachaItemsSection extends StatelessWidget {
                   elevation: 0,
                 ),
                 icon: const Icon(Icons.delete_outline, size: 18),
-                label: const Text('모두 제거'),
+                label: const Text('초기화'),
               ),
             ],
           ),
@@ -138,7 +139,7 @@ class GachaItemsSection extends StatelessWidget {
                       elevation: 0,
                     ),
                     icon: const Icon(Icons.delete_outline, size: 18),
-                    label: const Text('모두 제거'),
+                    label: const Text('초기화'),
                   ),
                 ],
               ),
@@ -165,8 +166,8 @@ class GachaItemsSection extends StatelessWidget {
                 padding: EdgeInsets.only(top: 12),
                 child: Center(
                   child: Text(
-                    '캡슐은 최대 10개까지만 추가가 가능합니다',
-                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                    '* 캡슐은 최대 10개까지만 추가가 가능합니다 *',
+                    style: TextStyle(color: Colors.deepOrange, fontSize: 13),
                   ),
                 ),
               ),
@@ -193,8 +194,12 @@ class GachaItemsSection extends StatelessWidget {
                     padding: EdgeInsets.only(top: 12),
                     child: Center(
                       child: Text(
-                        '캡슐은 최대 10개까지만 추가가 가능합니다',
-                        style: TextStyle(color: Colors.white54, fontSize: 13),
+                        '* 캡슐은 최대 10개까지만 추가가 가능합니다 *',
+                        style: TextStyle(
+                          color: Colors.yellow,
+                          fontFamily: 'WantedSans',
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -274,13 +279,17 @@ class _CapsuleListContainer extends StatelessWidget {
                     Positioned.fill(
                       child: CustomPaint(
                         painter: _DashedCirclePainter(
-                          color: Colors.white38,
+                          color: AppColors.neonBlue,
                           strokeWidth: 1.5,
                         ),
                       ),
                     ),
                     const Center(
-                      child: Icon(Icons.add, color: Colors.white38, size: 32),
+                      child: Icon(
+                        Icons.add,
+                        color: AppColors.neonBlue,
+                        size: 32,
+                      ),
                     ),
                   ],
                 ),

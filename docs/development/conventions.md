@@ -127,6 +127,13 @@ final api = getIt<MyApi>();
 - 모달 컨텐츠: `{name}_modal_content.dart` 또는 `{name}_modal.dart`
 - 위치: `lib/features/{feature}/presentation/views/`
 - 기본적으로 `StatelessWidget`, 애니메이션 필요 시 `StatefulWidget`
+- **오버레이 가이드**: 전체 화면 로딩 오버레이는 반드시 `Material` 위젯을 사용하여 텍스트 하단 노란 줄 이슈를 방지한다.
+- **버튼 스타일**: 리스트 내 추가 버튼 등은 `_DashedRectPainter`를 사용하여 점선 외곽선 스타일을 적용하고 `AppColors.neonBlue`를 사용한다.
+
+## 기타 리소스 컨벤션
+
+### 사운드 및 BGM
+- **BGM 미리듣기**: 설정 화면의 BGM 미리보기는 사용자가 화면을 벗어날 때(`dispose`) 반드시 `StopBgmPreview` 이벤트를 호출하여 중단해야 한다.
 
 ## 에러 처리 컨벤션
 

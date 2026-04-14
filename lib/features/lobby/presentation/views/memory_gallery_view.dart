@@ -17,6 +17,8 @@ import 'package:dio/dio.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../model/lobby_data.dart';
+import '../../../content/application/content_audio/content_audio_bloc.dart';
+import '../../../content/presentation/widgets/content_audio_toggle.dart';
 
 class MemoryGalleryView extends StatefulWidget {
   final LobbyData lobbyData;
@@ -66,6 +68,18 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
       _galleryItems.length,
       (_) => random.nextInt(99999) + 1,
     );
+
+    // 사전 로드만 시도 (이미 재생 중이면 방해하지 않음).
+    // 로비에서 입장하기를 누뉰 재생이 시작되어야 하지만,
+    // 메모리 갤러리는 로비에서 이미 입장하기 후 첫 번째 화면이므로
+    // BGM 상태를 확인 후 재생 중이 아닼 경우에만 Preload 수행.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && widget.lobbyData.bgm.isNotEmpty) {
+        final audioBloc = context.read<ContentAudioBloc>();
+        if (audioBloc.state.isPlaying) return;
+        audioBloc.add(PreloadContentAudio(widget.lobbyData.bgm));
+      }
+    });
   }
 
   @override
@@ -80,6 +94,7 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
         'data': lobbyData,
         'code': widget.inviteCode,
       };
+
       if (lobbyData.content!.gacha != null) {
         context.push('/content/gacha', extra: extra);
       } else if (lobbyData.content!.quiz != null) {
@@ -176,44 +191,51 @@ class _MemoryGalleryViewState extends State<MemoryGalleryView> {
                         ),
                       ),
                       // 상단 배포를 위한 다운로드 버튼 (데스크톱: 텍스트+아이콘, 모바일: 아이콘)
-                      if (isMobileOrSmall)
-                        IconButton(
-                          onPressed: _showDownloadModal,
-                          icon: const Icon(
-                            Icons.file_download_outlined,
-                            color: Colors.white,
-                            size: 28,
-                          ),
-                        )
-                      else
-                        TextButton.icon(
-                          onPressed: _showDownloadModal,
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.neonPurple,
-                            backgroundColor: AppColors.neonPurple,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          const ContentAudioToggle(),
+                          const SizedBox(width: 8),
+                          if (isMobileOrSmall)
+                            IconButton(
+                              onPressed: _showDownloadModal,
+                              icon: const Icon(
+                                Icons.file_download_outlined,
+                                color: Colors.white,
+                                size: 28,
+                              ),
+                            )
+                          else
+                            TextButton.icon(
+                              onPressed: _showDownloadModal,
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.neonPurple,
+                                backgroundColor: AppColors.neonPurple,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              icon: const Icon(
+                                Icons.download,
+                                size: 20,
+                                color: Colors.white,
+                              ),
+                              label: const Text(
+                                '추억 이미지 저장하기',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: 'PFStardust',
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          icon: const Icon(
-                            Icons.download,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                          label: const Text(
-                            '추억 이미지 저장하기',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontFamily: 'PFStardust',
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
+                        ],
+                      ),
                     ],
                   ),
                 ),

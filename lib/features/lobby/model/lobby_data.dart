@@ -82,6 +82,7 @@ abstract class GachaDrawHistory with _$GachaDrawHistory {
     String? giftImageUrl,
     String? description,
     @Default(false) bool selected,
+    String? drawnAt,
   }) = _GachaDrawHistory;
 
   factory GachaDrawHistory.fromJson(Map<String, dynamic> json) =>

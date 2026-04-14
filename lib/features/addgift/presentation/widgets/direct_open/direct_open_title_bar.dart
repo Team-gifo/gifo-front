@@ -24,10 +24,16 @@ class DirectOpenTitleBar extends StatelessWidget {
           width: 100,
           child: TextFormField(
             controller: userNameController,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+              color: AppColors.neonPurpleLight,
+              fontFamily: 'WantedSans',
+            ),
             decoration: InputDecoration(
               hintText: '닉네임',
-              hintStyle: const TextStyle(color: Colors.white38),
+              hintStyle: const TextStyle(
+                color: Colors.white38,
+                fontFamily: 'WantedSans',
+              ),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,
@@ -64,10 +70,16 @@ class DirectOpenTitleBar extends StatelessWidget {
           width: 120,
           child: TextFormField(
             controller: subTitleController,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+              color: AppColors.neonPurpleLight,
+              fontFamily: 'WantedSans',
+            ),
             decoration: InputDecoration(
               hintText: '서브 타이틀',
-              hintStyle: const TextStyle(color: Colors.white38),
+              hintStyle: const TextStyle(
+                color: Colors.white38,
+                fontFamily: 'WantedSans',
+              ),
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(
                 vertical: 8,

@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:retrofit/dio.dart' show HttpResponse;
 
 import '../../../core/di/service_locator.dart';
+import '../model/bgm_preset.dart';
 import '../model/gacha_content.dart';
 import '../model/gallery_item.dart';
 import '../model/gift_content.dart';
@@ -15,12 +16,15 @@ import '../model/gift_request.dart';
 import '../model/quiz_content.dart';
 import '../model/unboxing_content.dart';
 import '../repository/addgift_api.dart';
+import 'bgm_preset/bgm_preset_bloc.dart';
 
 part 'gift_packaging_event.dart';
 part 'gift_packaging_state.dart';
 
 class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
-  GiftPackagingBloc() : super(GiftPackagingState.initial()) {
+  final BgmPresetBloc _bgmPresetBloc;
+
+  GiftPackagingBloc(this._bgmPresetBloc) : super(GiftPackagingState.initial()) {
     on<SetMode>(_onSetMode);
     on<SetReceiverName>(_onSetReceiverName);
     on<SetGalleryItems>(_onSetGalleryItems);
@@ -126,10 +130,20 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
       );
       debugPrint('[GiftPackagingBloc] 2/3 콘텐츠 이미지 업로드 완료');
 
+      // preset ID → URL 변환
+      String bgmUrl = event.bgm;
+      final List<BgmPreset> presets = _bgmPresetBloc.state.presets;
+      final Iterable<BgmPreset> matched =
+          presets.where((BgmPreset p) => p.id == event.bgm);
+      if (matched.isNotEmpty && matched.first.url.isNotEmpty) {
+        bgmUrl = matched.first.url;
+      }
+      debugPrint('[GiftPackagingBloc] BGM 변환: "${event.bgm}" → "$bgmUrl"');
+
       final GiftRequest request = GiftRequest(
         user: event.receiverName,
         subTitle: event.subTitle,
-        bgm: event.bgm,
+        bgm: bgmUrl,
         gallery: uploadedGallery,
         content: uploadedContent,
       );
@@ -159,10 +173,14 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
         '[GiftPackagingBloc] 서버 전송 성공! (상태 코드: ${response.response.statusCode})',
       );
 
-      // 서버 응답에서 공유 URL 파싱
+      // 서버 응답에서 공유 URL 및 코드 파싱
       final Map<String, dynamic>? responseData = _toJsonMap(response.data);
       final Map<String, dynamic>? data = _toJsonMap(responseData?['data']);
       final String shareUrl = data?['eventUrl'] as String? ?? '';
+      final String shareCode =
+          data?['eventCode'] as String? ??
+          (shareUrl.isNotEmpty ? shareUrl.split('/').last : '');
+
       if (shareUrl.isEmpty) {
         debugPrint(
           '[GiftPackagingBloc] 경고: 서버 응답에 eventUrl이 없습니다. raw=${response.data}',
@@ -171,7 +189,11 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
 
       // 전송 완료: 성공 상태로 전환 (뷰에서 이 상태를 감지해 화면 전환)
       emit(
-        state.copyWith(submitStatus: SubmitStatus.success, shareUrl: shareUrl),
+        state.copyWith(
+          submitStatus: SubmitStatus.success,
+          shareUrl: shareUrl,
+          shareCode: shareCode,
+        ),
       );
     } on DioException catch (e, stackTrace) {
       _logDioException(e, stackTrace, stage: 'submitPackage');
@@ -202,8 +224,9 @@ class GiftPackagingBloc extends Bloc<GiftPackagingEvent, GiftPackagingState> {
     final String rawName = path.split('/').last.split('?').first;
 
     final String mimeSubtype = _detectImageSubtype(bytes, rawName);
-    final String fileName =
-        rawName.contains('.') ? rawName : '$rawName.$mimeSubtype';
+    final String fileName = rawName.contains('.')
+        ? rawName
+        : '$rawName.$mimeSubtype';
     final MultipartFile multipartFile = MultipartFile.fromBytes(
       bytes,
       filename: fileName,

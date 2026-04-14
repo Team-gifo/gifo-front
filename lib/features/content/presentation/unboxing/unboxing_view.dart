@@ -2,17 +2,19 @@ import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/blocs/download/download_bloc.dart';
 import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/gift_image_widget.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/pixel_envelope_widget.dart';
 import '../../../lobby/application/lobby_bloc.dart';
+import '../../application/content_audio/content_audio_bloc.dart';
 import '../../application/unboxing/unboxing_bloc.dart';
 import '../result/result_view.dart';
+import '../widgets/content_audio_toggle.dart';
 
 class UnboxingView extends StatefulWidget {
   const UnboxingView({super.key});
@@ -53,6 +55,20 @@ class _UnboxingViewState extends State<UnboxingView>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
+
+    // 사전 로드만 시도 (이미 재생 중이면 방해하지 않음).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final audioBloc = context.read<ContentAudioBloc>();
+        if (audioBloc.state.isPlaying) return; // 이미 재생 중이면 스킵
+
+        final lobbyState = context.read<LobbyBloc>().state;
+        if (lobbyState.lobbyData != null &&
+            lobbyState.lobbyData!.bgm.isNotEmpty) {
+          audioBloc.add(PreloadContentAudio(lobbyState.lobbyData!.bgm));
+        }
+      }
+    });
 
     _envDrop = Tween<double>(begin: -1.0, end: 0.0).animate(
       CurvedAnimation(
@@ -131,10 +147,13 @@ class _UnboxingViewState extends State<UnboxingView>
           listenWhen: (LobbyState prev, LobbyState curr) =>
               prev.lobbyData != curr.lobbyData && curr.lobbyData != null,
           listener: (BuildContext context, LobbyState lobbyState) {
-            final String inviteCode = context.read<UnboxingBloc>().state.inviteCode;
+            final String inviteCode = context
+                .read<UnboxingBloc>()
+                .state
+                .inviteCode;
             context.read<UnboxingBloc>().add(
-                  InitUnboxing(lobbyState.lobbyData!, inviteCode: inviteCode),
-                );
+              InitUnboxing(lobbyState.lobbyData!, inviteCode: inviteCode),
+            );
           },
         ),
       ],
@@ -154,230 +173,174 @@ class _UnboxingViewState extends State<UnboxingView>
           }
 
           if (state.unboxingContent == null) {
+            return Title(
+              title: 'Happy Birthday, ${state.userName} | Gifo',
+              color: AppColors.darkBg,
+              child: const Scaffold(
+                backgroundColor: AppColors.darkBg,
+                body: Center(
+                  child: CircularProgressIndicator(color: AppColors.neonPurple),
+                ),
+              ),
+            );
+          }
+
+          if (!_hasStartedAnim) {
+            _hasStartedAnim = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _introAnimCtrl.forward();
+            });
+          }
+
           return Title(
             title: 'Happy Birthday, ${state.userName} | Gifo',
             color: AppColors.darkBg,
-            child: const Scaffold(
+            child: Scaffold(
               backgroundColor: AppColors.darkBg,
-              body: Center(
-                child: CircularProgressIndicator(color: AppColors.neonPurple),
-              ),
-            ),
-          );
-        }
+              body: SafeArea(
+                child: AnimatedBuilder(
+                  animation: Listenable.merge(<Listenable?>[
+                    _introAnimCtrl,
+                    _btnAnimCtrl,
+                  ]),
+                  builder: (BuildContext context, Widget? child) {
+                    final double topInset = size.width < AppBreakpoints.tablet
+                        ? 64
+                        : 72;
+                    final double responsiveFontSize;
 
-        if (!_hasStartedAnim) {
-          _hasStartedAnim = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _introAnimCtrl.forward();
-          });
-        }
+                    if (size.width >= AppBreakpoints.desktop) {
+                      responsiveFontSize = 22.0;
+                    } else if (size.width >= AppBreakpoints.tablet) {
+                      responsiveFontSize = 18.0;
+                    } else {
+                      responsiveFontSize = 16.0;
+                    }
 
-        return Title(
-          title: 'Happy Birthday, ${state.userName} | Gifo',
-          color: AppColors.darkBg,
-          child: Scaffold(
-            backgroundColor: AppColors.darkBg,
-            body: SafeArea(
-              child: AnimatedBuilder(
-                animation: Listenable.merge(<Listenable?>[_introAnimCtrl, _btnAnimCtrl]),
-                builder: (BuildContext context, Widget? child) {
-                  final double topInset = size.width < AppBreakpoints.tablet
-                      ? 64
-                      : 72;
-                  final double responsiveFontSize;
+                    // 이미지 URL 유무에 따라 텍스트 컨테이너 배치 방식 분기
+                    final bool hasImage = state
+                        .unboxingContent!
+                        .beforeOpen
+                        .imageUrl
+                        .trim()
+                        .isNotEmpty;
 
-                  if (size.width >= AppBreakpoints.desktop) {
-                    responsiveFontSize = 22.0;
-                  } else if (size.width >= AppBreakpoints.tablet) {
-                    responsiveFontSize = 18.0;
-                  } else {
-                    responsiveFontSize = 16.0;
-                  }
-
-                  return Stack(
-                    fit: StackFit.expand,
-                    children: <Widget>[
-                      // 1. Grid Background
-                      Positioned.fill(
-                        child: CustomPaint(painter: GridBackgroundPainter()),
-                      ),
-
-                      // 2. Background Image (Network Image + Skeletonizer)
-                      if (_bgOpacity.value > 0)
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: <Widget>[
+                        // 1. Grid Background
                         Positioned.fill(
-                          child: Opacity(
-                            opacity: _bgOpacity.value,
-                            child: Skeletonizer(
-                              enabled: false, // 필요 시 로딩 상태에 따라 true 전환 가능
-                              child: Image.network(
-                                state.unboxingContent!.beforeOpen.imageUrl,
+                          child: CustomPaint(painter: GridBackgroundPainter()),
+                        ),
+
+                        // 2. 배경 이미지: URL이 있을 때만 렌더링
+                        if (hasImage && _bgOpacity.value > 0)
+                          Positioned.fill(
+                            child: Opacity(
+                              opacity: _bgOpacity.value,
+                              child: GiftImageWidget(
+                                imageUrl:
+                                    state.unboxingContent!.beforeOpen.imageUrl,
                                 fit: BoxFit.contain,
-                                loadingBuilder: (BuildContext context,
-                                    Widget child,
-                                    ImageChunkEvent? loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return const Center(
-                                    child: CircularProgressIndicator(
-                                      color: AppColors.neonPurple,
-                                    ),
-                                  );
-                                },
-                                errorBuilder: (BuildContext context,
-                                    Object error, StackTrace? stackTrace) {
-                                  return const Center(
-                                    child: Icon(
-                                      Icons.broken_image,
-                                      color: Colors.white24,
-                                      size: 48,
-                                    ),
-                                  );
-                                },
                               ),
                             ),
                           ),
-                        ),
 
-                      // 3. Pixel Envelope Drop & Burst
-                      if (_envOpacity.value > 0)
-                        Align(
-                          alignment: FractionalOffset(
-                            0.5,
-                            0.5 + (_envDrop.value * 1.5),
-                          ),
-                          child: Transform.scale(
-                            scale: _envScale.value,
-                            child: Opacity(
-                              opacity: _envOpacity.value,
-                              child: const PixelEnvelopeWidget(),
+                        // 3. Pixel Envelope Drop & Burst
+                        if (_envOpacity.value > 0)
+                          Align(
+                            alignment: FractionalOffset(
+                              0.5,
+                              0.5 + (_envDrop.value * 1.5),
+                            ),
+                            child: Transform.scale(
+                              scale: _envScale.value,
+                              child: Opacity(
+                                opacity: _envOpacity.value,
+                                child: const PixelEnvelopeWidget(),
+                              ),
                             ),
                           ),
-                        ),
 
-                      // 4. Text Container Dropping Down
-                      if (_textBgOpacity.value > 0)
-                        Positioned(
-                          top: topInset + 24,
-                          left: 24,
-                          right: 24,
-                          child: Align(
-                            alignment: Alignment.topCenter,
-                            child: Transform.translate(
-                              offset: Offset(0, _textDrop.value),
-                              child: Opacity(
-                                opacity: _textBgOpacity.value,
-                                child: Container(
-                                  width: isDesktop ? 490 : double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24.0,
-                                    vertical: 32.0,
+                        // 4. Text Container
+                        // - 이미지 있음: AppBar 아래 상단 고정
+                        // - 이미지 없음: 화면 중앙 배치
+                        if (_textBgOpacity.value > 0)
+                          if (hasImage)
+                            Positioned(
+                              top: topInset + 24,
+                              left: 24,
+                              right: 24,
+                              child: Align(
+                                alignment: Alignment.topCenter,
+                                child: Transform.translate(
+                                  offset: Offset(0, _textDrop.value),
+                                  child: Opacity(
+                                    opacity: _textBgOpacity.value,
+                                    child: _buildTextBox(
+                                      isDesktop: isDesktop,
+                                      responsiveFontSize: responsiveFontSize,
+                                      state: state,
+                                    ),
                                   ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.darkBg.withValues(
-                                      alpha: 0.7,
+                                ),
+                              ),
+                            )
+                          else
+                            Positioned.fill(
+                              child: Padding(
+                                padding: EdgeInsets.only(top: topInset),
+                                child: Align(
+                                  alignment: Alignment.center,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 24,
                                     ),
-                                    borderRadius: BorderRadius.circular(16.0),
-                                    border: Border.all(
-                                      color: AppColors.neonPurple.withValues(
-                                        alpha: 0.5,
+                                    child: Transform.translate(
+                                      offset: Offset(0, _textDrop.value),
+                                      child: Opacity(
+                                        opacity: _textBgOpacity.value,
+                                        child: _buildTextBox(
+                                          isDesktop: isDesktop,
+                                          responsiveFontSize:
+                                              responsiveFontSize,
+                                          state: state,
+                                        ),
                                       ),
-                                      width: 2,
-                                    ),
-                                    boxShadow: <BoxShadow>[
-                                      BoxShadow(
-                                        color: AppColors.neonPurpleLight
-                                            .withValues(alpha: 0.2),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: ConstrainedBox(
-                                    constraints: const BoxConstraints(
-                                      minHeight: 40,
-                                    ),
-                                    child: Center(
-                                      heightFactor: 1.0,
-                                      child: _startTyping
-                                          ? DefaultTextStyle(
-                                              style: TextStyle(
-                                                fontSize: responsiveFontSize,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: 'WantedSans',
-                                                height: 1.5,
-                                              ),
-                                              child: AnimatedTextKit(
-                                                key: ValueKey(
-                                                  state
-                                                      .unboxingContent!
-                                                      .beforeOpen
-                                                      .description,
-                                                ),
-                                                pause: Duration.zero,
-                                                isRepeatingAnimation: false,
-                                                displayFullTextOnTap: true,
-                                                stopPauseOnTap: true,
-                                                animatedTexts: <AnimatedText>[
-                                                  TypewriterAnimatedText(
-                                                    state
-                                                        .unboxingContent!
-                                                        .beforeOpen
-                                                        .description,
-                                                    textAlign: TextAlign.center,
-                                                    speed: const Duration(
-                                                      milliseconds: 60,
-                                                    ),
-                                                  ),
-                                                ],
-                                                onFinished: () {
-                                                  if (mounted &&
-                                                      !_btnAnimCtrl
-                                                          .isAnimating &&
-                                                      !_btnAnimCtrl
-                                                          .isCompleted) {
-                                                    _btnAnimCtrl.forward();
-                                                  }
-                                                },
-                                              ),
-                                            )
-                                          : const SizedBox.shrink(),
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                        ),
 
-                      // 5. Button Sliding Up
-                      if (_btnOpacity.value > 0)
+                        // 5. Button Sliding Up
+                        if (_btnOpacity.value > 0)
+                          Positioned(
+                            bottom: 48,
+                            left: 0,
+                            right: 0,
+                            child: Transform.translate(
+                              offset: Offset(0, _btnSlideUp.value),
+                              child: Opacity(
+                                opacity: _btnOpacity.value,
+                                child: Center(
+                                  child: _buildReceiveButton(
+                                    isDesktop: isDesktop,
+                                    state: state,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+
+                        // 6. AppBar fixed at Top
                         Positioned(
-                          bottom: 48,
+                          top: 0,
                           left: 0,
                           right: 0,
-                          child: Transform.translate(
-                            offset: Offset(0, _btnSlideUp.value),
-                            child: Opacity(
-                              opacity: _btnOpacity.value,
-                              child: Center(
-                                child: _buildReceiveButton(
-                                  isDesktop: isDesktop,
-                                  state: state,
-                                ),
-                              ),
-                            ),
-                          ),
+                          child: _buildAppBar(state, size),
                         ),
-
-                      // 6. AppBar fixed at Top
-                      Positioned(
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        child: _buildAppBar(state, size),
-                      ),
-                    ],
+                      ],
                     );
                   },
                 ),
@@ -488,7 +451,76 @@ class _UnboxingViewState extends State<UnboxingView>
                   ),
                 ),
               ),
+            const Spacer(),
+            const ContentAudioToggle(),
           ],
+        ),
+      ),
+    );
+  }
+
+  // 텍스트 컨테이너 위젯 빌드 (이미지 유무 관계없이 동일한 UI)
+  Widget _buildTextBox({
+    required bool isDesktop,
+    required double responsiveFontSize,
+    required UnboxingState state,
+  }) {
+    return Container(
+      width: isDesktop ? 490 : double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+      decoration: BoxDecoration(
+        color: AppColors.darkBg.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(16.0),
+        border: Border.all(
+          color: AppColors.neonPurple.withValues(alpha: 0.5),
+          width: 2,
+        ),
+        boxShadow: <BoxShadow>[
+          BoxShadow(
+            color: AppColors.neonPurpleLight.withValues(alpha: 0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: 40),
+        child: Center(
+          heightFactor: 1.0,
+          child: _startTyping
+              ? DefaultTextStyle(
+                  style: TextStyle(
+                    fontSize: responsiveFontSize,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'WantedSans',
+                    height: 1.5,
+                  ),
+                  child: AnimatedTextKit(
+                    key: ValueKey(
+                      state.unboxingContent!.beforeOpen.description,
+                    ),
+                    pause: Duration.zero,
+                    isRepeatingAnimation: false,
+                    displayFullTextOnTap: true,
+                    stopPauseOnTap: true,
+                    animatedTexts: <AnimatedText>[
+                      TypewriterAnimatedText(
+                        state.unboxingContent!.beforeOpen.description,
+                        textAlign: TextAlign.center,
+                        speed: const Duration(milliseconds: 60),
+                      ),
+                    ],
+                    onFinished: () {
+                      if (mounted &&
+                          !_btnAnimCtrl.isAnimating &&
+                          !_btnAnimCtrl.isCompleted) {
+                        _btnAnimCtrl.forward();
+                      }
+                    },
+                  ),
+                )
+              : const SizedBox.shrink(),
         ),
       ),
     );

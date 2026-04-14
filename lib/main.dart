@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/di/service_locator.dart';
 import 'core/router/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  usePathUrlStrategy(); // 해시 제거 함수 호출 (http://localhost:5000/#/addgift → http://localhost:5000/addgift)
+  usePathUrlStrategy(); // 해시 제거 함수 호출 (http://localhost:5000/#/addgift -> http://localhost:5000/addgift)
+
+  // 날짜 형식 데이터 초기화
+  await initializeDateFormatting('ko', null);
 
   // .env 파일 로드
   await dotenv.load(fileName: '.env');

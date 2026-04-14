@@ -23,8 +23,8 @@ class MemoryMobileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16.0),
+    return Padding(
+      padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0, bottom: 24.0),
       child: Stack(
         clipBehavior: Clip.none,
         children: <Widget>[
@@ -60,13 +60,13 @@ class MemoryMobileCard extends StatelessWidget {
                       height: 80,
                       clipBehavior: Clip.antiAlias,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8F9FA),
+                        color: Colors.black,
                         borderRadius: BorderRadius.circular(12.0),
                       ),
                       child: itemData.imageFile != null
                           ? Image.network(
                               itemData.imageFile!.path,
-                              fit: BoxFit.cover,
+                              fit: BoxFit.contain,
                             )
                           : Icon(
                               Icons.photo,
@@ -97,8 +97,8 @@ class MemoryMobileCard extends StatelessWidget {
                           Text(
                             itemData.description.isEmpty
                                 ? '설명 없음'
-                                : itemData.description,
-                            maxLines: 2,
+                                : itemData.description.replaceAll('\n', ' '),
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontFamily: 'WantedSans',

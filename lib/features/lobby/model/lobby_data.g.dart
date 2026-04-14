@@ -114,6 +114,7 @@ _GachaDrawHistory _$GachaDrawHistoryFromJson(Map<String, dynamic> json) =>
       giftImageUrl: json['giftImageUrl'] as String?,
       description: json['description'] as String?,
       selected: json['selected'] as bool? ?? false,
+      drawnAt: json['drawnAt'] as String?,
     );
 
 Map<String, dynamic> _$GachaDrawHistoryToJson(_GachaDrawHistory instance) =>
@@ -123,6 +124,7 @@ Map<String, dynamic> _$GachaDrawHistoryToJson(_GachaDrawHistory instance) =>
       'giftImageUrl': instance.giftImageUrl,
       'description': instance.description,
       'selected': instance.selected,
+      'drawnAt': instance.drawnAt,
     };
 
 _QuizContent _$QuizContentFromJson(Map<String, dynamic> json) => _QuizContent(

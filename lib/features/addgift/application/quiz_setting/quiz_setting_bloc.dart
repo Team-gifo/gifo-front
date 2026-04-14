@@ -81,7 +81,12 @@ class QuizSettingBloc extends Bloc<QuizSettingEvent, QuizSettingState> {
   }
 
   void _onInit(InitQuizSetting event, Emitter<QuizSettingState> emit) {
-    emit(state.copyWith(selectedBgm: event.initialBgm));
+    emit(state.copyWith(
+      selectedBgm: event.initialBgm,
+      uiItems: event.uiItems ?? state.uiItems,
+      successReward: event.successReward ?? state.successReward,
+      failReward: event.failReward ?? state.failReward,
+    ));
   }
 
   void _onUpdateItems(UpdateQuizItems event, Emitter<QuizSettingState> emit) {

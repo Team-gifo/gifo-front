@@ -20,16 +20,16 @@ class MemoryDecisionButtonsColumn extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: <Widget>[
         MemoryDecisionSelectionButton(
-          title: '네,',
-          subtitle: '저는 친구와 함께 추억을 공유하고 싶어요!',
+          title: '네',
+          subtitle: '저는 친구와 함께 추억(사진)을 공유하고 싶어요!',
           icon: Icons.photo_library_rounded,
           accentColor: AppColors.neonPurple,
           onPressed: onSelectShareMemory,
         ),
         const SizedBox(height: 16),
         MemoryDecisionSelectionButton(
-          title: '아니요,',
-          subtitle: '저는 바로 선물을 공개할거에요.',
+          title: '아니요',
+          subtitle: '저는 추억을 공유하지않고, 바로 선물을 공개할거에요.',
           icon: Icons.card_giftcard_rounded,
           accentColor: AppColors.neonBlue,
           onPressed: onSelectDirectOpen,

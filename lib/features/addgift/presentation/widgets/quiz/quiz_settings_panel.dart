@@ -17,6 +17,13 @@ class QuizSettingsPanel extends StatelessWidget {
     required this.failRewardNameController,
     required this.onPickSuccessRewardImage,
     required this.onPickFailRewardImage,
+    required this.onResetSuccessReward,
+    required this.onResetFailReward,
+    this.hasItems = false,
+    this.hasNameAndSubTitle = false,
+    this.hasNoIncompleteItems = false,
+    this.hasSuccessRewardName = false,
+    this.hasFailRewardName = false,
   });
 
   final QuizSettingState quizState;
@@ -26,6 +33,13 @@ class QuizSettingsPanel extends StatelessWidget {
   final TextEditingController failRewardNameController;
   final VoidCallback onPickSuccessRewardImage;
   final VoidCallback onPickFailRewardImage;
+  final VoidCallback onResetSuccessReward;
+  final VoidCallback onResetFailReward;
+  final bool hasItems;
+  final bool hasNameAndSubTitle;
+  final bool hasNoIncompleteItems;
+  final bool hasSuccessRewardName;
+  final bool hasFailRewardName;
 
   @override
   Widget build(BuildContext context) {
@@ -41,9 +55,9 @@ class QuizSettingsPanel extends StatelessWidget {
         SizedBox(height: sectionSpacing),
         _buildFailRewardCard(context),
         SizedBox(height: sectionSpacing),
-        if (!isMobile) _buildConditionsCard(),
-        if (!isMobile) SizedBox(height: sectionSpacing),
         _buildBgmCard(context),
+        if (!isMobile) SizedBox(height: sectionSpacing),
+        if (!isMobile) _buildConditionsCard(),
       ],
     );
   }
@@ -70,100 +84,139 @@ class QuizSettingsPanel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: AppColors.neonPurple.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.emoji_events,
-                    size: 16,
-                    color: AppColors.neonPurple,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  '성공 보상',
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.neonPurpleLight,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: <Widget>[
-                Text(
-                  '맞춘 문제가 ',
-                  style: TextStyle(
-                    fontSize: rewardSentenceFontSize,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<int>(
-                    value: quizState.uiItems.isEmpty
-                        ? 1
-                        : (quizState.successReward.requiredCount! >
-                                  quizState.uiItems.length
-                              ? quizState.uiItems.length
-                              : quizState.successReward.requiredCount),
-                    alignment: Alignment.center,
-                    style: TextStyle(
-                      fontSize: rewardSentenceFontSize,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                Row(
+                  children: <Widget>[
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: AppColors.neonPurple.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.emoji_events,
+                        size: 16,
+                        color: AppColors.neonPurple,
+                      ),
                     ),
-                    icon: const Icon(
-                      Icons.keyboard_arrow_down,
-                      size: 18,
-                      color: Colors.white38,
-                    ),
-                    items:
-                        List<int>.generate(
-                              quizState.uiItems.isEmpty
-                                  ? 1
-                                  : quizState.uiItems.length,
-                              (int index) => index + 1,
-                            )
-                            .map(
-                              (int value) => DropdownMenuItem<int>(
-                                value: value,
-                                child: Text('$value개'),
+                    const SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const Text(
+                          '성공 보상',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.neonPurpleLight,
+                          ),
+                        ),
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: <Widget>[
+                            Text(
+                              '맞춘 문제가 ',
+                              style: TextStyle(
+                                fontSize: rewardSentenceFontSize,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
-                            )
-                            .toList(),
-                    onChanged: quizState.uiItems.isEmpty
-                        ? null
-                        : (int? newVal) {
-                            if (newVal != null) {
-                              context.read<QuizSettingBloc>().add(
-                                UpdateSuccessReward(
-                                  QuizRewardData(
-                                    requiredCount: newVal,
-                                    itemName: quizState.successReward.itemName,
-                                    imageFile:
-                                        quizState.successReward.imageFile,
-                                  ),
+                            ),
+                            DropdownButtonHideUnderline(
+                              child: DropdownButton<int>(
+                                value: quizState.uiItems.isEmpty
+                                    ? 1
+                                    : (quizState.successReward.requiredCount! >
+                                              quizState.uiItems.length
+                                          ? quizState.uiItems.length
+                                          : quizState
+                                                .successReward
+                                                .requiredCount),
+                                alignment: Alignment.center,
+                                isDense: true,
+                                style: TextStyle(
+                                  fontSize: rewardSentenceFontSize,
+                                  fontWeight: FontWeight.bold,
+                                  color: quizState.uiItems.isEmpty
+                                      ? Colors.white
+                                      : AppColors.neonPurple,
                                 ),
-                              );
-                            }
-                          },
-                  ),
+                                icon: Icon(
+                                  Icons.keyboard_arrow_down,
+                                  size: 18,
+                                  color: quizState.uiItems.isEmpty
+                                      ? Colors.white
+                                      : AppColors.neonPurple,
+                                ),
+                                items:
+                                    List<int>.generate(
+                                          quizState.uiItems.isEmpty
+                                              ? 1
+                                              : quizState.uiItems.length,
+                                          (int index) => index + 1,
+                                        )
+                                        .map(
+                                          (int value) => DropdownMenuItem<int>(
+                                            value: value,
+                                            child: Text(
+                                              '$value개',
+                                              style: TextStyle(
+                                                color: quizState.uiItems.isEmpty
+                                                    ? Colors.grey
+                                                    : Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                onChanged: quizState.uiItems.isEmpty
+                                    ? null
+                                    : (int? newVal) {
+                                        if (newVal != null) {
+                                          context.read<QuizSettingBloc>().add(
+                                            UpdateSuccessReward(
+                                              QuizRewardData(
+                                                requiredCount: newVal,
+                                                itemName: quizState
+                                                    .successReward
+                                                    .itemName,
+                                                imageFile: quizState
+                                                    .successReward
+                                                    .imageFile,
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                              ),
+                            ),
+                            Text(
+                              ' 일 때',
+                              style: TextStyle(
+                                fontSize: rewardSentenceFontSize,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                Text(
-                  ' 일 때',
-                  style: TextStyle(
-                    fontSize: rewardSentenceFontSize,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                TextButton.icon(
+                  onPressed: onResetSuccessReward,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white38,
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  icon: const Icon(Icons.refresh, size: 14),
+                  label: const Text(
+                    '초기화',
+                    style: TextStyle(fontSize: 13, fontFamily: 'WantedSans'),
                   ),
                 ),
               ],
@@ -210,9 +263,26 @@ class QuizSettingsPanel extends StatelessWidget {
                             horizontal: 12,
                             vertical: 10,
                           ),
+                          suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: successRewardNameController,
+                            builder: (context, value, child) {
+                              return value.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(
+                                        Icons.close,
+                                        size: 16,
+                                        color: Colors.white38,
+                                      ),
+                                      onPressed: () =>
+                                          successRewardNameController.clear(),
+                                    )
+                                  : const SizedBox.shrink();
+                            },
+                          ),
                         ),
                         style: const TextStyle(
                           color: Colors.white,
+                          fontFamily: 'WantedSans',
                           fontSize: 14,
                         ),
                       ),
@@ -231,6 +301,16 @@ class QuizSettingsPanel extends StatelessWidget {
     final double cardPadding = isCompactDesktop ? 16 : 20;
     final double rewardTitleFontSize = isCompactDesktop ? 14 : 15;
 
+    final int actualRequired = quizState.uiItems.isEmpty
+        ? 1
+        : ((quizState.successReward.requiredCount ?? 1) >
+                  quizState.uiItems.length
+              ? quizState.uiItems.length
+              : (quizState.successReward.requiredCount ?? 1));
+    final String failConditionText = actualRequired <= 1
+        ? '맞춘 문제가 0개 일 때'
+        : '맞춘 문제가 0 ~ ${actualRequired - 1}개 일 때';
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: Container(
@@ -248,41 +328,59 @@ class QuizSettingsPanel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.sentiment_dissatisfied,
-                    size: 16,
-                    color: Colors.white54,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: <Widget>[
-                    const Text(
-                      '실패 보상',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white38,
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.sentiment_dissatisfied,
+                        size: 16,
+                        color: Colors.white54,
                       ),
                     ),
-                    Text(
-                      '그 외 (실패 보상 등)',
-                      style: TextStyle(
-                        fontSize: rewardTitleFontSize,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                    const SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        const Text(
+                          '실패 보상',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white38,
+                          ),
+                        ),
+                        Text(
+                          failConditionText,
+                          style: TextStyle(
+                            fontSize: rewardTitleFontSize,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
+                ),
+                TextButton.icon(
+                  onPressed: onResetFailReward,
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white38,
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  icon: const Icon(Icons.refresh, size: 14),
+                  label: const Text(
+                    '초기화',
+                    style: TextStyle(fontSize: 13, fontFamily: 'WantedSans'),
+                  ),
                 ),
               ],
             ),
@@ -328,9 +426,26 @@ class QuizSettingsPanel extends StatelessWidget {
                             horizontal: 12,
                             vertical: 10,
                           ),
+                          suffixIcon: ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: failRewardNameController,
+                            builder: (context, value, child) {
+                              return value.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(
+                                        Icons.close,
+                                        size: 16,
+                                        color: Colors.white38,
+                                      ),
+                                      onPressed: () =>
+                                          failRewardNameController.clear(),
+                                    )
+                                  : const SizedBox.shrink();
+                            },
+                          ),
                         ),
                         style: const TextStyle(
                           color: Colors.white,
+                          fontFamily: 'WantedSans',
                           fontSize: 14,
                         ),
                       ),
@@ -388,14 +503,6 @@ class QuizSettingsPanel extends StatelessWidget {
                           Icons.add_photo_alternate,
                           size: iconSize,
                           color: accentColor,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '사진 추가',
-                          style: TextStyle(
-                            fontSize: imageLabelSize,
-                            color: accentColor,
-                          ),
                         ),
                       ],
                     )
@@ -460,19 +567,20 @@ class QuizSettingsPanel extends StatelessWidget {
             ],
           ),
           SizedBox(height: titleGap),
-          _buildConditionItem('문제 최소 1개 이상 생성'),
-          _buildConditionItem('상단 닉네임 및 서브타이틀 입력'),
-          _buildConditionItem('미완성 문제 없음 (제목 + 정답 필수)'),
-          _buildConditionItem('성공 보상 물품 이름 입력'),
+          _buildConditionItem('문제 최소 1개 이상 생성', hasItems),
+          _buildConditionItem('상단 닉네임 및 서브타이틀 입력', hasNameAndSubTitle),
+          _buildConditionItem('미완성 문제 없음 (제목 + 정답 필수)', hasNoIncompleteItems),
+          _buildConditionItem('성공 보상 입력 완료 (이미지, 이름)', hasSuccessRewardName),
+          _buildConditionItem('실패 보상 입력 완료 (이미지, 이름)', hasFailRewardName),
         ],
       ),
     );
   }
 
-  Widget _buildConditionItem(String text) {
+  Widget _buildConditionItem(String text, bool met) {
     final double itemBottomSpacing = isCompactDesktop ? 4 : 6;
-    final double iconSize = isCompactDesktop ? 11 : 12;
-    final double textSize = isCompactDesktop ? 12 : 13;
+    final double iconSize = isCompactDesktop ? 12 : 14;
+    final double textSize = isCompactDesktop ? 14 : 16;
 
     return Padding(
       padding: EdgeInsets.only(bottom: itemBottomSpacing),
@@ -481,13 +589,17 @@ class QuizSettingsPanel extends StatelessWidget {
           Icon(
             Icons.check_circle_outline,
             size: iconSize,
-            color: Colors.white38,
+            color: met ? Colors.greenAccent : Colors.white38,
           ),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontSize: textSize, color: Colors.white70),
+              style: TextStyle(
+                fontSize: textSize,
+                fontFamily: 'WantedSans',
+                color: met ? Colors.greenAccent : Colors.white70,
+              ),
             ),
           ),
         ],

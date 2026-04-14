@@ -3,10 +3,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/packaging_loading_overlay.dart';
+import '../../application/bgm_preset/bgm_preset_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../../application/quiz_setting/quiz_setting_bloc.dart';
 import '../../model/quiz_setting_models.dart';
@@ -49,10 +51,13 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
 
   bool _isSubmitting = false;
   final ImagePicker _picker = ImagePicker();
+  late final BgmPresetBloc _bgmBloc;
 
   @override
   void initState() {
     super.initState();
+    _bgmBloc = context.read<BgmPresetBloc>();
+
     final GiftPackagingState packagingState = context
         .read<GiftPackagingBloc>()
         .state;
@@ -63,15 +68,89 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
       _subTitleController.text = packagingState.subTitle;
     }
 
+    final quizContent = packagingState.quizContent;
+    List<QuizItemData>? uiItems;
+    QuizRewardData? successReward;
+    QuizRewardData? failReward;
+
+    if (quizContent != null) {
+      uiItems = quizContent.list.map((item) {
+        QuizType type;
+        if (item.type == 'ox') {
+          type = QuizType.ox;
+        } else if (item.type == 'subjective') {
+          type = QuizType.subjective;
+        } else {
+          type = QuizType.multipleChoice;
+        }
+
+        List<String> answer = item.answer;
+        if (type == QuizType.multipleChoice) {
+          answer = item.answer.map((ans) {
+            final idx = item.options.indexOf(ans);
+            return idx != -1 ? idx.toString() : ans;
+          }).toList();
+        }
+
+        return QuizItemData(
+          id: item.quizId.toString(),
+          type: type,
+          title: item.title,
+          imageUrl: item.imageUrl,
+          imageFile: item.imageUrl != null && item.imageUrl!.isNotEmpty
+              ? XFile(item.imageUrl!)
+              : null,
+          description: item.description ?? '',
+          hint: item.hint ?? '',
+          options: item.options,
+          answer: answer,
+          playLimit: item.playLimit,
+        );
+      }).toList();
+
+      successReward = QuizRewardData(
+        requiredCount: quizContent.successReward.requiredCount,
+        itemName: quizContent.successReward.itemName,
+        imageUrl: quizContent.successReward.imageUrl,
+        imageFile: quizContent.successReward.imageUrl.isNotEmpty
+            ? XFile(quizContent.successReward.imageUrl)
+            : null,
+      );
+
+      failReward = QuizRewardData(
+        itemName: quizContent.failReward.itemName,
+        imageUrl: quizContent.failReward.imageUrl,
+        imageFile: quizContent.failReward.imageUrl.isNotEmpty
+            ? XFile(quizContent.failReward.imageUrl)
+            : null,
+      );
+
+      _successRewardNameController.text = successReward.itemName;
+      _failRewardNameController.text = failReward.itemName;
+    }
+
+    final initialBgm = packagingState.bgm;
+
+    context.read<QuizSettingBloc>().add(
+      InitQuizSetting(
+        initialBgm: initialBgm,
+        uiItems: uiItems,
+        successReward: successReward,
+        failReward: failReward,
+      ),
+    );
+
     _userNameController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetReceiverName(_userNameController.text),
       );
+      setState(() {});
     });
     _subTitleController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetSubTitle(_subTitleController.text),
       );
+      setState(() {});
     });
     _successRewardNameController.addListener(() {
       final QuizSettingState s = context.read<QuizSettingBloc>().state;
@@ -84,6 +163,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
           ),
         ),
       );
+      setState(() {});
     });
     _failRewardNameController.addListener(() {
       final QuizSettingState s = context.read<QuizSettingBloc>().state;
@@ -95,6 +175,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
           ),
         ),
       );
+      setState(() {});
     });
   }
 
@@ -104,6 +185,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
     _subTitleController.dispose();
     _successRewardNameController.dispose();
     _failRewardNameController.dispose();
+    _bgmBloc.add(StopBgmPreview());
     super.dispose();
   }
 
@@ -199,65 +281,143 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
     }
   }
 
-  // --- [모달 로직] ---
+  void _resetSuccessReward() {
+    _successRewardNameController.clear();
+    final QuizSettingState s = context.read<QuizSettingBloc>().state;
+    context.read<QuizSettingBloc>().add(
+      UpdateSuccessReward(
+        QuizRewardData(
+          requiredCount: s.successReward.requiredCount,
+          itemName: '',
+          imageFile: null,
+          imageUrl: '',
+        ),
+      ),
+    );
+  }
+
+  void _resetFailReward() {
+    _failRewardNameController.clear();
+    context.read<QuizSettingBloc>().add(
+      UpdateFailReward(
+        QuizRewardData(itemName: '', imageFile: null, imageUrl: ''),
+      ),
+    );
+  }
+
+  // --- [아이템 관리] ---
 
   void _showTypeSelectionDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          backgroundColor: AppColors.darkBg,
+          backgroundColor: const Color(0xFF1A1A2E),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
           title: const Text(
             '문제 유형 선택',
+            textAlign: TextAlign.center,
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              ListTile(
-                title: const Text('객관식', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showEditModal(
-                    QuizItemData(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      type: QuizType.multipleChoice,
-                    ),
-                    isNew: true,
-                  );
-                },
-              ),
-              ListTile(
-                title: const Text('주관식', style: TextStyle(color: Colors.white)),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showEditModal(
-                    QuizItemData(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      type: QuizType.subjective,
-                    ),
-                    isNew: true,
-                  );
-                },
-              ),
-              ListTile(
-                title: const Text(
-                  'OX 퀴즈',
-                  style: TextStyle(color: Colors.white),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showEditModal(
-                    QuizItemData(
-                      id: DateTime.now().millisecondsSinceEpoch.toString(),
-                      type: QuizType.ox,
+                child: ListTile(
+                  title: const Text(
+                    'Q. 객관식',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 19,
+                      fontFamily: 'WantedSans',
+                      fontWeight: FontWeight.w500,
                     ),
-                    isNew: true,
-                  );
-                },
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showEditModal(
+                      QuizItemData(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        type: QuizType.multipleChoice,
+                      ),
+                      isNew: true,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  title: const Text(
+                    'Q. 주관식',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 19,
+                      fontFamily: 'WantedSans',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showEditModal(
+                      QuizItemData(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        type: QuizType.subjective,
+                      ),
+                      isNew: true,
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.5),
+                    width: 1,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: ListTile(
+                  title: const Text(
+                    'Q. OX 퀴즈',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 19,
+                      fontFamily: 'WantedSans',
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _showEditModal(
+                      QuizItemData(
+                        id: DateTime.now().millisecondsSinceEpoch.toString(),
+                        type: QuizType.ox,
+                      ),
+                      isNew: true,
+                    );
+                  },
+                ),
               ),
             ],
           ),
@@ -383,7 +543,14 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
     if (quizState.uiItems.isEmpty) return false;
     if (_userNameController.text.trim().isEmpty) return false;
     if (_subTitleController.text.trim().isEmpty) return false;
-    if (quizState.successReward.itemName.trim().isEmpty) return false;
+    if (quizState.successReward.itemName.trim().isEmpty ||
+        (quizState.successReward.imageFile == null &&
+            quizState.successReward.imageUrl == null))
+      return false;
+    if (quizState.failReward.itemName.trim().isEmpty ||
+        (quizState.failReward.imageFile == null &&
+            quizState.failReward.imageUrl == null))
+      return false;
     for (final QuizItemData item in quizState.uiItems) {
       if (item.title.trim().isEmpty) return false;
       if (item.answer.isEmpty) return false;
@@ -415,7 +582,8 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isMobile = MediaQuery.sizeOf(context).width < 800;
+    final bool isMobile =
+        MediaQuery.sizeOf(context).width < AppBreakpoints.tablet;
 
     return BlocListener<GiftPackagingBloc, GiftPackagingState>(
       listenWhen: (GiftPackagingState prev, GiftPackagingState curr) =>
@@ -451,13 +619,13 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                   surfaceTintColor: Colors.transparent,
                   elevation: 0,
                   iconTheme: const IconThemeData(color: Colors.white),
-                  title: isMobile
-                      ? null
-                      : QuizTitleBar(
-                          userNameController: _userNameController,
-                          subTitleController: _subTitleController,
-                        ),
-                  actions: const <Widget>[StepIndicator(activeStep: 3)],
+                  title: QuizTitleBar(
+                    userNameController: _userNameController,
+                    subTitleController: _subTitleController,
+                  ),
+                  actions: <Widget>[
+                    if (!isMobile) const StepIndicator(activeStep: 3),
+                  ],
                 ),
                 body: Stack(
                   children: <Widget>[
@@ -468,16 +636,6 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                       child: isMobile
                           ? Column(
                               children: <Widget>[
-                                Padding(
-                                  padding: const EdgeInsets.all(24.0),
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: QuizTitleBar(
-                                      userNameController: _userNameController,
-                                      subTitleController: _subTitleController,
-                                    ),
-                                  ),
-                                ),
                                 Expanded(
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
@@ -537,6 +695,54 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                                               _pickImageForReward(true),
                                           onPickFailRewardImage: () =>
                                               _pickImageForReward(false),
+                                          onResetSuccessReward:
+                                              _resetSuccessReward,
+                                          onResetFailReward: _resetFailReward,
+                                          hasItems:
+                                              quizState.uiItems.isNotEmpty,
+                                          hasNameAndSubTitle:
+                                              _userNameController.text
+                                                  .trim()
+                                                  .isNotEmpty &&
+                                              _subTitleController.text
+                                                  .trim()
+                                                  .isNotEmpty,
+                                          hasNoIncompleteItems:
+                                              quizState.uiItems.isNotEmpty &&
+                                              quizState.uiItems.every((item) {
+                                                if (item.title.trim().isEmpty)
+                                                  return false;
+                                                if (item.answer.isEmpty)
+                                                  return false;
+                                                if (item.type ==
+                                                        QuizType
+                                                            .multipleChoice &&
+                                                    item.options.length < 2)
+                                                  return false;
+                                                return true;
+                                              }),
+                                          hasSuccessRewardName:
+                                              quizState.successReward.itemName
+                                                  .trim()
+                                                  .isNotEmpty &&
+                                              (quizState
+                                                          .successReward
+                                                          .imageFile !=
+                                                      null ||
+                                                  quizState
+                                                          .successReward
+                                                          .imageUrl !=
+                                                      null),
+                                          hasFailRewardName:
+                                              quizState.failReward.itemName
+                                                  .trim()
+                                                  .isNotEmpty &&
+                                              (quizState.failReward.imageFile !=
+                                                      null ||
+                                                  quizState
+                                                          .failReward
+                                                          .imageUrl !=
+                                                      null),
                                         ),
                                     bottomAction: QuizCompleteButton(
                                       enabled: _canComplete() && !_isSubmitting,
@@ -583,7 +789,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                     bottom: MediaQuery.of(innerCtx).viewInsets.bottom,
                   ),
                   decoration: const BoxDecoration(
-                    color: AppColors.darkBg,
+                    color: Color(0xFF1A1A2E),
                     borderRadius: BorderRadius.vertical(
                       top: Radius.circular(24),
                     ),
@@ -621,6 +827,32 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
                               _pickImageForReward(true),
                           onPickFailRewardImage: () =>
                               _pickImageForReward(false),
+                          onResetSuccessReward: _resetSuccessReward,
+                          onResetFailReward: _resetFailReward,
+                          hasItems: quizState.uiItems.isNotEmpty,
+                          hasNameAndSubTitle:
+                              _userNameController.text.trim().isNotEmpty &&
+                              _subTitleController.text.trim().isNotEmpty,
+                          hasNoIncompleteItems:
+                              quizState.uiItems.isNotEmpty &&
+                              quizState.uiItems.every((item) {
+                                if (item.title.trim().isEmpty) return false;
+                                if (item.answer.isEmpty) return false;
+                                if (item.type == QuizType.multipleChoice &&
+                                    item.options.length < 2)
+                                  return false;
+                                return true;
+                              }),
+                          hasSuccessRewardName:
+                              quizState.successReward.itemName
+                                  .trim()
+                                  .isNotEmpty &&
+                              (quizState.successReward.imageFile != null ||
+                                  quizState.successReward.imageUrl != null),
+                          hasFailRewardName:
+                              quizState.failReward.itemName.trim().isNotEmpty &&
+                              (quizState.failReward.imageFile != null ||
+                                  quizState.failReward.imageUrl != null),
                         ),
                         const SizedBox(height: 16),
                         SizedBox(

@@ -34,7 +34,9 @@ class MemoryDesktopCard extends StatelessWidget {
       onExit: (_) => onHoverExit(),
       child: ReorderableDragStartListener(
         index: index,
-        child: Stack(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Stack(
             clipBehavior: Clip.none,
             children: <Widget>[
               Positioned.fill(
@@ -63,18 +65,18 @@ class MemoryDesktopCard extends StatelessWidget {
                               width: double.infinity,
                               clipBehavior: Clip.antiAlias,
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.08),
+                                color: Colors.black.withValues(alpha: 0.3),
                                 borderRadius: BorderRadius.circular(12.0),
                               ),
                               child: itemData.imageFile != null
                                   ? Image.network(
                                       itemData.imageFile!.path,
-                                      fit: BoxFit.cover,
+                                      fit: BoxFit.contain,
                                     )
                                   : Icon(
                                       Icons.photo,
                                       size: 40,
-                                      color: Colors.grey.shade300,
+                                      color: Colors.grey.withAlpha(100),
                                     ),
                             ),
                           ),
@@ -83,9 +85,7 @@ class MemoryDesktopCard extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text(
-                                itemData.title.isEmpty
-                                    ? '제목 없음'
-                                    : itemData.title,
+                                itemData.title.isEmpty ? '제목 없음' : itemData.title,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -101,7 +101,7 @@ class MemoryDesktopCard extends StatelessWidget {
                               Text(
                                 itemData.description.isEmpty
                                     ? '설명 없음'
-                                    : itemData.description,
+                                    : itemData.description.replaceAll('\n', ' '),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -163,6 +163,8 @@ class MemoryDesktopCard extends StatelessWidget {
             ],
           ),
         ),
-      );
+      ),
+    );
   }
 }
+

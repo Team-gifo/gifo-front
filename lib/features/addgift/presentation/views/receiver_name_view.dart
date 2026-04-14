@@ -38,6 +38,8 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
     final double screenWidth = MediaQuery.sizeOf(context).width;
     final bool isMobile = screenWidth < AppBreakpoints.mobile;
     final bool isDesktop = screenWidth >= AppBreakpoints.desktop;
+    final bool isTablet = !isMobile && !isDesktop;
+    final bool isDesktopOrTablet = isDesktop || isTablet;
 
     return Title(
       title: '선물 포장하기 - Gifo',
@@ -51,16 +53,25 @@ class _ReceiverNameViewState extends State<ReceiverNameView> {
           iconTheme: const IconThemeData(color: Colors.white),
           actions: const <Widget>[StepIndicator(activeStep: 1)],
         ),
-        bottomNavigationBar: ReceiverNameBottomButton(
-          nameController: _nameController,
-          onNext: _handleNext,
-        ),
+        // 모바일 버전에서만 하단 바텀 시트 버튼 사용
+        // 태블릿, 데스크탑에서는 키보드 이슈 방지를 위해 바디 내부에 배치
+        bottomNavigationBar: isMobile
+            ? ReceiverNameBottomButton(
+                nameController: _nameController,
+                onNext: _handleNext,
+              )
+            : null,
         body: SafeArea(
           child: isDesktop
-              ? ReceiverNameDesktopLayout(nameController: _nameController)
+              ? ReceiverNameDesktopLayout(
+                  nameController: _nameController,
+                  onNext: _handleNext,
+                )
               : ReceiverNameMobileLayout(
                   isMobile: isMobile,
+                  isTablet: isTablet,
                   nameController: _nameController,
+                  onNext: _handleNext,
                 ),
         ),
       ),

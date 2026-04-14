@@ -41,10 +41,11 @@ class MemoryDecisionSelectionButton extends StatelessWidget {
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'PFStardustS',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'WantedSans',
                   fontSize: 22,
-                  color: accentColor,
+                  color: Colors.white,
                   height: 1.3,
                 ),
               ),

@@ -10,6 +10,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/packaging_loading_overlay.dart';
+import '../../application/bgm_preset/bgm_preset_bloc.dart';
 import '../../application/gacha_setting/gacha_setting_bloc.dart';
 import '../../application/gift_packaging_bloc.dart';
 import '../widgets/desktop_settings_rail.dart';
@@ -55,10 +56,13 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
   TextEditingController? _modalPercentController;
 
   final ImagePicker _picker = ImagePicker();
+  late final BgmPresetBloc _bgmBloc;
 
   @override
   void initState() {
     super.initState();
+    _bgmBloc = context.read<BgmPresetBloc>();
+
     final GiftPackagingState packagingState = context
         .read<GiftPackagingBloc>()
         .state;
@@ -102,9 +106,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
       _playCountController.text = savedGacha.playCount.toString();
     }
 
-    final String initialBgm = packagingState.bgm.isNotEmpty
-        ? packagingState.bgm
-        : '신나는 생일';
+    final String initialBgm = packagingState.bgm;
 
     context.read<GachaSettingBloc>().add(
       InitGachaSetting(initUiItems, nextId, initialBgm),
@@ -147,6 +149,7 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     _playCountController.dispose();
     _modalNameController?.dispose();
     _modalPercentController?.dispose();
+    _bgmBloc.add(StopBgmPreview());
     super.dispose();
   }
 
@@ -320,26 +323,26 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
     }
   }
 
-  // GiftPackagingBloc의 gachaContent를 기반으로 완료 가능 여부를 판단합니다.
   bool _canComplete() {
-    final GiftPackagingState packagingState = context
-        .read<GiftPackagingBloc>()
-        .state;
-    final GachaContent? gachaContent = packagingState.gachaContent;
+    final GachaSettingState gachaState = context.read<GachaSettingBloc>().state;
+    final List<DefaultGachaItemData> uiItems = gachaState.uiItems;
 
-    if (gachaContent == null || gachaContent.list.isEmpty) return false;
+    if (uiItems.isEmpty) return false;
     if (_userNameController.text.trim().isEmpty) return false;
     if (_subTitleController.text.trim().isEmpty) return false;
-    if (gachaContent.playCount < 1) return false;
+    
+    final int playCount = int.tryParse(_playCountController.text) ?? 0;
+    if (playCount < 1) return false;
 
-    for (final GachaItem item in gachaContent.list) {
+    for (final DefaultGachaItemData item in uiItems) {
       if (item.itemName.trim().isEmpty) return false;
-      if (item.percent < 0.01 || item.percent > 100.0) return false;
+      final double percent = double.tryParse(item.percentStr) ?? 0.0;
+      if (percent < 0.01 || percent > 100.0) return false;
     }
 
-    final double total = gachaContent.list.fold(
+    final double total = uiItems.fold(
       0.0,
-      (double sum, GachaItem item) => sum + item.percent,
+      (double sum, DefaultGachaItemData item) => sum + (double.tryParse(item.percentStr) ?? 0.0),
     );
     if (total < 99.99 || total > 100.01) return false;
 
@@ -555,6 +558,14 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                                                         isCompactDesktop,
                                                     playCountController:
                                                         _playCountController,
+                                                    hasCapsule: gachaState.uiItems.isNotEmpty,
+                                                    hasNameAndSubTitle: _userNameController.text.trim().isNotEmpty && _subTitleController.text.trim().isNotEmpty,
+                                                    hasPlayCount: (int.tryParse(_playCountController.text) ?? 0) >= 1,
+                                                    isCapsuleComplete: gachaState.uiItems.isNotEmpty && gachaState.uiItems.every((item) {
+                                                      final double percent = double.tryParse(item.percentStr) ?? 0.0;
+                                                      return item.itemName.trim().isNotEmpty && percent >= 0.01 && percent <= 100.0;
+                                                    }),
+                                                    isPercent100: gachaState.uiItems.isNotEmpty && (gachaState.uiItems.fold(0.0, (double sum, DefaultGachaItemData item) => sum + (double.tryParse(item.percentStr) ?? 0.0)) >= 99.99 && gachaState.uiItems.fold(0.0, (double sum, DefaultGachaItemData item) => sum + (double.tryParse(item.percentStr) ?? 0.0)) <= 100.01),
                                                   ),
                                               bottomAction: SizedBox(
                                                 height: 60,
@@ -676,6 +687,14 @@ class _GachaSettingContentState extends State<_GachaSettingContent> {
                         isMobile: true,
                         isCompactDesktop: false,
                         playCountController: _playCountController,
+                        hasCapsule: gachaBloc.state.uiItems.isNotEmpty,
+                        hasNameAndSubTitle: _userNameController.text.trim().isNotEmpty && _subTitleController.text.trim().isNotEmpty,
+                        hasPlayCount: (int.tryParse(_playCountController.text) ?? 0) >= 1,
+                        isCapsuleComplete: gachaBloc.state.uiItems.isNotEmpty && gachaBloc.state.uiItems.every((item) {
+                          final double percent = double.tryParse(item.percentStr) ?? 0.0;
+                          return item.itemName.trim().isNotEmpty && percent >= 0.01 && percent <= 100.0;
+                        }),
+                        isPercent100: gachaBloc.state.uiItems.isNotEmpty && (gachaBloc.state.uiItems.fold(0.0, (double sum, DefaultGachaItemData item) => sum + (double.tryParse(item.percentStr) ?? 0.0)) >= 99.99 && gachaBloc.state.uiItems.fold(0.0, (double sum, DefaultGachaItemData item) => sum + (double.tryParse(item.percentStr) ?? 0.0)) <= 100.01),
                       ),
                       Row(
                         children: <Widget>[
