@@ -119,12 +119,6 @@ class _ResultBodyState extends State<_ResultBody>
                 alignment: Alignment.topCenter,
                 child: SharedConfettiWidget(autoPlay: true),
               ),
-            // 상단 BGM 토글
-            const Positioned(
-              top: 10,
-              right: 10,
-              child: ContentAudioToggle(),
-            ),
             // 메인 콘텐츠
             SafeArea(
               child: SingleChildScrollView(
@@ -163,6 +157,12 @@ class _ResultBodyState extends State<_ResultBody>
                   ),
                 ),
               ),
+            ),
+            // BGM 토글: Stack 최상위에 배치하여 ScrollView의 터치 이벤트 간섭 방지
+            const Positioned(
+              top: 10,
+              right: 10,
+              child: SafeArea(child: ContentAudioToggle()),
             ),
           ],
         ),

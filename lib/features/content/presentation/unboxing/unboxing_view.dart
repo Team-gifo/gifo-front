@@ -11,6 +11,7 @@ import '../../../../core/widgets/gift_image_widget.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../../core/widgets/pixel_envelope_widget.dart';
 import '../../../lobby/application/lobby_bloc.dart';
+import '../../application/content_audio/content_audio_bloc.dart';
 import '../../application/unboxing/unboxing_bloc.dart';
 import '../result/result_view.dart';
 import '../widgets/content_audio_toggle.dart';
@@ -54,6 +55,20 @@ class _UnboxingViewState extends State<UnboxingView>
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
+
+    // 사전 로드만 시도 (이미 재생 중이면 방해하지 않음).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final audioBloc = context.read<ContentAudioBloc>();
+        if (audioBloc.state.isPlaying) return; // 이미 재생 중이면 스킵
+
+        final lobbyState = context.read<LobbyBloc>().state;
+        if (lobbyState.lobbyData != null &&
+            lobbyState.lobbyData!.bgm.isNotEmpty) {
+          audioBloc.add(PreloadContentAudio(lobbyState.lobbyData!.bgm));
+        }
+      }
+    });
 
     _envDrop = Tween<double>(begin: -1.0, end: 0.0).animate(
       CurvedAnimation(

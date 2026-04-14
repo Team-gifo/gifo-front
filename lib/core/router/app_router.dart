@@ -166,8 +166,18 @@ final GoRouter appRouter = GoRouter(
             final LobbyData lobbyData = extra['data'] as LobbyData;
             final String inviteCode = extra['code'] as String? ?? '';
             return NoTransitionPage(
-              child: BlocProvider(
-                create: (_) => DownloadBloc(),
+              child: MultiBlocProvider(
+                providers: <BlocProvider<dynamic>>[
+                  BlocProvider<LobbyBloc>(
+                    create: (_) =>
+                        LobbyBloc(repository: getIt<LobbyRepository>())..add(
+                          InitLobbyWithData(data: lobbyData, code: inviteCode),
+                        ),
+                  ),
+                  BlocProvider<DownloadBloc>(
+                    create: (_) => DownloadBloc(),
+                  ),
+                ],
                 child: MemoryGalleryView(
                   lobbyData: lobbyData,
                   inviteCode: inviteCode,
@@ -216,10 +226,20 @@ final GoRouter appRouter = GoRouter(
             final LobbyData lobbyData = extra['data'] as LobbyData;
             final String inviteCode = extra['code'] as String? ?? '';
             return NoTransitionPage(
-              child: BlocProvider<QuizBloc>(
-                create: (BuildContext context) =>
-                    QuizBloc(repository: getIt<ContentRepository>())
-                      ..add(InitQuiz(lobbyData, inviteCode: inviteCode)),
+              child: MultiBlocProvider(
+                providers: <BlocProvider<dynamic>>[
+                  BlocProvider<LobbyBloc>(
+                    create: (BuildContext context) =>
+                        LobbyBloc(repository: getIt<LobbyRepository>())..add(
+                          InitLobbyWithData(data: lobbyData, code: inviteCode),
+                        ),
+                  ),
+                  BlocProvider<QuizBloc>(
+                    create: (BuildContext context) =>
+                        QuizBloc(repository: getIt<ContentRepository>())
+                          ..add(InitQuiz(lobbyData, inviteCode: inviteCode)),
+                  ),
+                ],
                 child: const QuizView(),
               ),
             );

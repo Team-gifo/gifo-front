@@ -11,6 +11,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../lobby/application/lobby_bloc.dart';
 import '../../../lobby/model/lobby_data.dart';
+import '../../application/content_audio/content_audio_bloc.dart';
 import '../../application/gacha/gacha_bloc.dart';
 import 'gacha_result_modal.dart';
 import 'gacha_widgets.dart';
@@ -27,6 +28,25 @@ class GachaView extends StatefulWidget {
 class _GachaViewState extends State<GachaView> {
   final GlobalKey<GachaMachineSectionState> _machineKey =
       GlobalKey<GachaMachineSectionState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // 사전 로드만 시도 (이미 재생 중이면 방해하지 않음).
+    // 실제 재생은 입장하기 버튼에서 이미 시작되었다.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final audioBloc = context.read<ContentAudioBloc>();
+        if (audioBloc.state.isPlaying) return; // 이미 재생 중이면 스킵
+
+        final lobbyState = context.read<LobbyBloc>().state;
+        if (lobbyState.lobbyData != null &&
+            lobbyState.lobbyData!.bgm.isNotEmpty) {
+          audioBloc.add(PreloadContentAudio(lobbyState.lobbyData!.bgm));
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -260,6 +280,7 @@ class _GachaViewState extends State<GachaView> {
             ),
             const Spacer(),
             const ContentAudioToggle(),
+            const SizedBox(width: 8),
             // 데스크탑/태블릿(모바일 이외)에서 남은 횟수 표시
             if (!isMobileOrSmall) ...<Widget>[
               GachaRemainingBadge(count: state.remainingCount),

@@ -8,6 +8,9 @@ import '../../../../core/constants/app_breakpoints.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/grid_background_painter.dart';
 import '../../../lobby/model/lobby_data.dart';
+import '../../../lobby/application/lobby_bloc.dart';
+import '../../../lobby/model/lobby_data.dart';
+import '../../application/content_audio/content_audio_bloc.dart';
 import '../../application/quiz/quiz_bloc.dart';
 import '../result/result_view.dart';
 import '../widgets/content_audio_toggle.dart';
@@ -38,6 +41,20 @@ class _QuizViewState extends State<QuizView>
       vsync: this,
       duration: const Duration(milliseconds: 1500),
     );
+
+    // 사전 로드만 시도 (이미 재생 중이면 방해하지 않음).
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        final audioBloc = context.read<ContentAudioBloc>();
+        if (audioBloc.state.isPlaying) return; // 이미 재생 중이면 스킵
+
+        final lobbyState = context.read<LobbyBloc>().state;
+        if (lobbyState.lobbyData != null &&
+            lobbyState.lobbyData!.bgm.isNotEmpty) {
+          audioBloc.add(PreloadContentAudio(lobbyState.lobbyData!.bgm));
+        }
+      }
+    });
 
     _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
@@ -307,6 +324,7 @@ class _QuizViewState extends State<QuizView>
         ),
         actions: <Widget>[
           const ContentAudioToggle(),
+          const SizedBox(width: 8),
           if (size.width >= AppBreakpoints.desktop)
             Padding(
               padding: const EdgeInsets.only(right: 32.0),

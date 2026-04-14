@@ -20,7 +20,14 @@ class LobbyView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<LobbyBloc, LobbyState>(
+    return BlocConsumer<LobbyBloc, LobbyState>(
+      listenWhen: (LobbyState prev, LobbyState curr) =>
+          prev.lobbyData == null && curr.lobbyData != null,
+      listener: (BuildContext context, LobbyState state) {
+        // 데이터 수신 시점에 BGM URL을 미리 로드만 해둔다.
+        // 실제 재생은 사용자가 "입장하기"를 누를 때 수행 (브라우저 자동 재생 정책 대응).
+        _preloadBgm(context, state.lobbyData?.bgm);
+      },
       builder: (BuildContext context, LobbyState state) {
         // 로딩 중 또는 idle 상태: 로딩 화면 표시
         if (state.status == LobbyStatus.loading ||
@@ -38,19 +45,25 @@ class LobbyView extends StatelessWidget {
 
         // 데이터 수신 완료: 실제 로비 화면 렌더링
         final LobbyData data = state.lobbyData!;
-        return BlocListener<LobbyBloc, LobbyState>(
-          listenWhen: (LobbyState prev, LobbyState curr) =>
-              prev.lobbyData == null && curr.lobbyData != null,
-          listener: (BuildContext context, LobbyState state) {
-            final String? bgmUrl = state.lobbyData?.bgm;
-            if (bgmUrl != null && bgmUrl.isNotEmpty) {
-              context.read<ContentAudioBloc>().add(InitContentAudio(bgmUrl));
-            }
-          },
-          child: _LobbyContent(data: data, code: code),
-        );
+
+        // 이미 데이터가 로드된 상태로 진입한 경우(Hot Reload 등) URL 사전 로드
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            _preloadBgm(context, data.bgm);
+          }
+        });
+
+        return _LobbyContent(data: data, code: code);
       },
     );
+  }
+
+  // BGM URL을 플레이어에 미리 등록만 한다 (재생은 하지 않음).
+  // 재생은 사용자의 명시적 제스처(입장하기 버튼) 이후에 시작된다.
+  void _preloadBgm(BuildContext context, String? url) {
+    if (url != null && url.isNotEmpty) {
+      context.read<ContentAudioBloc>().add(PreloadContentAudio(url));
+    }
   }
 }
 
@@ -358,6 +371,7 @@ class _LobbyContentState extends State<_LobbyContent> {
   // 컨텐츠 타입에 따라 해당 화면으로 이동 (extra에 LobbyData와 code를 Map으로 전달)
   void _onEnterPressed(BuildContext context) {
     final LobbyData data = widget.data;
+
     final Map<String, dynamic> extra = <String, dynamic>{
       'data': data,
       'code': widget.code,
