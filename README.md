@@ -1,14 +1,16 @@
 <div align="center">
-  <img src="[상단_배너_이미지_URL]" alt="Gifo Banner" width="100%">
+  <img src="https://github.com/user-attachments/assets/1e52aa25-761a-485e-b4db-4959a71da67a" alt="Gifo Banner" width="100%">
 </div>
 
 <br>
 <div align="center">
-  <a href="[앱_또는_웹_링크]">[ 서비스 구경하기 ]</a>
+  <a href="https://gifo.co.kr/">[ 사이트 바로가기 ]</a>
 </div>
 <br>
 
-📢 본 프로젝트는 예측 불가능한 선물의 설렘을 디지털 환경에서 극대화하기 위해 개발된 **프라이빗 선물 커스텀 포장 플랫폼 "Gifo"** 입니다.
+# 💾 프로젝트 소개
+
+> 📢 예측 불가능한 선물의 설렘을 디지털 환경에서 극대화하기 위해 개발된 **프라이빗 선물 커스텀 포장 플랫폼 "Gifo"** 입니다.
 
 <br>
 
@@ -17,9 +19,6 @@
 
 최근 SNS 플랫폼의 발달로 간편하게 선물을 주고받는 시대가 되었지만, 편리함이 커진 만큼 직접 대면하며 마음을 전하던 시절의 온기는 점차 줄어들고 있습니다. 특히 이미 품목을 알고 받는 **'예측 가능한'** 선물 방식은 받는 이의 기대감을 낮추고, 묘미를 온전히 전달하지 못합니다. 
 
-```text
-예측 불가능한 묘미
-```
 선물은 본래 예상치 못한 순간의 즐거움이 그 묘미였습니다. **Gifo**는 언어유희적 요소를 더해 선물을 주고받는 즐거움을 표현한 이름('기뽀')처럼, 이러한 설렘을 디지털 환경 상에서도 되살릴 수 없을까 하는 고민에서 출발했습니다. 특정 대상을 한정 짓지 않고 누구나 마음을 나눌 수 있게 설계되었습니다.
 
 <br>
@@ -54,11 +53,11 @@
       <td align="center"><a href="https://github.com/HwangSedong"><b>황세동</b></a></td>
     </tr>
     <tr>
-      <td align="center"><img src="[박준영_이미지]" width="100"></td>
-      <td align="center"><img src="[김해수_이미지]" width="100"></td>
-      <td align="center"><img src="[심동훈_이미지]" width="100"></td>
-      <td align="center"><img src="[장현석_이미지]" width="100"></td>
-      <td align="center"><img src="[황세동_이미지]" width="100"></td>
+      <td align="center"><img src="https://avatars.githubusercontent.com/u/92419169?v=4" width="100"></td>
+      <td align="center"><img src="https://avatars.githubusercontent.com/u/63633387?v=4" width="100"></td>
+      <td align="center"><img src="https://avatars.githubusercontent.com/u/110652278?v=4" width="100"></td>
+      <td align="center"><img src="https://avatars.githubusercontent.com/u/74901548?v=4" width="100"></td>
+      <td align="center"><img src="https://avatars.githubusercontent.com/u/107477778?v=4" width="100"></td>
     </tr>
     <tr>
       <td align="center">👑 PM & Front-End</td>
