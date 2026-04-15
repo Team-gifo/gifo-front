@@ -17,7 +17,6 @@ dependencies:
   freezed: ^3.2.5
   retrofit: ^4.9.2
   flutter_dotenv: ^6.0.0
-  flutter_secure_storage: ^10.0.0
   logger: ^2.6.2
   dio: ^5.9.1
   image_picker: ^1.2.1
@@ -63,7 +62,6 @@ flutter:
     - assets/images/
     - assets/images/icons/
     - assets/images/example/
-    - assets/lottie/
 
   fonts:
     - family: PFStardust
