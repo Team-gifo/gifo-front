@@ -251,25 +251,49 @@ flutter run -d chrome --web-browser-flag "--disable-web-security"
 
 ```text
 Gifo-Front/
+├── CLAUDE.md                    # AI 맥락 인덱스 (아키텍처/기능/비즈니스 로직 문서 색인)
 ├── assets/
-│   ├── fonts/         # 커스텀 폰트 (PFStardust, WantedSans 등)
-│   ├── images/        # 정적 이미지 및 로고 에셋
-│   └── lottie/        # Lottie 애니메이션 에셋 (.json)
+│   ├── fonts/                   # 커스텀 폰트 (PFStardust, WantedSans)
+│   └── images/                  # 정적 이미지 및 아이콘 에셋
+│
+├── docs/                        # 프로젝트 설계 문서 모음
+│   ├── architecture/            # Clean Architecture 구조, 라우팅, 상태관리, 네트워킹 설계
+│   ├── business-logic/          # 각 Feature의 입출력 플로우 및 핵심 비즈니스 규칙
+│   ├── development/             # 완료 기능 목록, TODO, 코딩 컨벤션
+│   ├── environment/             # 개발환경 설정, 의존성, SEO 설정
+│   └── features/                # Feature별 화면 구성 및 BLoC 이벤트 명세
 │
 └── lib/
-    ├── core/          # ⚙️ 전역 설정 및 유틸리티 (Clean Architecture)
-    │   ├── constants/
-    │   ├── di/        # Service Locator (GetIt) 설정을 통한 의존성 주입
-    │   ├── router/    # GoRouter / ShellRoute 설정
-    │   └── widgets/   # App 공통 UI 위젯 모음
+    ├── main.dart                # 앱 진입점
+    ├── core/                    # 전역 설정 및 공통 유틸리티
+    │   ├── blocs/               # 앱 공통 BLoC (다운로드 등)
+    │   ├── constants/           # 색상, 브레이크포인트 등 전역 상수
+    │   ├── di/                  # GetIt 서비스 로케이터 및 의존성 등록
+    │   ├── router/              # GoRouter 전체 라우트 정의 (ShellRoute 포함)
+    │   ├── utils/               # 날짜 포맷, 파일 다운로드, 공유 헬퍼
+    │   └── widgets/             # 앱 전역 공통 UI 위젯
     │
-    ├── features/      # 📦 비즈니스 도메인별 모듈 (Feature 기반 분리)
-    │   ├── addgift/   # [발신자] 8단계 맞춤형 선물 포장 컴포넌트
-    │   ├── content/   # [수신자] 게임(가챠/퀴즈/언박싱) 및 전역 오디오
-    │   ├── home/      # 서비스 랜딩 및 메인 화면
-    │   └── lobby/     # [수신자] URL 진입 검증 및 로비, 갤러리 뷰
-    │
-    └── main.dart      # 앱 진입점
+    └── features/                # 비즈니스 도메인별 Feature 모듈
+        ├── home/                # 서비스 랜딩 및 메인 화면
+        │   └── presentation/    # HomeView, InviteModal, GiftModeModal
+        │
+        ├── addgift/             # [발신자] 맞춤형 선물 포장 플로우
+        │   ├── application/     # 포장 흐름 BLoC (GiftPackagingBloc, QuizSettingBloc)
+        │   ├── model/           # 포장 요청 데이터 모델 (Freezed)
+        │   ├── presentation/    # 단계별 뷰(Views) 및 하위 위젯(Widgets)
+        │   └── repository/      # POST /api/events (Retrofit)
+        │
+        ├── content/             # [수신자] 게임 콘텐츠 (가챠/퀴즈/언박싱) 및 BGM
+        │   ├── application/     # 콘텐츠 BLoC 모음 (gacha / quiz / unboxing / result / audio)
+        │   ├── model/           # 콘텐츠 응답 데이터 모델 (Freezed)
+        │   ├── presentation/    # 콘텐츠별 뷰 및 공통 위젯 (BGM 토글, 기프티콘 프레임)
+        │   └── repository/      # 콘텐츠 API 호출 및 도메인 변환
+        │
+        └── lobby/               # [수신자] URL 진입 검증, 로비, 메모리 갤러리
+            ├── application/     # LobbyBloc, MemoryGalleryActionBloc
+            ├── model/           # 로비 응답 데이터 모델
+            ├── presentation/    # LobbyView, MemoryGalleryView
+            └── repository/      # 로비 API 호출 및 도메인 변환
 ```
 
 ### 📚 주요 프론트엔드 라이브러리
