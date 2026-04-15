@@ -128,21 +128,122 @@ Gifo는 정성스럽게 준비된 마음이 시간이 지나도 빛바래지 않
 <br>
 
 ### 🏗️ 기술 스택 & 개발 도구
-### Front-End
-- **Flutter** (Dart Version: >=3.0.0)
 
-### Backend (참고)
-- **Java 17 & Spring Boot**
+#### Front-End
+- **Flutter** 3.41.1 (Dart SDK: >=3.11.0 <4.0.0)
+
+#### Back-End (참고)
+- **Java 17** & **Spring Boot**
 - **Spring Security**
 - **Spring Data JPA**
 
-### AI Model
-- **Google Antigravity**
-- **Google Stitch** : 
+#### AI Tools
+- **Google Antigravity** : AI 기반 IDE 환경에서 개발 보조
+- **Google Stitch** : AI를 활용한 UI 디자인 프레임 참고
 
-### Documentation & Design
-- **Figma** : 스토리 보드 및 UI/UX
-- **Notion** : 프로젝트 문서 관리 및 API 연동 명세
+#### Documentation & Design
+- **Figma** : 스토리보드 및 UI/UX 설계
+- **Trello** : 이슈 티켓 및 작업 관리
+- **Notion** : 프로젝트 문서화 및 API 연동 명세
+
+<br>
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+본 프로젝트를 로컬 환경에서 실행하기 위해 아래 요구사항을 충족해야 합니다.
+
+| 항목 | 최소 버전 |
+| --- | --- |
+| Flutter | 3.41.1 (stable) |
+| Dart SDK | >=3.11.0 <4.0.0 |
+
+Flutter 설치 및 환경 구성은 [공식 문서](https://docs.flutter.dev/get-started/install)를 참고하세요.
+
+현재 Flutter 환경 상태는 아래 명령어로 확인할 수 있습니다.
+
+```bash
+flutter doctor -v
+```
+
+---
+
+### 1. 저장소 클론
+
+```bash
+git clone https://github.com/Team-gifo/gifo-front.git
+cd gifo-front
+```
+
+---
+
+### 2. 환경 변수 설정 (.env)
+
+프로젝트 루트 디렉토리에 `.env` 파일을 직접 생성해야 합니다.  
+이 파일은 `.gitignore`에 포함되어 있어 저장소에 포함되지 않습니다.
+
+```bash
+# 프로젝트 루트에 .env 파일 생성
+touch .env
+```
+
+`.env` 파일에 아래 내용을 작성합니다.
+
+```dotenv
+url = [서버 통신 URL]
+```
+
+> **Note**  
+> `url` 값은 API 서버의 Base URL입니다. 로컬 개발 서버를 사용하는 경우 해당 주소로 변경하세요.
+
+---
+
+### 3. 의존성 패키지 설치
+
+```bash
+flutter pub get
+```
+
+코드 생성이 필요한 파일(`freezed`, `retrofit` 등)을 재생성하려면 아래 명령어를 실행합니다.
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+```
+
+---
+
+### 4. 앱 실행
+
+**Chrome (웹, 기본)**
+
+```bash
+flutter run -d chrome
+```
+
+**Chrome (웹, 릴리즈 + Wasm)**
+
+성능 최적화된 Wasm 렌더러를 활성화하여 실행합니다.
+
+```bash
+flutter run -d chrome --release --wasm
+```
+
+---
+
+### 5. CORS 에러 대처 (로컬 개발 환경)
+
+로컬 환경에서 API 서버와 통신 시 브라우저의 CORS 정책으로 인해 요청이 차단될 수 있습니다.  
+개발 중에는 아래 명령어로 Chrome의 보안 정책을 비활성화하여 실행할 수 있습니다.
+
+```bash
+flutter run -d chrome --web-browser-flag "--disable-web-security"
+```
+
+> **Warning**  
+> `--disable-web-security` 옵션은 로컬 개발 목적으로만 사용해야 합니다.  
+> 프로덕션 빌드 또는 실제 배포 환경에서는 절대 사용하지 마세요.  
+> 서버 측 CORS 설정이 완료된 이후에는 해당 플래그 없이 정상 실행됩니다.
 
 <br>
 
