@@ -80,6 +80,12 @@
   - [x] 결과 팝업 애니메이션 오픈 효과 적용
   - [x] 텍스트 타이핑 효과 + 시차 폭죽 애니메이션 반영
   - [x] 다운로드 및 공유 기능 재구조화 (inviteCode 활용)
+- [x] 공용 BGM 재생 및 토글 제어 (`ContentAudioBloc` + `just_audio`)
+  - [x] 브라우저 자동 재생 차단 정책 완전 준수 (명시적 수동 ON/OFF 전용 UI로 전환)
+  - [x] ShellRoute를 통한 전역 BGM 플레이어 상태 유지 및 `isMuted` 동기화 버그 해결
+  - [x] 복잡한 애니메이션 제거 및 `context.watch<ContentAudioBloc>()` 네이티브 `OutlinedButton` 도입으로 반응성 극대화
+  - [x] 백그라운드 스트림 간섭(비동기 덮어쓰기) 방어 로직 구축하여 OFF/Pause 상태 강제 유지
+  - [x] 앱바(`LobbyView`, `MemoryGalleryView`, `GachaView`, `QuizView`)의 BGM 버튼 우측에 `8px` 여백 보장
 - [x] 메인 로고 클릭 내비게이션 기능 (로비, 퀴즈, 결과 뷰 연동)
 - [x] 선물 오픈 플로우 이미지 처리 고도화 (`GiftImageWidget`)
   - [x] 서버 이미지 URL이 공백인 경우 `default_box.png` 대체 이미지 표시

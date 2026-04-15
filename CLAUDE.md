@@ -56,6 +56,7 @@
 | [business-logic/unboxing-logic.md](docs/business-logic/unboxing-logic.md) | 언박싱 초기화, 선물 수령, 결과 이동 |
 | [business-logic/lobby-validation.md](docs/business-logic/lobby-validation.md) | 초대 코드 검증 흐름 (BLoC → Repository → dummy/API) |
 | [business-logic/memory-gallery-logic.md](docs/business-logic/memory-gallery-logic.md) | 메모리 갤러리 정렬/재정렬, 부모 BLoC 동기화 |
+| [business-logic/content-audio-logic.md](docs/business-logic/content-audio-logic.md) | 수신자 BGM 수동 토글, 브라우저 정책(Autoplay), 비동기 스트림 방어 제어 흐름 |
 
 ---
 
@@ -87,6 +88,8 @@ lib/features/addgift/repository/addgift_api.dart           # POST /api/events
 lib/features/content/application/gacha/gacha_bloc.dart
 lib/features/content/application/quiz/quiz_bloc.dart
 lib/features/content/application/unboxing/unboxing_bloc.dart
+lib/features/content/application/content_audio/content_audio_bloc.dart # 컨텐츠 BGM 상태 관리 (수동 토글 전용)
+lib/features/content/presentation/widgets/content_audio_toggle.dart # 컨텐츠 공용 BGM 토글 UI
 
 # 로비
 lib/features/lobby/model/lobby_data.dart                   # 로비 데이터 모델 및 공용 데이터 스토어
