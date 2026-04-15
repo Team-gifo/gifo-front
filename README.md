@@ -146,6 +146,71 @@ Gifo는 정성스럽게 준비된 마음이 시간이 지나도 빛바래지 않
 - **Trello** : 이슈 티켓 및 작업 관리
 - **Notion** : 프로젝트 문서화 및 API 연동 명세
 
+## 📁 프로젝트 구조 (Front-End)
+
+```text
+Gifo-Front/
+├── CLAUDE.md                    # AI 맥락 인덱스 (아키텍처/기능/비즈니스 로직 문서 색인)
+├── assets/
+│   ├── fonts/                   # 커스텀 폰트 (PFStardust, WantedSans)
+│   └── images/                  # 정적 이미지 및 아이콘 에셋
+│
+├── docs/                        # 프로젝트 설계 문서 모음
+│   ├── architecture/            # Clean Architecture 구조, 라우팅, 상태관리, 네트워킹 설계
+│   ├── business-logic/          # 각 Feature의 입출력 플로우 및 핵심 비즈니스 규칙
+│   ├── development/             # 완료 기능 목록, TODO, 코딩 컨벤션
+│   ├── environment/             # 개발환경 설정, 의존성, SEO 설정
+│   └── features/                # Feature별 화면 구성 및 BLoC 이벤트 명세
+│
+└── lib/
+    ├── main.dart                # 앱 진입점
+    ├── core/                    # 전역 설정 및 공통 유틸리티
+    │   ├── blocs/               # 앱 공통 BLoC (다운로드 등)
+    │   ├── constants/           # 색상, 브레이크포인트 등 전역 상수
+    │   ├── di/                  # GetIt 서비스 로케이터 및 의존성 등록
+    │   ├── router/              # GoRouter 전체 라우트 정의 (ShellRoute 포함)
+    │   ├── utils/               # 날짜 포맷, 파일 다운로드, 공유 헬퍼
+    │   └── widgets/             # 앱 전역 공통 UI 위젯
+    │
+    └── features/                # 비즈니스 도메인별 Feature 모듈
+        ├── home/                # 서비스 랜딩 및 메인 화면
+        │   └── presentation/    # HomeView, InviteModal, GiftModeModal
+        │
+        ├── addgift/             # [발신자] 맞춤형 선물 포장 플로우
+        │   ├── application/     # 포장 흐름 BLoC (GiftPackagingBloc, QuizSettingBloc)
+        │   ├── model/           # 포장 요청 데이터 모델 (Freezed)
+        │   ├── presentation/    # 단계별 뷰(Views) 및 하위 위젯(Widgets)
+        │   └── repository/      # POST /api/events (Retrofit)
+        │
+        ├── content/             # [수신자] 게임 콘텐츠 (가챠/퀴즈/언박싱) 및 BGM
+        │   ├── application/     # 콘텐츠 BLoC 모음 (gacha / quiz / unboxing / result / audio)
+        │   ├── model/           # 콘텐츠 응답 데이터 모델 (Freezed)
+        │   ├── presentation/    # 콘텐츠별 뷰 및 공통 위젯 (BGM 토글, 기프티콘 프레임)
+        │   └── repository/      # 콘텐츠 API 호출 및 도메인 변환
+        │
+        └── lobby/               # [수신자] URL 진입 검증, 로비, 메모리 갤러리
+            ├── application/     # LobbyBloc, MemoryGalleryActionBloc
+            ├── model/           # 로비 응답 데이터 모델
+            ├── presentation/    # LobbyView, MemoryGalleryView
+            └── repository/      # 로비 API 호출 및 도메인 변환
+```
+
+### 📚 주요 프론트엔드 라이브러리
+<div align="center">
+
+| 이름            | 설명                            | 목적 |
+| -------------- | ----------------------------- | ----------------- |
+| `flutter_bloc` | 상태관리 프레임워크                | 복잡한 비즈니스 로직과 UI 렌더링을 완전히 분리 |
+| `go_router`    | 선언적 라우팅 패키지               | 프라이빗 URL 기반 파라미터 전달 및 ShellRoute 구현 |
+| `freezed`      | 데이터 모델 생성 패턴               | 불변 객체(Immutable) 보장 및 JSON 직렬화 |
+| `retrofit / dio`| REST API 통신 클라이언트         | 직관적이고 안정적인 서버 API 통신 인터페이스 구성 |
+| `get_it`       | 의존성 주입(DI) 서비스 로케이터      | BLoC 및 Repository 패턴 간 결합도 완화 최소화 |
+| `just_audio`   | 미디어 플레이어                   | 브라우저 정책(Autoplay)을 방어하는 수동 토글 BGM 연주 |
+| `skeletonizer` | 로딩 UI 최적화 패키지              | 비동기 네트워크 이미지/데이터 통신 시 사용자 UX 개선 |
+| `animated_text_kit` | 타이포그래피 애니메이션 패키지    | 결과창 등의 텍스트 타이핑 및 연출 극대화 |
+
+</div>
+
 <br>
 
 ## 🚀 Getting Started
@@ -247,70 +312,6 @@ flutter run -d chrome --web-browser-flag "--disable-web-security"
 
 <br>
 
-## 📁 프로젝트 구조 (Front-End)
-
-```text
-Gifo-Front/
-├── CLAUDE.md                    # AI 맥락 인덱스 (아키텍처/기능/비즈니스 로직 문서 색인)
-├── assets/
-│   ├── fonts/                   # 커스텀 폰트 (PFStardust, WantedSans)
-│   └── images/                  # 정적 이미지 및 아이콘 에셋
-│
-├── docs/                        # 프로젝트 설계 문서 모음
-│   ├── architecture/            # Clean Architecture 구조, 라우팅, 상태관리, 네트워킹 설계
-│   ├── business-logic/          # 각 Feature의 입출력 플로우 및 핵심 비즈니스 규칙
-│   ├── development/             # 완료 기능 목록, TODO, 코딩 컨벤션
-│   ├── environment/             # 개발환경 설정, 의존성, SEO 설정
-│   └── features/                # Feature별 화면 구성 및 BLoC 이벤트 명세
-│
-└── lib/
-    ├── main.dart                # 앱 진입점
-    ├── core/                    # 전역 설정 및 공통 유틸리티
-    │   ├── blocs/               # 앱 공통 BLoC (다운로드 등)
-    │   ├── constants/           # 색상, 브레이크포인트 등 전역 상수
-    │   ├── di/                  # GetIt 서비스 로케이터 및 의존성 등록
-    │   ├── router/              # GoRouter 전체 라우트 정의 (ShellRoute 포함)
-    │   ├── utils/               # 날짜 포맷, 파일 다운로드, 공유 헬퍼
-    │   └── widgets/             # 앱 전역 공통 UI 위젯
-    │
-    └── features/                # 비즈니스 도메인별 Feature 모듈
-        ├── home/                # 서비스 랜딩 및 메인 화면
-        │   └── presentation/    # HomeView, InviteModal, GiftModeModal
-        │
-        ├── addgift/             # [발신자] 맞춤형 선물 포장 플로우
-        │   ├── application/     # 포장 흐름 BLoC (GiftPackagingBloc, QuizSettingBloc)
-        │   ├── model/           # 포장 요청 데이터 모델 (Freezed)
-        │   ├── presentation/    # 단계별 뷰(Views) 및 하위 위젯(Widgets)
-        │   └── repository/      # POST /api/events (Retrofit)
-        │
-        ├── content/             # [수신자] 게임 콘텐츠 (가챠/퀴즈/언박싱) 및 BGM
-        │   ├── application/     # 콘텐츠 BLoC 모음 (gacha / quiz / unboxing / result / audio)
-        │   ├── model/           # 콘텐츠 응답 데이터 모델 (Freezed)
-        │   ├── presentation/    # 콘텐츠별 뷰 및 공통 위젯 (BGM 토글, 기프티콘 프레임)
-        │   └── repository/      # 콘텐츠 API 호출 및 도메인 변환
-        │
-        └── lobby/               # [수신자] URL 진입 검증, 로비, 메모리 갤러리
-            ├── application/     # LobbyBloc, MemoryGalleryActionBloc
-            ├── model/           # 로비 응답 데이터 모델
-            ├── presentation/    # LobbyView, MemoryGalleryView
-            └── repository/      # 로비 API 호출 및 도메인 변환
-```
-
-### 📚 주요 프론트엔드 라이브러리
-<div align="center">
-
-| 이름            | 설명                            | 목적 |
-| -------------- | ----------------------------- | ----------------- |
-| `flutter_bloc` | 상태관리 프레임워크                | 복잡한 비즈니스 로직과 UI 렌더링을 완전히 분리 |
-| `go_router`    | 선언적 라우팅 패키지               | 프라이빗 URL 기반 파라미터 전달 및 ShellRoute 구현 |
-| `freezed`      | 데이터 모델 생성 패턴               | 불변 객체(Immutable) 보장 및 JSON 직렬화 |
-| `retrofit / dio`| REST API 통신 클라이언트         | 직관적이고 안정적인 서버 API 통신 인터페이스 구성 |
-| `get_it`       | 의존성 주입(DI) 서비스 로케이터      | BLoC 및 Repository 패턴 간 결합도 완화 최소화 |
-| `just_audio`   | 미디어 플레이어                   | 브라우저 정책(Autoplay)을 방어하는 수동 토글 BGM 연주 |
-| `skeletonizer` | 로딩 UI 최적화 패키지              | 비동기 네트워크 이미지/데이터 통신 시 사용자 UX 개선 |
-| `animated_text_kit` | 타이포그래피 애니메이션 패키지    | 결과창 등의 텍스트 타이핑 및 연출 극대화 |
-
-</div>
 
 <br>
 
