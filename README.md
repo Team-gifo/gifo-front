@@ -1,3 +1,4 @@
+
 <div align="center">
   <img src="https://github.com/user-attachments/assets/1e52aa25-761a-485e-b4db-4959a71da67a" alt="Gifo Banner" width="100%">
 </div>
@@ -362,12 +363,16 @@ flutter run -d chrome --web-browser-flag "--disable-web-security"
 ## 🖥️ 구동 화면
 >[구동 화면을 보여줄 스크린샷과 GIF를 아래에 배치해주세요]
 
-### 랜딩 & 선물 포장하기 (메인 뷰)
-![메인 뷰]([메인뷰_스크린샷_링크])
+### 메인화면 & 선물 포장하기 Modal
+https://github.com/user-attachments/assets/b95b9c1a-e57d-4b3d-ba9c-1a645db94807
 
-### 맞춤형 포장 플로우 (Step 1 ~ 8)
-![포장 첫단계 스크린샷]([포장_스크린샷_링크])
-![포장 갤러리 스크린샷]([갤러리_스크린샷_링크])
+https://github.com/user-attachments/assets/e88ea9e2-cb05-4b9e-bff3-af5013deb419
+
+### 선물 포장 (닉네임 입력)
+https://github.com/user-attachments/assets/495251d3-362a-48ff-bfe3-efc5c9135198
+
+### 선물 포장 (추억 갤러리)
+https://github.com/user-attachments/assets/b23b600e-7ca8-486c-aaad-4dc1536c37fd
 
 ### 선물 확인하기 (로비 & 메모리 갤러리)
 ![로비 뷰]([로비뷰_스크린샷_링크])
