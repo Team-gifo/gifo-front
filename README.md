@@ -1,4 +1,3 @@
-
 <div align="center">
   <img src="https://github.com/user-attachments/assets/1e52aa25-761a-485e-b4db-4959a71da67a" alt="Gifo Banner" width="100%">
 </div>
@@ -361,29 +360,50 @@ flutter run -d chrome --web-browser-flag "--disable-web-security"
 <br>
 
 ## 🖥️ 구동 화면
->[구동 화면을 보여줄 스크린샷과 GIF를 아래에 배치해주세요]
 
 ### 메인화면 & 선물 포장하기 Modal
-https://github.com/user-attachments/assets/b95b9c1a-e57d-4b3d-ba9c-1a645db94807
+<img width="1336" height="761" alt="1" src="https://github.com/user-attachments/assets/c879c3f1-a947-487b-b4e7-d9cfbb15ce13" />
 
-https://github.com/user-attachments/assets/e88ea9e2-cb05-4b9e-bff3-af5013deb419
+<img width="1336" height="761" alt="2" src="https://github.com/user-attachments/assets/950aaeca-49fe-4515-8adb-831b1f7f4b91" />
 
 ### 선물 포장 (닉네임 입력)
-https://github.com/user-attachments/assets/495251d3-362a-48ff-bfe3-efc5c9135198
+<img width="1870" height="1065" alt="3" src="https://github.com/user-attachments/assets/98288718-eede-4ebb-a469-ec1bc00bd400" />
 
 ### 선물 포장 (추억 갤러리)
-https://github.com/user-attachments/assets/b23b600e-7ca8-486c-aaad-4dc1536c37fd
+<img width="1336" height="761" alt="4" src="https://github.com/user-attachments/assets/5e9955e0-e4bd-49ba-b365-e2ecdc0d2b76" />
 
-### 선물 확인하기 (로비 & 메모리 갤러리)
-![로비 뷰]([로비뷰_스크린샷_링크])
-![프라이빗 갤러리 뷰]([갤러리뷰_스크린샷_링크])
+### 선물 포장 (캡슐 뽑기)
+<img width="1870" height="1065" alt="5" src="https://github.com/user-attachments/assets/cfe5e5a9-8dba-4e34-8009-2b99acf6c972" />
 
-### 콘텐츠 체험 (가챠 랜덤 뽑기 & 퀴즈)
-![가챠 캡슐 뽑기]([가챠_스크린샷_링크])
-![언박싱 및 퀴즈]([퀴즈_스크린샷_링크])
+### 선물 포장 (문제 맞추기)
+<img width="1603" height="913" alt="6" src="https://github.com/user-attachments/assets/94f7238d-4837-4570-ad88-f9ba0810a3f9" />
 
-### 결과 및 완료
-![공통 결과 및 편지 뷰]([결과_스크린샷_링크])
+### 선물 포장 (서프라이즈)
+<img width="1870" height="1065" alt="7" src="https://github.com/user-attachments/assets/2981798d-5065-4715-816f-11f153a3cf1b" />
+
+### 선물 포장 완료
+<img width="1870" height="1065" alt="8" src="https://github.com/user-attachments/assets/262adbf6-837e-4fb3-a99b-ba498788b922" />
+
+### 초대코드 입력
+<img width="1870" height="1065" alt="9" src="https://github.com/user-attachments/assets/43e4a2b9-f4e9-4019-87bc-48f5e9be5367" />
+
+### 선물 오픈 (로비)
+<img width="1870" height="1065" alt="10" src="https://github.com/user-attachments/assets/c8fbe120-9db6-48ce-ac74-c66c95f54474" />
+
+### 선물 오픈 (추억 갤러리)
+<img width="1603" height="913" alt="12" src="https://github.com/user-attachments/assets/87aa232e-9d62-476b-a4eb-6f532bd39cea" />
+
+### 선물 오픈 (캡슐 뽑기)
+<img width="1870" height="1065" alt="13" src="https://github.com/user-attachments/assets/15743910-e565-4004-b482-2589217e02a7" />
+
+### 선물 오픈 (문제 맞추기)
+<img width="1870" height="1065" alt="14" src="https://github.com/user-attachments/assets/8e2be9da-0319-44af-aaa4-eaf3d783ed24" />
+
+### 선물 오픈 (서프라이즈)
+<img width="1876" height="1065" alt="16" src="https://github.com/user-attachments/assets/8c53efa2-1b31-414e-aeb4-59cfb4389735" />
+
+### 선물 오픈 (결과창)
+<img width="1870" height="1065" alt="15" src="https://github.com/user-attachments/assets/594ffe7e-7229-4a07-aa71-d11df05b7895" />
 
 <br>
 
