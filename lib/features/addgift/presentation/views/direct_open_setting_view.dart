@@ -81,7 +81,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
       if (unboxingContent.afterOpen.imageUrl.isNotEmpty) {
         afterImageFile = XFile(unboxingContent.afterOpen.imageUrl);
       }
-      
+
       _beforeDescController.text = beforeDescription;
       _afterNameController.text = afterItemName;
     }
@@ -95,6 +95,7 @@ class _DirectOpenSettingContentState extends State<_DirectOpenSettingContent> {
       afterImageFile: afterImageFile,
       afterItemName: afterItemName,
     ));
+
 
     _userNameController.addListener(() {
       context.read<GiftPackagingBloc>().add(

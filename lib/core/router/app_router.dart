@@ -5,9 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../../core/blocs/download/download_bloc.dart';
 import '../../features/addgift/application/bgm_preset/bgm_preset_bloc.dart';
 import '../../features/addgift/application/gift_packaging_bloc.dart';
-import '../../features/addgift/presentation/views/ai_intro_view.dart';
+import '../../features/addgift/presentation/views/ai_template_survey_view.dart';
 import '../../features/addgift/presentation/views/direct_open_setting_view.dart';
 import '../../features/addgift/presentation/views/gacha_setting_view.dart';
+import '../../features/addgift/presentation/views/final_review_view.dart';
 import '../../features/addgift/presentation/views/gift_delivery_method_view.dart';
 import '../../features/addgift/presentation/views/memory_decision_view.dart';
 import '../../features/addgift/presentation/views/memory_gallery_setting_view.dart';
@@ -292,10 +293,23 @@ final GoRouter appRouter = GoRouter(
           path: '/addgift',
           pageBuilder: (BuildContext context, GoRouterState state) {
             final String? mode = state.uri.queryParameters['mode'];
+            final bool resume = state.uri.queryParameters['resume'] == 'true';
             if (mode == 'ai') {
-              return const NoTransitionPage<void>(child: AiIntroView());
+              return const NoTransitionPage<void>(child: AiTemplateSurveyView());
             }
-            return const NoTransitionPage<void>(child: ReceiverNameView());
+            return NoTransitionPage<void>(
+              child: ReceiverNameView(resetOnEnter: !resume),
+            );
+          },
+        ),
+        // AI 추천 결과(혹은 수동 입력값) 최종 확인 화면
+        GoRoute(
+          path: '/addgift/final-review',
+          pageBuilder: (BuildContext context, GoRouterState state) {
+            final bool fromAi = state.uri.queryParameters['fromAi'] == 'true';
+            return NoTransitionPage<void>(
+              child: FinalReviewView(fromAi: fromAi),
+            );
           },
         ),
         // 선물 포장 - 추억 공유 여부 선택 화면

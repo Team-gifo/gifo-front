@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:gifo/features/addgift/model/gallery_item.dart';
@@ -13,6 +16,26 @@ import '../widgets/memory_gallery/memory_gallery_bottom_bar.dart';
 import '../widgets/memory_gallery/memory_gallery_desktop_body.dart';
 import '../widgets/memory_gallery/memory_gallery_mobile_body.dart';
 import '../widgets/step_indicator.dart';
+
+Widget _buildImageFromPath(String path, {BoxFit fit = BoxFit.cover}) {
+  if (path.startsWith('data:image')) {
+    final int commaIndex = path.indexOf(',');
+    if (commaIndex != -1 && commaIndex + 1 < path.length) {
+      final String rawBase64 = path.substring(commaIndex + 1);
+      try {
+        return Image.memory(base64Decode(rawBase64), fit: fit);
+      } catch (_) {
+        return const Icon(Icons.broken_image, color: Colors.grey);
+      }
+    }
+  }
+  return Image.network(
+    path,
+    fit: fit,
+    errorBuilder: (_, __, ___) =>
+        const Icon(Icons.broken_image, color: Colors.grey),
+  );
+}
 
 class MemoryGallerySettingView extends StatelessWidget {
   const MemoryGallerySettingView({super.key});

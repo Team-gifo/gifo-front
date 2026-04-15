@@ -140,6 +140,7 @@ class _QuizSettingContentState extends State<_QuizSettingContent> {
       ),
     );
 
+
     _userNameController.addListener(() {
       context.read<GiftPackagingBloc>().add(
         SetReceiverName(_userNameController.text),
